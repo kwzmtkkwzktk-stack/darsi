@@ -2,25 +2,27 @@
 const express = require("express");
 const path = require("path");
 const { MongoClient } = require("mongodb");
+const crypto = require("crypto");
 
 const app = express();
-
 app.use(express.json({ limit: "1mb" }));
 
-// إعدادات قاعدة البيانات
+let client;
 let dbPromise;
 
 async function db() {
-  if (!dbPromise) {
-    if (!process.env.MONGODB_URI) {
-      throw new Error("MONGODB_URI is not configured");
-    }
+  if (!process.env.MONGODB_URI) {
+    throw new Error("MONGODB_URI is not configured");
+  }
 
-    dbPromise = new MongoClient(process.env.MONGODB_URI)
-      .connect()
-      .then(client => client.db("darsi"))
+  if (!dbPromise) {
+    client = new MongoClient(process.env.MONGODB_URI);
+
+    dbPromise = client.connect()
+      .then(() => client.db("darsi"))
       .catch(error => {
         dbPromise = null;
+        client = null;
         throw error;
       });
   }
@@ -28,56 +30,71 @@ async function db() {
   return dbPromise;
 }
 
-// الصفحة الرئيسية
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index-1.html"), err => {
-    if (err && !res.headersSent) {
-      res.status(500).send(
-        "تعذر فتح صفحة الموقع. تأكد من وجود ملف index-1.html."
-      );
-    }
-  });
-});
-
-// البحث عن بيانات الطالب
-app.get("/api/student", async (req, res) => {
+// فحص اتصال الموقع وقاعدة البيانات
+app.get("/api/health", async (req, res) => {
   try {
-    const code = String(req.query.code || "").replace(/\D/g, "");
+    const database = await db();
+    await database.command({ ping: 1 });
 
-    if (code.length < 4) {
-      return res.sendStatus(404);
-    }
-
-    const collection = (await db()).collection("students");
-    const student = await collection.findOne({ _id: code });
-
-    if (!student) {
-      return res.sendStatus(404);
-    }
-
-    res.set("Cache-Control", "no-store");
-
-    return res.json({
-      n: student.n,
-      g: student.g,
-      x: student.x || {},
-      ab: student.ab || []
+    res.json({
+      ok: true,
+      database: "darsi",
+      connected: true
     });
   } catch (error) {
-    console.error("Student API error:", error);
-    return res.status(500).json({
-      error: "حدث خطأ في الخادم"
+    console.error("Health check failed:", error.message);
+    res.status(503).json({
+      ok: false,
+      connected: false
     });
   }
 });
 
-// إدارة بيانات الطلاب
+// الصفحة الرئيسية
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index-1.html"), err => {
+    if (err && !res.headersSent) {
+      res.status(500).send("تعذر فتح ملف index-1.html");
+    }
+  });
+});
+
+// بيانات الطالب حسب الكود
+app.get("/api/student", async (req, res) => {
+  try {
+    const code = String(req.query.code || "");
+
+    if (!/^\d{4,12}$/.test(code)) {
+      return res.sendStatus(404);
+    }
+
+    const student = await (await db())
+      .collection("students")
+      .findOne({ _id: code });
+
+    res.set("Cache-Control", "no-store");
+
+    if (!student) return res.sendStatus(404);
+
+    res.json({
+      n: student.n || "",
+      g: student.g || "",
+      x: student.x || {},
+      ab: student.ab || []
+    });
+  } catch (error) {
+    console.error("Student API error:", error.message);
+    res.status(500).json({ error: "حدث خطأ في الخادم" });
+  }
+});
+
+// لوحة الإدارة
 app.post("/api/admin", async (req, res) => {
   const body = req.body || {};
 
   if (
     !process.env.ADMIN_CODE ||
-    String(body.pass) !== process.env.ADMIN_CODE
+    String(body.pass || "") !== process.env.ADMIN_CODE
   ) {
     return res.sendStatus(401);
   }
@@ -89,6 +106,52 @@ app.post("/api/admin", async (req, res) => {
       return res.json({ ok: true });
     }
 
+    // إنشاء طالب جديد وكود دخول فريد
+    if (body.action === "create") {
+      const name = String(body.n || "").trim();
+
+      if (!name || name.length > 150) {
+        return res.status(400).json({
+          error: "اكتب اسم الطالب بصورة صحيحة"
+        });
+      }
+
+      let code;
+      let created = false;
+
+      for (let attempt = 0; attempt < 10; attempt++) {
+        code = String(
+          crypto.randomInt(10000000, 100000000)
+        );
+
+        try {
+          await collection.insertOne({
+            _id: code,
+            n: name,
+            g: "",
+            x: {},
+            ab: [],
+            createdAt: new Date()
+          });
+
+          created = true;
+          break;
+        } catch (error) {
+          if (error.code !== 11000) throw error;
+        }
+      }
+
+      if (!created) {
+        throw new Error("Could not generate a unique student code");
+      }
+
+      return res.status(201).json({
+        ok: true,
+        student: { c: code, n: name }
+      });
+    }
+
+    // عرض الطلاب
     if (body.action === "list") {
       const students = await collection
         .find({}, { projection: { n: 1 } })
@@ -98,77 +161,95 @@ app.post("/api/admin", async (req, res) => {
       return res.json(
         students.map(student => ({
           c: student._id,
-          n: student.n
+          n: student.n || ""
         }))
       );
     }
 
+    // نشر الدرجات
     if (body.action === "publish") {
       const items = Array.isArray(body.items) ? body.items : [];
 
       const operations = items
         .filter(item =>
           item &&
-          /^\d{4,}$/.test(String(item.c)) &&
+          /^\d{4,12}$/.test(String(item.c)) &&
           Number(item.e) >= 0 &&
           Number(item.e) <= 5 &&
-          Array.isArray(item.m)
+          Array.isArray(item.m) &&
+          item.m.every(row =>
+            Array.isArray(row) &&
+            row.length >= 2 &&
+            Number.isFinite(Number(row[1]))
+          )
         )
         .map(item => ({
           updateOne: {
             filter: { _id: String(item.c) },
             update: {
               $set: {
-                n: String(item.n),
-                g: String(item.g),
-                ["x." + Number(item.e)]: item.m.map(([subject, value]) => [
-                  String(subject),
-                  Number(value)
-                ])
+                n: String(item.n || ""),
+                g: String(item.g || ""),
+                ["x." + Number(item.e)]: item.m.map(
+                  ([subject, value]) => [
+                    String(subject),
+                    Number(value)
+                  ]
+                )
+              },
+              $setOnInsert: {
+                ab: [],
+                createdAt: new Date()
               }
             },
             upsert: true
           }
         }));
 
-      if (operations.length > 0) {
+      if (operations.length) {
         await collection.bulkWrite(operations);
       }
 
-      return res.json({
-        ok: true,
-        n: operations.length
-      });
+      return res.json({ ok: true, n: operations.length });
     }
 
+    // تسجيل غياب
     if (body.action === "absence") {
+      const code = String(body.c || "");
+
+      if (!/^\d{4,12}$/.test(code)) {
+        return res.status(400).json({ error: "كود غير صحيح" });
+      }
+
       await collection.updateOne(
-        { _id: String(body.c) },
-        { $addToSet: { ab: String(body.d) } }
+        { _id: code },
+        { $addToSet: { ab: String(body.d || "") } }
       );
 
       return res.json({ ok: true });
     }
 
+    // حذف طالب
     if (body.action === "delete") {
-      await collection.deleteOne({
-        _id: String(body.c)
-      });
+      const code = String(body.c || "");
 
+      if (!/^\d{4,12}$/.test(code)) {
+        return res.status(400).json({ error: "كود غير صحيح" });
+      }
+
+      await collection.deleteOne({ _id: code });
       return res.json({ ok: true });
     }
 
     return res.sendStatus(400);
   } catch (error) {
-    console.error("Admin API error:", error);
-
+    console.error("Admin API error:", error.message);
     return res.status(500).json({
       error: "حدث خطأ أثناء تنفيذ العملية"
     });
   }
 });
 
-// تشغيل الخادم على Render
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
