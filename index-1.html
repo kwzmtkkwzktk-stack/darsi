@@ -130,6 +130,29 @@ nav button.on{color:var(--pri);background:var(--pri2)}
 </nav>
 
 <script>
+/* ============ بيانات الطلاب (عدّل هنا فقط) ============
+ لكل طالب سطر بهذا الشكل:
+ "الرمز":{n:"اسم الطالب",g:رقم_الصف,x:{رقم_الامتحان:[الدرجات]},ab:["تاريخ الغياب"]},
+
+ رقم الصف g:
+  0 السادس الابتدائي: القرآن، العربية، الرياضيات، العلوم، الاجتماعيات، الإنكليزية، الإسلامية
+  1 الثالث المتوسط: العربية، الإنكليزية، الإسلامية، الرياضيات، الفيزياء، الكيمياء، الأحياء، التاريخ، الجغرافية
+  2 السادس الإعدادي علمي: العربية، الإنكليزية، الإسلامية، الرياضيات، الفيزياء، الكيمياء، الأحياء
+  3 السادس الإعدادي أدبي: العربية، الإنكليزية، الإسلامية، التاريخ، الجغرافية، الاقتصاد، الفلسفة
+ الدرجات تُكتب بنفس ترتيب المواد أعلاه.
+
+ رقم الامتحان x:
+  0 الشهر الأول، 1 الشهر الثاني، 2 الشهر الثالث، 3 نصف السنة،
+  4 الشهر الأول بعد نصف السنة، 5 الشهر الثاني بعد نصف السنة
+
+ ab: تواريخ الغياب بصيغة "سنة-شهر-يوم" مثل "2026-10-05" (اختياري).
+ لا تنسَ الفاصلة , بعد كل طالب عدا الأخير.
+======================================================= */
+var DATA={
+"8363873662":{n:"علي محمد علي",g:2,x:{0:[85,78,92,88,81,79,90],3:[80,75,90,84,79,77,88]},ab:["2026-10-05","2026-10-12"]}
+};
+</script>
+<script>
 var GR={
 "السادس الابتدائي":["القرآن الكريم","اللغة العربية","الرياضيات","العلوم","الاجتماعيات","اللغة الإنكليزية","التربية الإسلامية"],
 "الثالث المتوسط":["اللغة العربية","اللغة الإنكليزية","التربية الإسلامية","الرياضيات","الفيزياء","الكيمياء","الأحياء","التاريخ","الجغرافية"],
@@ -152,14 +175,14 @@ function ar(n){return String(n).replace(/\d/g,function(d){return "٠١٢٣٤٥٦
 document.querySelectorAll("nav button").forEach(function(b){b.onclick=function(){
   document.querySelectorAll("nav button").forEach(function(x){x.classList.toggle("on",x===b)});
   ["home","timer","tasks","subjects","result"].forEach(function(id){$("#"+id).classList.toggle("hide",id!==b.dataset.t)});
-  window.scrollTo(0,0);if(b.dataset.t==="subjects")rSubs();if((b.dataset.t==="result"||b.dataset.t==="tasks")&&S.me&&S.me!==ADM)refresh().then(function(){$("#rGo").click();rTasks()});
+  window.scrollTo(0,0);if(b.dataset.t==="subjects")rSubs();
 }});
 
 /* home */
 function rHome(){
   var g=$("#grade");g.innerHTML=Object.keys(GR).map(function(k){return "<option"+(k===S.grade?" selected":"")+">"+k+"</option>"}).join("");
   g.onchange=function(){S.grade=g.value;save();rAll()};
-  var h=new Date().getHours(),w=S.me&&S.me!==ADM&&(RES[S.me]||(S.stu||{})[S.me]);
+  var h=new Date().getHours(),w=S.me&&S.me!=="x-none"&&(RES[S.me]||(S.stu||{})[S.me]);
   $("#hi").textContent="أهلاً بيك"+(w?" يا "+w.n.split(" ")[0]:"")+" 👋";
   $("#gline").textContent=(h<12?"صباح الخير":h<18?"نهارك سعيد":"مساء الخير")+"، خلّينا نبدأ الدراسة اليوم.";
   var m=S.log[key()]||0;$("#sToday").textContent=ar(m);
@@ -232,7 +255,7 @@ function rSubs(){
 /* exams */
 var EX=["امتحان الشهر الأول","امتحان الشهر الثاني","امتحان الشهر الثالث","امتحان نصف السنة","الشهر الأول بعد نصف السنة","الشهر الثاني بعد نصف السنة"];
 var DAYS=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
-function marksOf(r,i){return (r.x&&r.x[i])||(i===0&&r.m)||null}
+function marksOf(r,i){var a=r.x&&r.x[i];if(!a)return null;var s=GR[r.g]||[];return a.map(function(v,k){return [s[k]||("مادة "+ar(k+1)),v]})}
 $("#rEx").innerHTML=EX.map(function(e,i){return '<option value="'+i+'">'+e+'</option>'}).join("");
 $("#rEx").onchange=function(){$("#rGo").click()};
 /* admin */
@@ -246,26 +269,25 @@ function rAdmin(){
     b.innerHTML='<b>مسودة النشر ('+ar(d.length)+')</b>'+(d.length?d.map(function(x,i){return '<div class="task"><span>'+esc(x.n)+' <small style="color:var(--mut)">'+x.c+' · '+EX[x.e]+'</small></span><button class="x" data-i="'+i+'" aria-label="حذف">×</button></div>'}).join("")+'<button id="aPub" style="width:100%;margin-top:10px">نشر الكل ('+ar(d.length)+')</button>':'<p class="sub" style="margin:8px 0 0">أضف أي عدد من النتائج، وبعدها انشرها كلها دفعة وحدة.</p>');
     b.querySelectorAll(".x").forEach(function(x){x.onclick=function(){S.dr.splice(+x.dataset.i,1);save();drafts()}});
     var p=$("#aPub");
-    if(p)p.onclick=async function(){
-      p.disabled=true;p.textContent="جاري النشر...";
-      var ok=await adm({action:"publish",items:S.dr});
-      if(ok){var n=S.dr.length;S.dr=[];save();rAdmin();$("#aE").style.color="var(--pri)";$("#aE").textContent="تم نشر "+ar(n)+" نتيجة دفعة وحدة."}
-      else{p.disabled=false;p.textContent="فشل النشر، حاول مرة ثانية"}
+    if(p)p.onclick=function(){
+      S.stu=S.stu||{};
+      S.dr.forEach(function(x){var o3=S.stu[x.c]||{x:{}};o3.n=x.n;o3.g=x.g;o3.x=o3.x||{};if(o3.m){o3.x[0]=o3.x[0]||o3.m;delete o3.m}o3.x[x.e]=x.m;S.stu[x.c]=o3});
+      var n=S.dr.length;S.dr=[];save();rAdmin();
+      $("#aE").style.color="var(--pri)";$("#aE").textContent="تم نشر "+ar(n)+" نتيجة دفعة وحدة.";
     };
   }
   function list(){
     var k=Object.keys(S.stu||{});
     $("#aL").innerHTML=k.length?'<b>الطلاب المضافون ('+ar(k.length)+')</b>'+k.map(function(c){return '<div class="task"><span>'+esc(S.stu[c].n)+' <small style="color:var(--mut)">'+c+'</small></span><button class="x" data-c="'+c+'" aria-label="حذف">×</button></div>'}).join(""):'<p class="sub" style="margin:0">لم تضف أي طالب بعد.</p>';
     $("#aSt").innerHTML=Object.keys(RES).concat(k).map(function(c){return '<option value="'+c+'">'+esc((RES[c]||S.stu[c]).n)+'</option>'}).join("");
-    $("#aL").querySelectorAll(".x").forEach(function(b){b.onclick=async function(){if(await adm({action:"delete",c:b.dataset.c})){delete S.stu[b.dataset.c];list()}}});
+    $("#aL").querySelectorAll(".x").forEach(function(b){b.onclick=function(){delete S.stu[b.dataset.c];save();list()}});
   }
-  loadList().then(list);drafts();
+  list();drafts();
   $("#aD").value=key();
-  $("#aAb").onclick=async function(){var c=$("#aSt").value,d=$("#aD").value,e=$("#aE2");if(!c||!d){e.style.color="var(--red)";e.textContent="اختر الطالب والتاريخ.";return}
-    var ok=await adm({action:"absence",c:c,d:d});e.style.color=ok?"var(--pri)":"var(--red)";e.textContent=ok?"تم تسجيل الغياب.":"فشل التسجيل."};
+  $("#aAb").onclick=function(){var c=$("#aSt").value,d=$("#aD").value,e=$("#aE2");if(!c||!d){e.style.color="var(--red)";e.textContent="اختر الطالب والتاريخ.";return}S.ab=S.ab||{};S.ab[c]=S.ab[c]||[];if(S.ab[c].indexOf(d)<0)S.ab[c].push(d);save();e.style.color="var(--pri)";e.textContent="تم تسجيل الغياب."};
   $("#aS").onclick=function(){
     var n=$("#aN").value.trim(),c=$("#aC").value.replace(/\D/g,""),e=$("#aE"),m=[],ok=true;
-    if(!n||c.length<4||c===ADM){e.textContent="اكتب اسم الطالب ورمزاً صحيحاً (٤ أرقام على الأقل).";return}
+    if(!n||c.length<4||c==="x-none"){e.textContent="اكتب اسم الطالب ورمزاً صحيحاً (٤ أرقام على الأقل).";return}
     if(RES[c]){e.textContent="هذا الرمز مستخدم مسبقاً.";return}
     GR[$("#aG").value].forEach(function(s,i){var v=parseFloat($("#aM").querySelector('[data-k="'+i+'"]').value);if(isNaN(v)||v<0||v>100)ok=false;m.push([s,v])});
     if(!ok){e.textContent="أدخل درجات صحيحة (من ٠ إلى ١٠٠) لكل المواد.";return}
@@ -273,9 +295,9 @@ function rAdmin(){
   };
 }
 /* results (demo data) */
-var RES={};
+var RES=DATA;Object.keys(RES).forEach(function(c){var r=RES[c];if(typeof r.g==="number")r.g=Object.keys(GR)[r.g]});
 $("#rGo").onclick=function(){
-  var c=$("#rCode").value.replace(/\D/g,""),r=RES[c]||(S.stu||{})[c],o=$("#rOut");$("#exCard").style.display=c===ADM?"none":"";if(c===ADM){rAdmin();return}
+  var c=$("#rCode").value.replace(/\D/g,""),r=RES[c]||(S.stu||{})[c],o=$("#rOut");$("#exCard").style.display=c==="x-none"?"none":"";if(c==="x-none"){rAdmin();return}
   if(!r){o.innerHTML='<div class="card"><p style="margin:0;color:var(--red)">الرمز غير صحيح، تأكد منه وحاول مرة ثانية.</p></div>';return}
   var mk=marksOf(r,+$("#rEx").value);if(!mk){o.innerHTML='<div class="card"><p style="margin:0">لا توجد نتيجة مسجّلة لهذا الامتحان بعد.</p></div>';return}
   var sum=0,rows=mk.map(function(x){sum+=x[1];return '<div class="subj" style="padding:8px 0;border-bottom:1px solid var(--bd)"><span>'+x[0]+'</span><b>'+ar(x[1])+'</b></div>'}).join("");
@@ -283,36 +305,25 @@ $("#rGo").onclick=function(){
   o.innerHTML='<div class="card hero"><h1>'+esc(r.n)+'</h1><p class="sub" style="margin:0">'+r.g+'</p></div><div class="card">'+rows+'</div><div class="stat"><b>'+ar(avg)+'٪</b><span>المعدل · '+(avg>=50?"ناجح 🎉":"مكمل")+'</span></div>';
 };
 function rAll(){rHome();rTSub();rSubs();setMode(25)}
-var ADM="x-none";
-async function post(u,b){try{var r=await fetch(u,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(b)});return r.ok?await r.json():null}catch(e){return null}}
-function adm(b){b.pass=ADM;return post("/api/admin",b)}
-async function chkAdm(c){return !!(await post("/api/admin",{pass:c,action:"check"}))}
-async function load(c){try{var r=await fetch("/api/student?code="+c,{cache:"no-store"});return r.ok?await r.json():null}catch(e){return null}}
-async function refresh(){if(S.me&&S.me!==ADM){var r=await load(S.me);if(r)RES[S.me]=r}}
-async function loadList(){var l=await adm({action:"list"});if(l){S.stu={};l.forEach(function(s){S.stu[s.c]={n:s.n}})}}
 /* login */
 function who(c){return RES[c]||(S.stu||{})[c]}
-async function enter(){
-  var c=S.me,adm=c===ADM;
+function enter(){
+  var c=S.me,adm=c==="x-none";
   $("#gate").style.display="none";
   $("#rCode").closest(".card").style.display=adm?"":"none";
   $("#tIn").closest(".card").style.display=adm?"":"none";
   $("#rCode").value=c;$("#tIn").value=adm?"":c;$("#grade").style.display=adm?"":"none";
-  await refresh();$("#rGo").click();rTasks();rHome();
+  $("#rGo").click();rTasks();rHome();
 }
-$("#gGo").onclick=async function(){
-  var c=$("#gCode").value.replace(/\D/g,""),b=$("#gGo");$("#gErr").textContent="";if(!c)return;
-  b.disabled=true;b.textContent="جاري التحقق...";
-  var ok=false;
-  if(await chkAdm(c)){ADM=c;S.me=c;ok=true}
-  else{var r=await load(c);if(r){RES[c]=r;S.me=c;if(GR[r.g])S.grade=r.g;ok=true}}
-  b.disabled=false;b.textContent="دخول";
-  if(ok){save();rAll();enter()}else $("#gErr").textContent="الرمز غير صحيح، أو لا يوجد اتصال بالإنترنت.";
+$("#gGo").onclick=function(){
+  var c=$("#gCode").value.replace(/\D/g,""),r=who(c);
+  if(c==="x-none"||r){S.me=c;if(r&&GR[r.g])S.grade=r.g;save();rAll();enter()}
+  else $("#gErr").textContent="الرمز غير صحيح، تأكد منه وحاول مرة ثانية.";
 };
 $("#gCode").onkeydown=function(e){if(e.key==="Enter")$("#gGo").click()};
-$("#out").onclick=function(){S.me="";ADM="x-none";save();$("#rOut").innerHTML="";$("#tList").innerHTML="";$("#gCode").value="";$("#gErr").textContent="";$("#gate").style.display="flex";rHome()};
+$("#out").onclick=function(){S.me="";save();$("#rOut").innerHTML="";$("#tList").innerHTML="";$("#gCode").value="";$("#gErr").textContent="";$("#gate").style.display="flex";rHome()};
 rAll();
-(async function(){if(!S.me)return;if(await chkAdm(S.me)){ADM=S.me;enter();return}var r=await load(S.me);if(r){RES[S.me]=r;enter()}})();
+if(S.me&&(S.me==="x-none"||who(S.me)))enter();
 </script>
 </body>
 </html>
