@@ -1,436 +1,970 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>لوحة الطالب</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; min-height: 100vh; background: #f4f6fa;
-      color: #18243a; font-family: Tahoma, Arial, sans-serif;
-    }
-    .app {
-      width: min(100%, 460px); min-height: 100vh; margin: auto;
-      background: #f8f9fc; padding: 22px 18px 92px;
-      box-shadow: 0 0 24px #17243a12; position: relative;
-    }
-    .top { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
-    .greeting { font-size:13px; color:#8791a4; }
-    h1 { font-size:23px; margin:6px 0 0; }
-    .avatar { width:44px;height:44px;border-radius:15px;background:#e8eef8;color:#28619b;display:grid;place-items:center;font-size:22px; }
-    .section-title { font-size:17px; font-weight:700; margin:22px 2px 14px; }
-    .tiles { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
-    .tile {
-      min-height:130px; background:white; border:1px solid #edf0f5;
-      border-radius:22px; padding:18px 15px; display:flex;
-      flex-direction:column; align-items:center; justify-content:center;
-      box-shadow:0 5px 16px #1c2d4610;
-    }
-    .icon { width:58px;height:58px;border-radius:18px;display:grid;place-items:center;font-size:28px;margin-bottom:10px; }
-    .blue { background:#edf3fb;color:#225d91; }
-    .purple { background:#f2edfb;color:#7650c6; }
-    .pink { background:#faedf4;color:#bb3477; }
-    .gold { background:#fbf4e7;color:#c28a28; }
-    .tile span:last-child { font-weight:700;font-size:16px; }
-    button.tile { font-family:inherit; cursor:pointer; border:1px solid #edf0f5; }
-    button.tile:focus-visible { outline:3px solid #8bb8e5; outline-offset:3px; }
-    .modal-backdrop { display:none; position:fixed; inset:0; z-index:10; background:#17243a80; padding:20px; align-items:center; justify-content:center; }
-    .modal-backdrop.show { display:flex; }
-    .modal { width:min(100%,360px); background:#fff; border-radius:22px; padding:24px; box-shadow:0 18px 60px #0003; }
-    .modal h2 { margin:0 0 10px; font-size:20px; }
-    .modal p { color:#7d8798; font-size:14px; line-height:1.7; margin:0 0 16px; }
-    .modal input { width:100%; border:1px solid #dce2eb; border-radius:12px; padding:13px; font:inherit; direction:rtl; }
-    .modal-actions { display:flex; gap:10px; margin-top:16px; }
-    .modal-actions button { flex:1; padding:12px; border:0; border-radius:12px; font:inherit; cursor:pointer; }
-    .primary { background:#225d91; color:#fff; }
-    .secondary { background:#eef1f6; color:#39465b; }
-    .error { color:#c03952; font-size:13px; margin-top:10px; display:none; }
-    .error.show { display:block; }
-    .student-choice {
-      width:100%; display:flex; align-items:center; gap:12px; text-align:right;
-      padding:14px; border:1px solid #e1eaf4; border-radius:17px;
-      background:linear-gradient(135deg,#f7fbff,#fff); cursor:pointer; font:inherit;
-      color:#17243b;
-    }
-    .student-avatar {
-      width:45px;height:45px;flex:0 0 45px;border-radius:15px;
-      display:grid;place-items:center;background:#e6f1fb;color:#225d91;
-      font-size:21px;font-weight:bold;
-    }
-    .student-choice strong,.student-heading strong { display:block;font-size:16px; }
-    .student-choice small,.student-heading small { display:block;color:#8994a5;font-size:12px;margin-top:5px; }
-    .choice-arrow { margin-right:auto;font-size:28px;color:#8da1b8; }
-    .student-heading { display:flex;align-items:center;gap:12px;margin:3px 0 18px; }
-    .grades-scroll { overflow-x:auto; }
-    .grades-table { width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:13px;font-size:13px; }
-    .grades-table th { background:#eaf2fb;color:#28577f;padding:12px 7px; }
-    .grades-table td { background:#fff;padding:12px 7px;text-align:center;border-bottom:1px solid #edf1f6; }
-    .grades-table td:first-child { text-align:right;font-weight:600; }
-    .grade-summary { display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:14px;border-radius:14px;background:#eef8f2;color:#23734d; }
-    .grade-summary strong { font-size:21px; }
-    .stats { display:grid;grid-template-columns:repeat(3,1fr);gap:10px; }
-    .stat { background:#fff;border:1px solid #edf0f5;border-radius:18px;padding:15px 8px;text-align:center; }
-    .stat .symbol { font-size:23px;display:block;margin-bottom:8px; }
-    .stat strong { font-size:25px;display:block; }
-    .stat small { color:#8b94a5;font-size:11px;display:block;margin-top:7px; }
-    .bottom-nav { position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,460px);height:72px;background:#fff;border-top:1px solid #edf0f5;display:flex;justify-content:space-around;align-items:center; }
-    .nav-item { text-align:center;color:#a1a9b7;font-size:11px; }
-    .nav-item b { display:block;font-size:23px;margin-bottom:3px;font-weight:400; }
-    .nav-item.active { color:#225d91; }
-    @media(min-width:520px) { .app { margin:24px auto; min-height:calc(100vh - 48px); border-radius:30px; } .bottom-nav { bottom:24px;border-radius:0 0 30px 30px; } }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اختبار الفيزياء - السادس العلمي</title>
 
-    /* تحسينات بصرية */
-    body {
-      background:
-        radial-gradient(circle at 8% 5%, #dcecff 0, transparent 26%),
-        radial-gradient(circle at 95% 35%, #f0e8ff 0, transparent 23%),
-        #f3f6fb;
-      color: #17243b;
-    }
-    .app {
-      background: linear-gradient(180deg, #f9fbff 0%, #f5f7fc 100%);
-      padding: 24px 18px 105px;
-    }
-    .top {
-      position: relative;
-      overflow: hidden;
-      padding: 22px 20px;
-      margin: 0 0 24px;
-      border-radius: 26px;
-      color: white;
-      background: linear-gradient(135deg, #173e70, #287ab0 68%, #5aa5cf);
-      box-shadow: 0 14px 28px #205c9030;
-    }
-    .top::after {
-      content: "";
-      position: absolute;
-      width: 150px; height: 150px;
-      border-radius: 50%;
-      left: -42px; top: -60px;
-      background: #ffffff12;
-      border: 1px solid #ffffff20;
-    }
-    .greeting { color: #d8e8f8; font-size: 13px; }
-    h1 { font-size: 25px; letter-spacing: -.4px; }
-    .avatar {
-      position: relative; z-index: 1;
-      width: 52px; height: 52px; border-radius: 18px;
-      background: #ffffff20; color: white;
-      border: 1px solid #ffffff35;
-      box-shadow: inset 0 1px 0 #ffffff30;
-    }
-    .tiles { gap: 14px; }
-    .tile {
-      min-height: 138px;
-      border: 1px solid #e9eef6;
-      border-radius: 24px;
-      padding: 18px 12px;
-      box-shadow: 0 8px 22px #263e6010;
-      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    }
-    .tile:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 13px 25px #263e6018;
-      border-color: #d6e3f3;
-    }
-    .icon {
-      width: 60px; height: 60px; border-radius: 20px;
-      font-size: 29px; margin-bottom: 12px;
-    }
-    .section-title {
-      display: flex; align-items: center; gap: 9px;
-      font-size: 18px; margin: 26px 2px 15px;
-    }
-    .section-title::before {
-      content: ""; display: inline-block; width: 5px; height: 22px;
-      border-radius: 9px; background: #2c79b0;
-    }
-    .stats { gap: 9px; }
-    .stat {
-      border: 1px solid #e9eef6; border-radius: 20px;
-      padding: 16px 6px; box-shadow: 0 7px 18px #263e600a;
-    }
-    .stat strong { color: #1b2d49; font-size: 25px; }
-    .stat small { line-height: 1.5; }
-    .result-tile {
-      background: linear-gradient(160deg, #ffffff, #f1fbf5);
-      border-color: #dcefe4 !important;
-    }
-    .modal-backdrop { backdrop-filter: blur(5px); }
-    .modal {
-      border: 1px solid #edf1f7;
-      border-radius: 26px;
-      padding: 26px;
-      box-shadow: 0 24px 80px #071b3538;
-      animation: modalIn .2s ease-out;
-    }
-    .modal h2 { font-size: 22px; }
-    .modal input:focus {
-      outline: 3px solid #d7e9fa; border-color: #2d79b0;
-    }
-    .primary { background: linear-gradient(135deg, #205b91, #2e83b8); }
-    .primary:hover { filter: brightness(1.06); }
-    .bottom-nav {
-      height: 78px; border-top: 1px solid #e9eef6;
-      box-shadow: 0 -8px 24px #1b31500a;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-    .nav-item { min-width: 58px; font-size: 11px; }
-    .nav-item b { font-size: 25px; }
-    @keyframes modalIn {
-      from { opacity: 0; transform: translateY(8px) scale(.98); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { transition: none !important; animation: none !important; }
-    }
+<style>
+:root {
+  --primary: #4f46e5;
+  --primary-dark: #3730a3;
+  --bg: #f4f6fb;
+  --text: #172033;
+  --muted: #667085;
+  --success: #15803d;
+  --danger: #dc2626;
+}
 
-    /* لمسات إضافية لواجهة النتيجة */
-    .student-choice {
-      position: relative;
-      overflow: hidden;
-      border: 1px solid #dce8f6;
-      border-radius: 20px;
-      padding: 16px;
-      background: linear-gradient(125deg, #f7fbff 0%, #ffffff 70%);
-      box-shadow: 0 8px 22px #23476d0d;
-      transition: transform .18s ease, box-shadow .18s ease;
-    }
-    .student-choice:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 26px #23476d18;
-    }
-    .student-avatar {
-      background: linear-gradient(145deg, #dceeff, #eef6ff);
-      color: #1c6099;
-      border: 1px solid #d4e7fa;
-      box-shadow: inset 0 1px 0 #fff;
-    }
-    .student-choice strong { color: #1b3150; }
-    .choice-arrow {
-      width: 30px; height: 30px; display: grid; place-items: center;
-      border-radius: 10px; background: #edf5fd; color: #2b72a8;
-      font-size: 24px;
-    }
-    #studentGrades {
-      background: linear-gradient(180deg, #f9fcff, #fff);
-      border: 1px solid #e9f0f7;
-      border-radius: 22px;
-      padding: 16px;
-    }
-    .student-heading {
-      padding: 3px 2px 16px;
-      border-bottom: 1px solid #eaf0f6;
-      margin-bottom: 15px;
-    }
-    .student-heading .student-avatar {
-      width: 52px; height: 52px; flex-basis: 52px;
-      border-radius: 17px; font-size: 23px;
-    }
-    .grades-table {
-      border: 1px solid #e6edf5;
-      border-radius: 15px;
-      box-shadow: 0 5px 15px #203d5b08;
-      overflow: hidden;
-    }
-    .grades-table th {
-      background: linear-gradient(135deg, #e8f2fc, #f0f7ff);
-      color: #235b8b;
-      padding: 13px 8px;
-      font-weight: 700;
-    }
-    .grades-table td {
-      padding: 13px 8px;
-      background: #fff;
-      color: #33445b;
-    }
-    .grades-table tbody tr:nth-child(even) td { background: #f9fbfe; }
-    .grades-table td:nth-child(2) {
-      color: #21805b; font-weight: 700; font-size: 15px;
-    }
-    .grade-summary {
-      border: 1px solid #dcefe4;
-      background: linear-gradient(120deg, #eaf8f0, #f5fcf8);
-      border-radius: 17px;
-      padding: 15px 17px;
-      margin-top: 15px;
-    }
-    .grade-summary span { font-weight: 600; }
-    .grade-summary strong {
-      color: #19734d;
-      background: #ffffffb8;
-      padding: 5px 11px;
-      border-radius: 11px;
-    }
-    .modal-actions { gap: 9px; }
-    .modal-actions button { min-height: 45px; }
-    .secondary { border: 1px solid #e5ebf2 !important; }
-    @media (max-width: 360px) {
-      .modal { padding: 19px; }
-      #studentGrades { padding: 12px; }
-      .grades-table { font-size: 12px; }
-    }
+* {
+  box-sizing: border-box;
+}
 
-  </style>
+body {
+  margin: 0;
+  font-family: Tahoma, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+header {
+  background: linear-gradient(135deg, #4338ca, #6366f1);
+  color: white;
+  padding: 30px 18px;
+  text-align: center;
+  border-radius: 0 0 28px 28px;
+}
+
+header h1 {
+  margin: 0 0 10px;
+  font-size: 27px;
+}
+
+header p {
+  margin: 0;
+  opacity: .9;
+}
+
+.container {
+  width: min(920px, 94%);
+  margin: 25px auto;
+}
+
+.card {
+  background: white;
+  padding: 24px;
+  border-radius: 20px;
+  box-shadow: 0 8px 28px rgba(20, 30, 80, .07);
+  margin-bottom: 20px;
+}
+
+.info {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.info span {
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 10px 15px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: bold;
+  padding: 13px 20px;
+  border-radius: 12px;
+  transition: .2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+.primary {
+  background: var(--primary);
+  color: white;
+}
+
+.primary:hover {
+  background: var(--primary-dark);
+}
+
+.secondary {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.progress-wrap {
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 15px 0 22px;
+}
+
+.progress {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #4f46e5, #818cf8);
+  transition: width .3s;
+}
+
+.question-number {
+  color: var(--primary);
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.question-text {
+  font-size: 21px;
+  line-height: 1.8;
+  margin: 0 0 20px;
+}
+
+.options {
+  display: grid;
+  gap: 12px;
+}
+
+.option {
+  text-align: right;
+  width: 100%;
+  background: #f8fafc;
+  border: 2px solid #e5e7eb;
+  color: var(--text);
+  padding: 15px;
+  border-radius: 13px;
+  line-height: 1.7;
+}
+
+.option:hover {
+  border-color: #a5b4fc;
+  background: #eef2ff;
+}
+
+.option.correct {
+  border-color: #22c55e;
+  background: #dcfce7;
+  color: #166534;
+}
+
+.option.wrong {
+  border-color: #ef4444;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.option:disabled {
+  cursor: default;
+  transform: none;
+}
+
+.feedback {
+  padding: 14px;
+  margin-top: 17px;
+  border-radius: 12px;
+  line-height: 1.8;
+  font-weight: bold;
+}
+
+.feedback.correct {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.feedback.wrong {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.result-score {
+  font-size: 44px;
+  font-weight: bold;
+  color: var(--primary);
+  text-align: center;
+  margin: 20px 0;
+}
+
+.result-message {
+  text-align: center;
+  font-size: 18px;
+  line-height: 1.8;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, .65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 100;
+}
+
+.modal-box {
+  background: white;
+  width: min(430px, 100%);
+  border-radius: 20px;
+  padding: 25px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+}
+
+.modal-box h2 {
+  margin-top: 0;
+}
+
+input, select {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 16px;
+  margin: 10px 0 15px;
+}
+
+.grade-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.grade-table th,
+.grade-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: right;
+}
+
+.grade-table th {
+  background: #eef2ff;
+  color: #3730a3;
+}
+
+footer {
+  text-align: center;
+  color: #64748b;
+  padding: 25px 10px;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  header h1 {
+    font-size: 22px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .question-text {
+    font-size: 18px;
+  }
+
+  .actions button {
+    flex: 1;
+  }
+}
+</style>
 </head>
-<body>
-  <main class="app">
-    <header class="top">
-      <div><div class="greeting">أهلاً وسهلاً بك</div><h1>لوحة الطالب</h1></div>
-      <div class="avatar">🎓</div>
-    </header>
 
-    <div class="tiles">
-      <div class="tile"><span class="icon blue">▦</span><span>الجدول</span></div>
-      <div class="tile"><span class="icon purple">◧</span><span>المواد</span></div>
-      <div class="tile"><span class="icon pink">✎</span><span>الامتحانات</span></div>
-      <div class="tile"><span class="icon gold">▤</span><span>المكتبة</span></div>
-      <button class="tile result-tile" type="button" onclick="openResultPrompt()">
-        <span class="icon" style="background:#eaf7f0;color:#238557">🔒</span>
-        <span>نتيجتي</span>
+<body>
+
+<header>
+  <h1>منصة الاختبارات الإلكترونية</h1>
+  <p>الفيزياء | السادس العلمي | الفصل الأول: المتسعات</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <div class="info">
+      <span>📘 السادس العلمي</span>
+      <span>⚡ الفصل الأول: المتسعات</span>
+      <span>📝 40 سؤالًا</span>
+    </div>
+
+    <p style="line-height:1.9">
+      اختبر معلوماتك في الفصل الأول من مادة الفيزياء.
+      اختر الإجابة الصحيحة لكل سؤال، وستظهر نتيجتك بعد إكمال الاختبار.
+    </p>
+
+    <button class="primary" onclick="startQuiz()">ابدأ الاختبار</button>
+    <button class="secondary" onclick="openPassword()">نتيجتي</button>
+  </div>
+
+  <section id="quizSection" class="card hidden">
+    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <strong id="questionCounter">السؤال 1 من 40</strong>
+      <strong id="scoreCounter">الدرجة: 0</strong>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress" id="progressBar"></div>
+    </div>
+
+    <div id="questionNumber" class="question-number"></div>
+    <h2 id="questionText" class="question-text"></h2>
+    <div id="options" class="options"></div>
+    <div id="feedback" class="hidden"></div>
+
+    <div class="actions">
+      <button class="secondary" onclick="previousQuestion()" id="prevBtn">
+        السؤال السابق
+      </button>
+
+      <button class="primary" onclick="nextQuestion()" id="nextBtn">
+        السؤال التالي
       </button>
     </div>
+  </section>
 
-    <div class="section-title">إحصائيات سريعة</div>
-    <div class="stats">
-      <div class="stat"><span class="symbol" style="color:#235e92">▤</span><strong>5</strong><small>مواد دراسية</small></div>
-      <div class="stat"><span class="symbol" style="color:#31976b">▦</span><strong>12</strong><small>يوم متبقي</small></div>
-      <div class="stat"><span class="symbol" style="color:#c99a31">🏆</span><strong>85%</strong><small>معدل الإنجاز</small></div>
+  <section id="resultSection" class="card hidden">
+    <h2 style="text-align:center">انتهى الاختبار 🎉</h2>
+
+    <div class="result-score" id="finalScore">0 / 40</div>
+    <div class="result-message" id="finalMessage"></div>
+
+    <div style="text-align:center;margin-top:22px">
+      <button class="primary" onclick="startQuiz()">إعادة الاختبار</button>
+      <button class="secondary" onclick="openPassword()">عرض نتيجتي</button>
     </div>
-  </main>
-  <div class="modal-backdrop" id="resultModal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
-    <div class="modal">
-      <h2 id="resultTitle">عرض نتيجتي</h2>
-      <p>يرجى إدخال الرمز السري الذي زوّدتك به المدرسة لعرض النتيجة.</p>
-      <form onsubmit="checkResultCode(event)">
-        <input id="resultCode" type="password" placeholder="أدخل الرمز السري" autocomplete="current-password" required />
-        <div class="error" id="resultError">الرمز غير صحيح. حاول مرة أخرى.</div>
-        <div class="modal-actions">
-          <button class="primary" type="submit">عرض النتيجة</button>
-          <button class="secondary" type="button" onclick="closeResultPrompt()">إلغاء</button>
-        </div>
-      </form>
-      <div id="studentPicker" style="display:none">
-        <p>تم العثور على الطالب. اضغط على اسمه لعرض المواد والدرجات:</p>
-        <button type="button" class="student-choice" onclick="showStudentGrades()">
-          <span class="student-avatar">م</span>
-          <span><strong>محمد علي</strong><small>عرض النتيجة الدراسية</small></span>
-          <span class="choice-arrow">‹</span>
-        </button>
-        <div class="modal-actions">
-          <button class="secondary" type="button" onclick="backToCode()">رجوع</button>
-          <button class="secondary" type="button" onclick="closeResultPrompt()">إغلاق</button>
-        </div>
-      </div>
-      <div id="studentGrades" style="display:none">
-        <div class="student-heading">
-          <span class="student-avatar">م</span>
-          <div><strong>محمد علي</strong><small>درجات الطالب</small></div>
-        </div>
-        <div class="grades-scroll">
-          <table class="grades-table">
-            <thead><tr><th>المادة</th><th>الدرجة</th><th>من</th></tr></thead>
-            <tbody>
-              <tr><td>اللغة العربية</td><td>٨٥</td><td>١٠٠</td></tr>
-              <tr><td>الرياضيات</td><td>٩٠</td><td>١٠٠</td></tr>
-              <tr><td>اللغة الإنكليزية</td><td>٨٢</td><td>١٠٠</td></tr>
-              <tr><td>العلوم</td><td>٩٣</td><td>١٠٠</td></tr>
-              <tr><td>الاجتماعيات</td><td>٨٨</td><td>١٠٠</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="grade-summary"><span>المعدل</span><strong>٨٧.٦٪</strong></div>
-        <div class="modal-actions">
-          <button class="secondary" type="button" onclick="backToStudent()">رجوع</button>
-          <button class="primary" type="button" onclick="closeResultPrompt()">تم</button>
-        </div>
-      </div>
+  </section>
+
+</div>
+
+<footer>
+  تم تصميم من قبل قتيبه
+</footer>
+
+<!-- نافذة الرمز السري -->
+<div id="passwordModal" class="modal hidden">
+  <div class="modal-box">
+    <h2>🔐 عرض النتيجة</h2>
+    <p>يرجى إدخال الرمز السري لعرض نتيجة الطالب.</p>
+
+    <input type="password" id="passwordInput" placeholder="أدخل الرمز السري">
+
+    <div class="actions">
+      <button class="primary" onclick="checkPassword()">عرض النتيجة</button>
+      <button class="secondary" onclick="closePassword()">إلغاء</button>
+    </div>
+
+    <p id="passwordError" style="color:#dc2626"></p>
+  </div>
+</div>
+
+<!-- نافذة اختيار الطالب -->
+<div id="studentModal" class="modal hidden">
+  <div class="modal-box">
+    <h2>👨‍🎓 اختر اسم الطالب</h2>
+
+    <select id="studentSelect">
+      <option value="mohammed">محمد علي</option>
+    </select>
+
+    <div class="actions">
+      <button class="primary" onclick="showStudentResult()">عرض الدرجات</button>
+      <button class="secondary" onclick="closeStudent()">إغلاق</button>
     </div>
   </div>
-  <nav class="bottom-nav">
-    <div class="nav-item active"><b>⌂</b>الرئيسية</div>
-    <div class="nav-item"><b>▤</b>الدروس</div>
-    <div class="nav-item"><b>▦</b>الجدول</div>
-    <div class="nav-item"><b>⚙</b>الإعدادات</div>
-  </nav>
-  <footer class="site-credit">تم تصميم من قبل <strong>قتيبه</strong></footer>
-  <style>
-    .site-credit {
-      width: min(100%, 460px);
-      margin: -78px auto 0;
-      padding: 0 12px 18px;
-      position: relative;
-      z-index: 2;
-      text-align: center;
-      color: #8b97a9;
-      font-size: 12px;
-      letter-spacing: .2px;
-    }
-    .site-credit strong { color: #286e9f; font-weight: 700; }
-    @media (min-width: 520px) {
-      .site-credit { margin-top: -54px; padding-bottom: 34px; }
-    }
-  </style>
-  <script>
-    // غيّر الرمز أدناه إلى الرمز الذي تريد اعتماده في النموذج.
-    // هذا تحقق تجريبي داخل المتصفح فقط؛ لا تستخدمه لحماية نتائج حقيقية.
-    const RESULT_SECRET = "1234";
+</div>
 
-    function openResultPrompt() {
-      document.getElementById("resultModal").classList.add("show");
-      document.getElementById("resultCode").focus();
-      document.getElementById("resultError").classList.remove("show");
-      document.querySelector("#resultModal form").style.display = "block";
-      document.getElementById("studentPicker").style.display = "none";
-      document.getElementById("studentGrades").style.display = "none";
-      document.getElementById("resultTitle").textContent = "عرض نتيجتي";
-    }
+<!-- نافذة درجات الطالب -->
+<div id="gradesModal" class="modal hidden">
+  <div class="modal-box">
+    <h2>📊 درجات الطالب</h2>
+    <h3 id="studentName">محمد علي</h3>
 
-    function closeResultPrompt() {
-      document.getElementById("resultModal").classList.remove("show");
-      document.getElementById("resultCode").value = "";
-      document.querySelector("#resultModal form").style.display = "block";
-      document.getElementById("studentPicker").style.display = "none";
-      document.getElementById("studentGrades").style.display = "none";
-      document.getElementById("resultTitle").textContent = "عرض نتيجتي";
-    }
+    <table class="grade-table">
+      <thead>
+        <tr>
+          <th>المادة</th>
+          <th>الدرجة</th>
+        </tr>
+      </thead>
 
-    function checkResultCode(event) {
-      event.preventDefault();
-      const enteredCode = document.getElementById("resultCode").value;
-      const error = document.getElementById("resultError");
+      <tbody>
+        <tr><td>الفيزياء</td><td id="physicsGrade">--</td></tr>
+        <tr><td>الكيمياء</td><td>85</td></tr>
+        <tr><td>الأحياء</td><td>90</td></tr>
+        <tr><td>الرياضيات</td><td>88</td></tr>
+        <tr><td>اللغة العربية</td><td>92</td></tr>
+        <tr><td>اللغة الإنكليزية</td><td>86</td></tr>
+      </tbody>
+    </table>
 
-      if (enteredCode === RESULT_SECRET) {
-        error.classList.remove("show");
-        document.querySelector("#resultModal form").style.display = "none";
-        document.getElementById("studentPicker").style.display = "block";
-      } else {
-        error.classList.add("show");
+    <div class="actions">
+      <button class="secondary" onclick="closeGrades()">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===================================================
+   بنك أسئلة الفصل الأول: المتسعات
+   الإجابة الصحيحة محددة بالخاصية answer
+=================================================== */
+
+const questions = [
+
+{
+q: "ما المقصود بالمتسعة الكهربائية؟",
+options: ["جهاز يخزن الشحنة الكهربائية والطاقة", "جهاز يولد تيارًا مستمرًا", "جهاز يقيس المقاومة", "جهاز يحول الطاقة الحرارية إلى كهربائية"],
+answer: 0,
+explain: "المتسعة جهاز يُستخدم لخزن الشحنة والطاقة في المجال الكهربائي."
+},
+
+{
+q: "ما وحدة قياس السعة الكهربائية في النظام الدولي؟",
+options: ["الأوم", "الفاراد", "التسلا", "الفولت/متر"],
+answer: 1,
+explain: "وحدة السعة الكهربائية هي الفاراد (F)."
+},
+
+{
+q: "تعرف سعة المتسعة بأنها النسبة بين:",
+options: ["فرق الجهد والشحنة", "الشحنة وفرق الجهد", "التيار والمقاومة", "الطاقة والزمن"],
+answer: 1,
+explain: "السعة C تساوي مقدار الشحنة Q مقسومًا على فرق الجهد V."
+},
+
+{
+q: "إذا زادت الشحنة المخزونة في متسعة مع ثبوت فرق الجهد، فإن سعتها:",
+options: ["تزداد", "تقل", "تبقى ثابتة", "تصبح صفرًا"],
+answer: 2,
+explain: "السعة خاصية للمتسعة وتتحدد بأبعادها والوسط العازل."
+},
+
+{
+q: "ما العلاقة الرياضية للسعة الكهربائية؟",
+options: ["C = V/Q", "C = Q/V", "C = QV", "C = I/V"],
+answer: 1,
+explain: "C = Q/V."
+},
+
+{
+q: "الفاراد الواحد يساوي:",
+options: ["كولوم/فولت", "فولت/كولوم", "جول/كولوم", "أوم/ثانية"],
+answer: 0,
+explain: "من العلاقة C = Q/V تكون وحدة الفاراد كولوم لكل فولت."
+},
+
+{
+q: "المتسعة ذات الصفيحتين المتوازيتين تتكون من:",
+options: ["صفيحتين موصلتين يفصل بينهما عازل", "سلكين متصلين مباشرة", "مقاومتين متصلتين", "ملف ومغناطيس"],
+answer: 0,
+explain: "تتكون من صفيحتين موصلتين متقابلتين بينهما مادة عازلة أو هواء."
+},
+
+{
+q: "عند زيادة مساحة صفيحتي متسعة متوازية، فإن سعتها:",
+options: ["تقل", "تزداد", "لا تتغير", "تصبح سالبة"],
+answer: 1,
+explain: "السعة تتناسب طرديًا مع مساحة الصفيحتين."
+},
+
+{
+q: "عند زيادة المسافة بين صفيحتي متسعة متوازية، فإن سعتها:",
+options: ["تزداد", "تقل", "تبقى ثابتة", "تتضاعف دائمًا"],
+answer: 1,
+explain: "السعة تتناسب عكسيًا مع المسافة بين الصفيحتين."
+},
+
+{
+q: "ما العلاقة لسعة متسعة ذات صفيحتين متوازيتين في الهواء؟",
+options: ["C = ε₀A/d", "C = ε₀d/A", "C = Ad/ε₀", "C = ε₀Ad"],
+answer: 0,
+explain: "C = ε₀A/d، حيث A مساحة الصفيحة و d المسافة بين الصفيحتين."
+},
+
+{
+q: "يرمز إلى سماحية الفراغ الكهربائية بالرمز:",
+options: ["μ₀", "ε₀", "ρ", "σ"],
+answer: 1,
+explain: "ε₀ هو رمز سماحية الفراغ الكهربائية."
+},
+
+{
+q: "عند إدخال عازل كهربائي بين صفيحتي متسعة مع بقائها متصلة بالبطارية، فإن سعتها:",
+options: ["تقل", "تزداد", "لا تتغير", "تصبح صفرًا"],
+answer: 1,
+explain: "وجود العازل يزيد السعة بمقدار ثابت العزل النسبي."
+},
+
+{
+q: "ثابت العزل الكهربائي النسبي لمادة ما يساوي:",
+options: ["سعة المتسعة بالعازل إلى سعتها بالفراغ", "المقاومة إلى التيار", "الشحنة إلى الطاقة", "المسافة إلى المساحة"],
+answer: 0,
+explain: "K = C مع العازل / C في الفراغ."
+},
+
+{
+q: "إذا كان ثابت العزل النسبي لمادة يساوي 4، فإن سعة المتسعة عند ملئها بهذه المادة:",
+options: ["تقل إلى الربع", "تزداد أربعة أضعاف", "تزداد مرتين", "لا تتغير"],
+answer: 1,
+explain: "السعة الجديدة تساوي K مضروبًا في السعة الأصلية."
+},
+
+{
+q: "عند ربط متسعتين على التوازي، فإن فرق الجهد بينهما:",
+options: ["يختلف دائمًا", "متساوٍ", "يساوي صفرًا", "يتناسب عكسيًا مع السعة"],
+answer: 1,
+explain: "المتسعات على التوازي تكون مرتبطة بين النقطتين نفسيهما، لذا فرق الجهد متساوٍ."
+},
+
+{
+q: "السعة المكافئة لمتسعات مربوطة على التوازي تساوي:",
+options: ["مجموع السعات", "مقلوب مجموع السعات", "حاصل ضرب السعات", "أصغر سعة"],
+answer: 0,
+explain: "Ceq = C1 + C2 + C3 + ... في ربط التوازي."
+},
+
+{
+q: "متسعتان سعتاهما 2μF و 3μF ربطتا على التوازي. السعة المكافئة:",
+options: ["1μF", "5μF", "6μF", "1.2μF"],
+answer: 1,
+explain: "في التوازي: 2 + 3 = 5μF."
+},
+
+{
+q: "عند ربط المتسعات على التوالي، فإن الشحنة على كل متسعة:",
+options: ["متساوية", "مختلفة دائمًا", "تساوي صفرًا", "تتناسب مع فرق الجهد فقط"],
+answer: 0,
+explain: "في ربط التوالي تكون مقادير الشحنات على المتسعات متساوية."
+},
+
+{
+q: "السعة المكافئة لمتسعات مربوطة على التوالي تحسب من:",
+options: ["Ceq = C1 + C2", "1/Ceq = 1/C1 + 1/C2", "Ceq = C1C2", "Ceq = V/Q²"],
+answer: 1,
+explain: "مقلوب السعة المكافئة يساوي مجموع مقلوبات السعات."
+},
+
+{
+q: "متسعتان 4μF و 4μF ربطتا على التوالي. السعة المكافئة:",
+options: ["8μF", "4μF", "2μF", "16μF"],
+answer: 2,
+explain: "للمتسعتين المتساويتين على التوالي تكون السعة المكافئة نصف إحداهما."
+},
+
+{
+q: "عند ربط متسعتين مختلفتين على التوالي، تكون السعة المكافئة:",
+options: ["أكبر من السعة الكبرى", "أصغر من السعة الصغرى", "مساوية لمجموعهما", "مساوية للسعة الكبرى"],
+answer: 1,
+explain: "السعة المكافئة في التوالي تكون أقل من أصغر سعة في المجموعة."
+},
+
+{
+q: "الطاقة المختزنة في متسعة مشحونة يمكن حسابها من العلاقة:",
+options: ["U = ½CV²", "U = CV", "U = C/V", "U = V/C"],
+answer: 0,
+explain: "الطاقة المختزنة U = ½CV²."
+},
+
+{
+q: "أي من العلاقات الآتية تمثل طاقة المتسعة بدلالة الشحنة والسعة؟",
+options: ["U = Q²/2C", "U = 2CQ", "U = Q/C²", "U = C²Q"],
+answer: 0,
+explain: "يمكن حساب الطاقة أيضًا من U = Q²/(2C)."
+},
+
+{
+q: "إذا تضاعف فرق الجهد على متسعة ثابتة السعة، فإن الطاقة المختزنة:",
+options: ["تتضاعف", "تزداد أربعة أضعاف", "تقل إلى النصف", "لا تتغير"],
+answer: 1,
+explain: "الطاقة تتناسب مع مربع فرق الجهد."
+},
+
+{
+q: "إذا تضاعفت شحنة متسعة مع ثبوت سعتها، فإن فرق الجهد:",
+options: ["يتضاعف", "يقل للنصف", "يزداد أربعة أضعاف", "لا يتغير"],
+answer: 0,
+explain: "من V = Q/C، فرق الجهد يتناسب طرديًا مع الشحنة."
+},
+
+{
+q: "ما الذي يخزن الطاقة في المتسعة؟",
+options: ["المجال الكهربائي بين الصفيحتين", "الأسلاك الخارجية فقط", "البطارية وحدها", "المقاومة"],
+answer: 0,
+explain: "تخزن الطاقة في المجال الكهربائي الموجود بين صفيحتي المتسعة."
+},
+
+{
+q: "عند شحن متسعة من خلال مقاومة، فإن التيار في بداية الشحن يكون:",
+options: ["أكبر ما يمكن", "صفرًا دائمًا", "ثابتًا إلى الأبد", "سالبًا بالضرورة"],
+answer: 0,
+explain: "في بداية الشحن يكون فرق الجهد على المتسعة صفرًا تقريبًا، فيكون تيار الشحن أعظميًا."
+},
+
+{
+q: "بعد مرور زمن طويل على شحن متسعة في دائرة تيار مستمر، فإن التيار:",
+options: ["يصبح أعظميًا", "يصبح صفرًا", "يبقى ثابتًا", "يتضاعف"],
+answer: 1,
+explain: "بعد اكتمال الشحن تتصرف المتسعة كدائرة مفتوحة للتيار المستمر."
+},
+
+{
+q: "ثابت الزمن في دائرة RC يساوي:",
+options: ["R/C", "RC", "C/R", "R + C"],
+answer: 1,
+explain: "ثابت الزمن τ = RC."
+},
+
+{
+q: "وحدة قياس ثابت الزمن RC هي:",
+options: ["الفاراد", "الأوم", "الثانية", "الفولت"],
+answer: 2,
+explain: "ثابت الزمن يقاس بوحدة الثانية."
+},
+
+{
+q: "عند زيادة المقاومة في دائرة شحن متسعة، فإن ثابت الزمن:",
+options: ["يقل", "يزداد", "لا يتغير", "يساوي صفرًا"],
+answer: 1,
+explain: "بما أن τ = RC، فإن زيادة المقاومة تزيد ثابت الزمن."
+},
+
+{
+q: "عند زيادة سعة المتسعة في دائرة RC مع ثبوت المقاومة، فإن ثابت الزمن:",
+options: ["يزداد", "يقل", "لا يتغير", "يصبح سالبًا"],
+answer: 0,
+explain: "ثابت الزمن يتناسب طرديًا مع السعة."
+},
+
+{
+q: "في أثناء شحن متسعة من مصدر جهد ثابت، فإن فرق الجهد على المتسعة:",
+options: ["يزداد تدريجيًا", "يقل تدريجيًا", "يبقى صفرًا", "يكون سالبًا دائمًا"],
+answer: 0,
+explain: "يزداد فرق الجهد على المتسعة تدريجيًا حتى يقترب من جهد المصدر."
+},
+
+{
+q: "في أثناء تفريغ متسعة مشحونة عبر مقاومة، فإن شحنتها:",
+options: ["تزداد", "تتناقص تدريجيًا", "تبقى ثابتة", "تتضاعف"],
+answer: 1,
+explain: "تتناقص الشحنة تدريجيًا أثناء التفريغ."
+},
+
+{
+q: "إذا كانت سعة متسعة 2μF وفرق الجهد عليها 10V، فإن شحنتها تساوي:",
+options: ["5μC", "20μC", "12μC", "2μC"],
+answer: 1,
+explain: "Q = CV = 2 × 10 = 20μC."
+},
+
+{
+q: "متسعة سعتها 5μF وشحنتها 10μC. فرق الجهد عليها:",
+options: ["2V", "5V", "10V", "50V"],
+answer: 0,
+explain: "V = Q/C = 10/5 = 2V."
+},
+
+{
+q: "متسعة سعتها 2F وفرق الجهد عليها 3V. الطاقة المختزنة:",
+options: ["3J", "6J", "9J", "18J"],
+answer: 2,
+explain: "U = ½ × 2 × 3² = 9J."
+},
+
+{
+q: "أي العوامل الآتية يزيد سعة المتسعة ذات الصفيحتين المتوازيتين؟",
+options: ["زيادة المسافة بين الصفيحتين", "تقليل مساحة الصفيحتين", "إدخال عازل مناسب", "تقليل السماحية"],
+answer: 2,
+explain: "إدخال عازل ذي ثابت عزل أكبر يزيد السعة."
+},
+
+{
+q: "إذا كانت متسعة معزولة عن البطارية ثم أدخل عازل بين صفيحتيها، فإن شحنتها:",
+options: ["تبقى ثابتة", "تزداد", "تقل إلى الصفر", "تتضاعف دائمًا"],
+answer: 0,
+explain: "عند عزل المتسعة عن البطارية لا يوجد مسار لتغير الشحنة، لذا تبقى ثابتة."
+},
+
+{
+q: "عند إدخال عازل في متسعة معزولة ومشحونة، فإن فرق الجهد عليها:",
+options: ["يزداد", "يقل", "يبقى ثابتًا", "يصبح صفرًا دائمًا"],
+answer: 1,
+explain: "تزداد السعة مع ثبات الشحنة، وبما أن V = Q/C فإن فرق الجهد يقل."
+},
+
+{
+q: "ما الغرض من استخدام المتسعات في الدوائر الكهربائية؟",
+options: ["خزن الشحنة والطاقة", "زيادة كتلة الدائرة", "إلغاء المقاومة دائمًا", "توليد المجال المغناطيسي فقط"],
+answer: 0,
+explain: "من أهم وظائف المتسعات خزن الشحنة والطاقة الكهربائية."
+},
+
+{
+q: "في ربط التوالي، فرق الجهد الكلي على مجموعة المتسعات يساوي:",
+options: ["فرق الجهد على متسعة واحدة دائمًا", "مجموع فروق الجهد", "صفرًا", "حاصل ضرب فروق الجهد"],
+answer: 1,
+explain: "فرق الجهد الكلي يساوي مجموع فروق الجهد على المتسعات المتصلة على التوالي."
+}
+
+];
+
+/* ===================================================
+   إدارة الاختبار
+=================================================== */
+
+let currentQuestion = 0;
+let score = 0;
+let answered = Array(questions.length).fill(false);
+let selectedAnswers = Array(questions.length).fill(null);
+let quizFinished = false;
+
+function startQuiz() {
+  currentQuestion = 0;
+  score = 0;
+  answered = Array(questions.length).fill(false);
+  selectedAnswers = Array(questions.length).fill(null);
+  quizFinished = false;
+
+  document.getElementById("quizSection").classList.remove("hidden");
+  document.getElementById("resultSection").classList.add("hidden");
+
+  renderQuestion();
+
+  window.scrollTo({
+    top: document.getElementById("quizSection").offsetTop - 20,
+    behavior: "smooth"
+  });
+}
+
+function renderQuestion() {
+  const item = questions[currentQuestion];
+
+  document.getElementById("questionCounter").textContent =
+    `السؤال ${currentQuestion + 1} من ${questions.length}`;
+
+  document.getElementById("scoreCounter").textContent =
+    `الدرجة: ${score}`;
+
+  document.getElementById("questionNumber").textContent =
+    `السؤال رقم ${currentQuestion + 1}`;
+
+  document.getElementById("questionText").textContent = item.q;
+
+  document.getElementById("progressBar").style.width =
+    ((currentQuestion + 1) / questions.length * 100) + "%";
+
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+
+  item.options.forEach((option, index) => {
+    const button = document.createElement("button");
+    button.className = "option";
+    button.textContent = `${["أ", "ب", "ج", "د"][index]} ـ ${option}`;
+
+    button.onclick = () => selectAnswer(index);
+
+    if (answered[currentQuestion]) {
+      button.disabled = true;
+
+      if (index === item.answer) {
+        button.classList.add("correct");
+      }
+
+      if (index === selectedAnswers[currentQuestion] &&
+          index !== item.answer) {
+        button.classList.add("wrong");
       }
     }
 
-    function showStudentGrades() {
-      document.getElementById("studentPicker").style.display = "none";
-      document.getElementById("studentGrades").style.display = "block";
-      document.getElementById("resultTitle").textContent = "النتيجة الدراسية";
+    optionsDiv.appendChild(button);
+  });
+
+  const feedback = document.getElementById("feedback");
+
+  if (answered[currentQuestion]) {
+    feedback.classList.remove("hidden");
+    feedback.className = "feedback " +
+      (selectedAnswers[currentQuestion] === item.answer ? "correct" : "wrong");
+
+    feedback.textContent =
+      (selectedAnswers[currentQuestion] === item.answer
+        ? "إجابة صحيحة! "
+        : "إجابة غير صحيحة. ") + item.explain;
+  } else {
+    feedback.className = "hidden";
+    feedback.textContent = "";
+  }
+
+  document.getElementById("prevBtn").disabled =
+    currentQuestion === 0;
+
+  document.getElementById("nextBtn").textContent =
+    currentQuestion === questions.length - 1
+      ? "إنهاء الاختبار"
+      : "السؤال التالي";
+}
+
+function selectAnswer(index) {
+  if (answered[currentQuestion] || quizFinished) return;
+
+  const item = questions[currentQuestion];
+
+  selectedAnswers[currentQuestion] = index;
+  answered[currentQuestion] = true;
+
+  if (index === item.answer) {
+    score++;
+  }
+
+  renderQuestion();
+}
+
+function nextQuestion() {
+  if (!answered[currentQuestion]) {
+    alert("يرجى اختيار إجابة أولاً.");
+    return;
+  }
+
+  if (currentQuestion < questions.length - 1) {
+    currentQuestion++;
+    renderQuestion();
+  } else {
+    finishQuiz();
+  }
+}
+
+function previousQuestion() {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    renderQuestion();
+  }
+}
+
+function finishQuiz() {
+  quizFinished = true;
+
+  document.getElementById("quizSection").classList.add("hidden");
+  document.getElementById("resultSection").classList.remove("hidden");
+
+  document.getElementById("finalScore").textContent =
+    `${score} / ${questions.length}`;
+
+  const percentage = Math.round(score / questions.length * 100);
+
+  let message = "";
+
+  if (percentage >= 90) {
+    message = "ممتاز جدًا! أداء رائع 👏";
+  } else if (percentage >= 75) {
+    message = "أحسنت! مستوى جيد جدًا.";
+  } else if (percentage >= 50) {
+    message = "جيد، استمر بالمراجعة حتى تحقق نتيجة أفضل.";
+  } else {
+    message = "لا بأس، حاول مرة أخرى وراجع موضوع المتسعات.";
+  }
+
+  document.getElementById("finalMessage").textContent =
+    `نسبتك هي ${percentage}% — ${message}`;
+
+  // تحديث درجة الفيزياء في صفحة الطالب
+  document.getElementById("physicsGrade").textContent =
+    `${score} / ${questions.length}`;
+
+  window.scrollTo({
+    top: document.getElementById("resultSection").offsetTop - 20,
+    behavior: "smooth"
+  });
+}
+
+/* ===================================================
+   نافذة النتيجة والرمز السري
+=================================================== */
+
+function openPassword() {
+  document.getElementById("passwordModal").classList.remove("hidden");
+  document.getElementById("passwordInput").value = "";
+  document.getElementById("passwordError").textContent = "";
+}
+
+function closePassword() {
+  document.getElementById("passwordModal").classList.add("hidden");
+}
+
+function checkPassword() {
+  const password = document.getElementById("passwordInput").value;
+
+  // الرمز السري التجريبي
+  if (password === "1234") {
+    closePassword();
+
+    document.getElementById("studentModal").classList.remove("hidden");
+  } else {
+    document.getElementById("passwordError").textContent =
+      "الرمز السري غير صحيح، حاول مرة أخرى.";
+  }
+}
+
+function closeStudent() {
+  document.getElementById("studentModal").classList.add("hidden");
+}
+
+function showStudentResult() {
+  const student = document.getElementById("studentSelect").value;
+
+  if (student === "mohammed") {
+    document.getElementById("studentName").textContent = "محمد علي";
+
+    // إذا لم يكمل الاختبار تظهر الدرجة الافتراضية
+    if (!quizFinished) {
+      document.getElementById("physicsGrade").textContent = "--";
     }
 
-    function backToStudent() {
-      document.getElementById("studentGrades").style.display = "none";
-      document.getElementById("studentPicker").style.display = "block";
-      document.getElementById("resultTitle").textContent = "عرض نتيجتي";
-    }
+    closeStudent();
 
-    function backToCode() {
-      document.getElementById("studentPicker").style.display = "none";
-      document.querySelector("#resultModal form").style.display = "block";
-      document.getElementById("resultTitle").textContent = "عرض نتيجتي";
-    }
+    document.getElementById("gradesModal").classList.remove("hidden");
+  }
+}
 
-    document.getElementById("resultModal").addEventListener("click", function(event) {
-      if (event.target === this) closeResultPrompt();
-    });
-  </script>
+function closeGrades() {
+  document.getElementById("gradesModal").classList.add("hidden");
+}
+
+/* ===================================================
+   تشغيل أولي
+=================================================== */
+
+document.addEventListener("keydown", function(event) {
+  if (event.key === "Escape") {
+    closePassword();
+    closeStudent();
+    closeGrades();
+  }
+});
+
+</script>
+
 </body>
-</html>
+</html> 
