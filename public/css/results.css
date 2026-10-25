@@ -1,0 +1,2 @@
+/* تنسيقات عرض النتائج */
+.result-row{display:flex;justify-content:space-between;gap:1rem}
