@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة المدير | منصة درسي</title>
+<style>
+:root{--bg:#f3f6fc;--card:#fff;--ink:#172033;--muted:#64748b;--primary:#4f46e5;--line:#e5eaf3;--green:#15803d;--red:#b91c1c}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Tahoma,Arial,sans-serif;color:var(--ink)}
+header{background:linear-gradient(130deg,#111c4e,#4f46e5);color:#fff;padding:26px 18px}
+.wrap{width:min(1100px,94%);margin:22px auto}.brand{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+h1{margin:0;font-size:25px}header p{margin:8px 0 0;color:#dbeafe}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:18px}
+.card{background:var(--card);padding:20px;border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 24px #1e293b0a}
+h2{font-size:18px;margin:0 0 14px}input,select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin:7px 0 12px;font:inherit;background:#fff}
+button{font:inherit;font-weight:bold;border:0;border-radius:10px;padding:11px 15px;cursor:pointer}.primary{background:var(--primary);color:#fff}.soft{background:#eef2ff;color:#3730a3}.danger{background:#fee2e2;color:var(--red)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1}.stats{display:flex;gap:10px;flex-wrap:wrap}.stat{background:#eef2ff;color:#3730a3;padding:12px;border-radius:12px;min-width:120px;flex:1}
+.stat strong{display:block;font-size:23px}.stat span{font-size:12px}.status{padding:10px;border-radius:10px;background:#f8fafc;color:var(--muted);margin:10px 0}.status.ok{background:#dcfce7;color:var(--green)}.status.err{background:#fee2e2;color:var(--red)}
+table{width:100%;border-collapse:collapse}th,td{text-align:right;padding:11px;border-bottom:1px solid var(--line)}th{color:#475569;background:#f8fafc} .table-wrap{overflow:auto}
+.hidden{display:none!important}.hint{font-size:13px;color:var(--muted);line-height:1.8}
+</style></head>
+<body>
+<header><div class="brand"><div><h1>لوحة تحكم المدير</h1><p>إدارة الطلاب والدرجات — منصة درسي</p></div><a href="/" style="color:#fff">العودة للموقع ↗</a></div></header>
+<main class="wrap">
+<section class="card" id="loginCard">
+<h2>🔐 دخول الإدارة</h2><label for="adminCode">الرمز الإداري الموجود في إعدادات Render (ADMIN_CODE)</label>
+<input id="adminCode" type="password" placeholder="أدخل الرمز الإداري" autocomplete="current-password">
+<button class="primary" onclick="login()">دخول لوحة التحكم</button><div id="loginStatus" class="status">لا يتم تخزين الرمز في المتصفح بعد إغلاق الصفحة.</div>
+</section>
+<div id="panel" class="hidden">
+<div class="stats"><div class="stat"><strong id="studentCount">0</strong><span>عدد الطلاب</span></div><div class="stat"><strong>6</strong><span>مواد دراسية جاهزة لإدخال الدرجات</span></div></div>
+<div class="grid">
+<section class="card"><h2>➕ إضافة طالب</h2><label>اسم الطالب</label><input id="newName" placeholder="الاسم الثلاثي"><button class="primary" onclick="createStudent()">إنشاء طالب ورمز دخول</button><div id="createStatus" class="status"></div><p class="hint">سيُنشأ رمز فريد للطالب. احتفظ به وشاركه معه بشكل خاص.</p></section>
+<section class="card"><h2>📊 نشر درجات طالب</h2><label>الطالب</label><select id="gradeStudent"></select><label>المرحلة / المجموعة</label><input id="gradeGroup" placeholder="مثال: السادس العلمي"><label>المادة</label><select id="subject"><option>الفيزياء</option><option>الكيمياء</option><option>الأحياء</option><option>الرياضيات</option><option>اللغة العربية</option><option>اللغة الإنكليزية</option></select><div class="row"><div><label>الدرجة</label><input id="gradeValue" type="number" min="0" max="100" placeholder="من 100"></div><div><label>الفصل (0–5)</label><input id="gradeTerm" type="number" min="0" max="5" value="0"></div></div><button class="primary" onclick="publishGrade()">حفظ / نشر الدرجة</button><div id="gradeStatus" class="status"></div></section>
+</div>
+<section class="card"><div class="row"><h2>👨‍🎓 قائمة الطلاب</h2><button class="soft" onclick="loadStudents()">تحديث القائمة</button></div><div class="table-wrap"><table><thead><tr><th>الاسم</th><th>رمز الطالب</th><th>إجراء</th></tr></thead><tbody id="studentsBody"></tbody></table></div><p class="hint">حذف الطالب إجراء نهائي لبياناته ودرجاته.</p></section>
+</div></main>
+<script>
+let pass="",students=[];
+async function api(body){const r=await fetch("/api/admin",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...body,pass})});let data={};try{data=await r.json()}catch{}if(!r.ok)throw Error(data.error||"تعذر تنفيذ الطلب");return data}
+function status(id,msg,type=""){const e=document.getElementById(id);e.textContent=msg;e.className="status "+type}
+async function login(){pass=document.getElementById("adminCode").value;try{await api({action:"check"});document.getElementById("loginCard").classList.add("hidden");document.getElementById("panel").classList.remove("hidden");await loadStudents()}catch(e){status("loginStatus",e.message,"err");pass=""}}
+async function loadStudents(){try{students=await api({action:"list"});document.getElementById("studentCount").textContent=students.length;document.getElementById("studentsBody").innerHTML=students.map(s=>`<tr><td>${esc(s.n)}</td><td>${esc(s.c)}</td><td><button class="danger" onclick="deleteStudent('${esc(s.c)}')">حذف</button></td></tr>`).join("");document.getElementById("gradeStudent").innerHTML=students.map(s=>`<option value="${esc(s.c)}">${esc(s.n)} — ${esc(s.c)}</option>`).join("")}catch(e){alert(e.message)}}
+async function createStudent(){const n=document.getElementById("newName").value.trim();if(!n)return status("createStatus","اكتب اسم الطالب","err");try{const d=await api({action:"create",n});status("createStatus",`تم إنشاء الطالب ${d.student.n} — رمز الدخول: ${d.student.c}`,"ok");document.getElementById("newName").value="";await loadStudents()}catch(e){status("createStatus",e.message,"err")}}
+async function publishGrade(){const c=document.getElementById("gradeStudent").value;if(!c)return status("gradeStatus","أضف طالباً أولاً","err");const v=Number(document.getElementById("gradeValue").value),e=Number(document.getElementById("gradeTerm").value);if(!Number.isFinite(v)||v<0||v>100||!Number.isInteger(e)||e<0||e>5)return status("gradeStatus","تحقق من الدرجة والفصل (0 إلى 5)","err");const st=students.find(x=>x.c===c);try{await api({action:"publish",items:[{c,n:st.n,g:document.getElementById("gradeGroup").value,m:[[document.getElementById("subject").value,v]],e}]});status("gradeStatus","تم حفظ الدرجة ونشرها","ok")}catch(err){status("gradeStatus",err.message,"err")}}
+async function deleteStudent(c){if(!confirm("هل تريد حذف هذا الطالب وجميع بياناته؟"))return;try{await api({action:"delete",c});await loadStudents()}catch(e){alert(e.message)}}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+</script></body></html>
