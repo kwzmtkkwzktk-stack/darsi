@@ -5,7 +5,7 @@ const { MongoClient } = require("mongodb");
 const crypto = require("crypto");
 
 const app = express();
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "1mb" }));\napp.use(express.static(path.join(__dirname, "public")));
 
 let client;
 let dbPromise;
@@ -50,13 +50,14 @@ app.get("/api/health", async (req, res) => {
   }
 });
 
-// الصفحة الرئيسية
+// الصفحة الرئيسية من مجلد public
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index-1.html"), err => {
-    if (err && !res.headersSent) {
-      res.status(500).send("تعذر فتح ملف index-1.html");
-    }
-  });
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// لوحة المدير
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
 
 // بيانات الطالب حسب الكود
