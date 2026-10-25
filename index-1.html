@@ -3,453 +3,381 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#087f5b">
-<title>دَرسي | رفيقك الدراسي</title>
+<title>دَرسي - رفيقك الدراسي</title>
 <style>
 :root {
-  --bg:#f3f7f5; --card:#fff; --text:#18352b; --muted:#718179;
-  --primary:#087f5b; --primary2:#10a875; --line:#e3ece7;
-  --soft:#e4f6ed; --shadow:0 8px 26px #173b2810;
+ --bg:#f3f7f5;--card:#fff;--text:#19372b;--muted:#78877f;
+ --primary:#087f5b;--soft:#e4f6ed;--line:#e1ebe5;
 }
 [data-theme="dark"] {
-  --bg:#101b17; --card:#192821; --text:#edf8f1; --muted:#a0b5a9;
-  --primary:#42d69b; --primary2:#20b981; --line:#2a3b32;
-  --soft:#203d30; --shadow:0 8px 26px #0003;
+ --bg:#101b17;--card:#192821;--text:#edf8f1;--muted:#a0b5a9;
+ --primary:#42d69b;--soft:#203d30;--line:#2a3b32;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);
-font-family:Tahoma,Arial,sans-serif;transition:.2s}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer;border:0;border-radius:13px;padding:12px 15px;
-background:var(--primary);color:#fff;font-weight:bold}
-button:active{transform:scale(.98)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Tahoma,Arial,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0;border-radius:12px;padding:11px 14px;background:var(--primary);color:white;font-weight:bold}
 button.secondary{background:var(--soft);color:var(--primary)}
-button.danger{background:#ffe9e7;color:#b83227}
-input,select,textarea{width:100%;padding:12px;border:1px solid var(--line);
-border-radius:12px;background:var(--bg);color:var(--text);outline:none}
-input:focus,textarea:focus,select:focus{border-color:var(--primary)}
-label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+button.danger{background:#ffe7e5;color:#a72e26}
+input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);margin-top:5px}
+label{display:block;font-size:13px;color:var(--muted);margin-top:12px}
 h1,h2,h3,p{margin-top:0}
-h2{font-size:19px;margin-bottom:14px}
-h3{font-size:15px}
-.small{font-size:12px;color:var(--muted)}
-.app{max-width:1050px;margin:auto;padding:16px 15px 95px}
-.top{display:flex;justify-content:space-between;align-items:center;gap:12px;
-margin-bottom:20px}
+h2{font-size:19px}
+.app{max-width:950px;margin:auto;padding:15px 13px 100px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px}
 .brand{display:flex;align-items:center;gap:10px}
-.logo{background:var(--primary);color:white;width:47px;height:47px;
-border-radius:16px;display:grid;place-items:center;font-size:25px}
-.brand h1{font-size:22px;margin:0 0 4px}
-.top-actions{display:flex;gap:7px}
-.top-actions button{padding:10px 12px}
-.hero{background:linear-gradient(125deg,#066747,#10a875);
-border-radius:25px;padding:23px;color:white;position:relative;overflow:hidden;
-margin-bottom:18px;box-shadow:var(--shadow)}
-.hero h2{font-size:24px;margin:8px 0}
+.logo{width:45px;height:45px;background:var(--primary);color:white;display:grid;place-items:center;border-radius:15px;font-size:25px}
+.brand h1{font-size:21px;margin:0 0 4px}
+.small{font-size:12px;color:var(--muted);line-height:1.7}
+.card{background:var(--card);border:1px solid var(--line);border-radius:19px;padding:17px;margin-bottom:13px;min-width:0}
+.hero{background:linear-gradient(125deg,#066747,#10a875);color:white;border-radius:23px;padding:22px;margin-bottom:15px}
 .hero p{color:#e1fff0;font-size:13px;line-height:1.8}
-.hero .emoji{font-size:36px}
 .hero button{background:white;color:#087f5b}
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:20px;
-padding:17px;box-shadow:var(--shadow);min-width:0}
-.stat{display:flex;align-items:center;gap:12px}
-.stat-icon{width:44px;height:44px;border-radius:14px;background:var(--soft);
-display:grid;place-items:center;font-size:22px}
-.stat strong{display:block;font-size:23px;margin-top:5px}
-.section{margin-top:20px}
-.section-head{display:flex;justify-content:space-between;align-items:center;
-gap:10px;margin-bottom:12px}
-.section-head h2{margin:0}
-.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.field{min-width:0}
-.field.full{grid-column:1/-1}
-.list{display:grid;gap:10px}
-.item{display:flex;align-items:center;justify-content:space-between;gap:12px;
-padding:12px;border:1px solid var(--line);border-radius:14px}
-.item-title{font-weight:bold;font-size:14px;margin-bottom:5px}
-.item-actions{display:flex;gap:6px;flex-shrink:0}
-.item-actions button{padding:8px 10px;font-size:12px}
-.tag{display:inline-block;padding:5px 9px;border-radius:20px;
-background:var(--soft);color:var(--primary);font-size:11px}
-.progress{height:9px;border-radius:20px;background:var(--line);overflow:hidden}
-.progress span{height:100%;display:block;width:0;background:var(--primary);
-border-radius:20px;transition:width .3s}
-.timer{text-align:center;padding:25px}
-.clock{font-size:clamp(45px,9vw,70px);font-weight:bold;letter-spacing:2px;
-margin:15px 0;color:var(--primary);font-variant-numeric:tabular-nums}
-.timer-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
-.nav{position:fixed;bottom:0;left:0;right:0;z-index:10;
-background:var(--card);border-top:1px solid var(--line);
-display:flex;justify-content:center;gap:4px;padding:8px 5px calc(8px + env(safe-area-inset-bottom))}
-.nav button{background:transparent;color:var(--muted);padding:8px 12px;
-font-size:11px;flex:1;max-width:115px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);padding:15px;border-radius:16px}
+.stat strong{display:block;font-size:22px;margin-top:8px}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.full{grid-column:1/-1}
+.page{display:none}
+.page.active{display:block}
+.list{display:grid;gap:9px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);padding:12px;border-radius:13px}
+.item-title{font-size:14px;font-weight:bold;margin-bottom:5px}
+.tag{display:inline-block;padding:5px 9px;border-radius:20px;background:var(--soft);color:var(--primary);font-size:11px}
+.empty{text-align:center;padding:23px;color:var(--muted);font-size:13px}
+.progress{height:8px;background:var(--line);border-radius:20px;overflow:hidden;margin-top:10px}
+.progress span{display:block;height:100%;background:var(--primary)}
+.result-number{font-size:24px;font-weight:bold;color:var(--primary);margin-top:8px}
+.clock{text-align:center;font-size:58px;color:var(--primary);font-weight:bold;margin:20px}
+.nav{position:fixed;z-index:5;bottom:0;left:0;right:0;display:flex;justify-content:center;gap:3px;background:var(--card);border-top:1px solid var(--line);padding:8px 3px calc(8px + env(safe-area-inset-bottom))}
+.nav button{background:transparent;color:var(--muted);font-size:10px;padding:7px 4px;flex:1;max-width:120px}
 .nav button.active{background:var(--soft);color:var(--primary)}
-.nav span{display:block;font-size:19px;margin-bottom:3px}
-.page{display:none}.page.active{display:block}
-.empty{text-align:center;padding:24px;color:var(--muted);font-size:13px}
-.notice{padding:12px;border-radius:12px;background:var(--soft);
-color:var(--primary);font-size:13px;line-height:1.8}
-.login{max-width:420px;margin:50px auto}
-.login .card{padding:24px}
-.login h2{text-align:center}
+.nav span{display:block;font-size:18px;margin-bottom:4px}
+.notice{padding:12px;background:var(--soft);border-radius:12px;color:var(--primary);font-size:12px;line-height:1.8}
 .hidden{display:none!important}
-footer{text-align:center;color:var(--muted);font-size:11px;margin-top:25px}
-@media(max-width:720px){
- .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
- .app{padding:12px 11px 100px}
- .hero{padding:19px}
- .hero h2{font-size:21px}
- .top{align-items:flex-start}
- .brand h1{font-size:19px}
- .top-actions{flex-direction:column}
- .card{padding:14px}
- .item{align-items:flex-start}
- .item-actions{flex-direction:column}
-}
-@media(max-width:390px){
- .nav button{padding:7px 3px;font-size:10px}
- .form{grid-template-columns:1fr}
- .field.full{grid-column:auto}
+.login{max-width:420px;margin:45px auto}
+.login .card{padding:24px}
+footer{text-align:center;color:var(--muted);font-size:11px;margin-top:20px}
+@media(max-width:500px){
+ .app{padding:11px 9px 100px}
+ .card{padding:13px}
+ .hero{padding:18px}
+ .top button{padding:9px}
+ .nav button{font-size:9px}
+ .nav span{font-size:17px}
+ .clock{font-size:48px}
 }
 </style>
 </head>
 <body>
+
 <div id="loginPage" class="app login">
-  <div class="card">
-    <div style="text-align:center;font-size:48px">📚</div>
-    <h2>أهلاً بيك بتطبيق دَرسي</h2>
-    <p class="small" style="text-align:center;line-height:1.8">
-      رفيقك لتنظيم الدراسة والواجبات والامتحانات
-    </p>
-    <label for="studentName">اسم الطالب</label>
-    <input id="studentName" placeholder="اكتب اسمك هنا" maxlength="50">
-    <button style="width:100%;margin-top:12px" onclick="login()">دخول إلى التطبيق ←</button>
-    <p class="small" style="margin-top:12px;text-align:center">
-      نسخة تجريبية تحفظ بياناتها على هذا الجهاز
-    </p>
-  </div>
+ <div class="card">
+  <div style="text-align:center;font-size:48px">📚</div>
+  <h2 style="text-align:center">أهلاً بك في دَرسي</h2>
+  <p class="small" style="text-align:center">رفيقك الدراسي لمتابعة المواد والواجبات والنتائج</p>
+  <label>اسم الطالب</label>
+  <input id="loginName" maxlength="50" placeholder="اكتب اسمك">
+  <label>رمز الطالب</label>
+  <input id="loginCode" placeholder="أدخل رمز الطالب">
+  <button style="width:100%;margin-top:15px" onclick="login()">تسجيل الدخول</button>
+  <p class="small" style="margin-top:12px">هذه النسخة تجريبية. تسجيل الدخول المحلي لا يوفر حماية حقيقية للبيانات.</p>
+ </div>
 </div>
 
 <div id="mainApp" class="app hidden">
-  <header class="top">
-    <div class="brand">
-      <div class="logo">📚</div>
-      <div><h1>دَرسي</h1><div class="small">رفيقك الدراسي الذكي</div></div>
+ <header class="top">
+  <div class="brand">
+   <div class="logo">📚</div>
+   <div><h1>دَرسي</h1><div class="small">رفيقك الدراسي</div></div>
+  </div>
+  <div style="display:flex;gap:6px">
+   <button class="secondary" onclick="toggleTheme()" id="themeBtn">🌙</button>
+   <button class="secondary" onclick="logout()">خروج</button>
+  </div>
+ </header>
+
+ <section id="home" class="page active">
+  <div class="hero">
+   <div style="font-size:34px">🎯</div>
+   <p>أهلاً بيك، <strong id="welcomeName">طالبنا</strong></p>
+   <h2>مستقبلك يبدأ من دراستك!</h2>
+   <p>نظّم وقتك وتابع تقدمك الدراسي خطوة بخطوة.</p>
+   <button onclick="showPage('tasks')">عرض واجباتي ←</button>
+  </div>
+  <div class="stats">
+   <div class="stat"><div class="small">📋 الواجبات المتبقية</div><strong id="taskCount">0</strong></div>
+   <div class="stat"><div class="small">📚 المواد</div><strong id="subjectCount">0</strong></div>
+   <div class="stat"><div class="small">📊 معدلي</div><strong id="homeAverage">—</strong></div>
+   <div class="stat"><div class="small">⏱️ دقائق الدراسة اليوم</div><strong id="studyMinutes">0</strong></div>
+  </div>
+  <div class="card" style="margin-top:13px">
+   <h2>🎯 هدفي اليومي</h2>
+   <label>عدد دقائق الدراسة المستهدفة</label>
+   <input id="dailyGoal" type="number" min="1" max="1440" value="120" onchange="saveGoal()">
+   <div id="goalLabel" class="small" style="margin-top:8px">0% من الهدف</div>
+   <div class="progress"><span id="goalProgress" style="width:0%"></span></div>
+  </div>
+  <div class="card">
+   <h2>📋 واجباتي القادمة</h2>
+   <div id="homeTasks" class="list"></div>
+  </div>
+ </section>
+
+ <section id="myResult" class="page">
+  <div class="card">
+   <h2>📊 نتيجتي الدراسية</h2>
+   <p class="small">درجاتك المسجلة للعرض فقط. لا توجد هنا أزرار لتعديل الدرجات أو حذفها.</p>
+   <div class="grid">
+    <div class="stat"><div class="small">المعدل العام</div><div id="myAverage" class="result-number">—</div></div>
+    <div class="stat"><div class="small">عدد المواد</div><div id="mySubjectsCount" class="result-number">0</div></div>
+   </div>
+   <div style="margin-top:18px" id="myResultList" class="list"></div>
+  </div>
+ </section>
+
+ <section id="tasks" class="page">
+  <div class="card">
+   <h2>📝 واجباتي</h2>
+   <label>اسم الواجب</label><input id="taskName" placeholder="اسم الواجب">
+   <label>المادة</label><input id="taskSubject" placeholder="المادة">
+   <label>موعد التسليم</label><input id="taskDate" type="date">
+   <label>الأهمية</label><select id="taskPriority"><option>عادية</option><option>مهمة</option><option>عاجلة</option></select>
+   <button style="width:100%;margin-top:12px" onclick="addTask()">＋ إضافة واجب</button>
+  </div>
+  <div class="card"><h2>قائمة الواجبات</h2><div id="taskList" class="list"></div></div>
+ </section>
+
+ <section id="subjects" class="page">
+  <div class="card">
+   <h2>📚 المواد الدراسية</h2>
+   <label>اسم المادة</label><input id="subjectName" placeholder="مثلاً: الفيزياء">
+   <label>اسم المدرس</label><input id="teacherName" placeholder="اختياري">
+   <button style="width:100%;margin-top:12px" onclick="addSubject()">＋ إضافة مادة</button>
+  </div>
+  <div class="card"><div id="subjectList" class="list"></div></div>
+ </section>
+
+ <section id="timerPage" class="page">
+  <div class="card" style="text-align:center">
+   <div style="font-size:38px">🍅</div><h2>مؤقت بومودورو</h2>
+   <div id="clock" class="clock">25:00</div>
+   <label style="text-align:right">مدة الدراسة بالدقائق</label><input id="studyLength" type="number" min="1" max="180" value="25">
+   <label style="text-align:right">مدة الاستراحة بالدقائق</label><input id="breakLength" type="number" min="1" max="60" value="5">
+   <div style="display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin-top:14px">
+    <button onclick="startTimer()">▶ ابدأ</button>
+    <button class="secondary" onclick="pauseTimer()">⏸ إيقاف</button>
+    <button class="secondary" onclick="resetTimer()">↻ إعادة</button>
+   </div>
+   <p id="timerStatus" class="notice" style="margin-top:15px">جاهز؟ ابدأ جلسة الدراسة!</p>
+  </div>
+ </section>
+
+ <section id="settings" class="page">
+  <div class="card">
+   <h2>⚙️ الإعدادات</h2>
+   <p class="small">اسم العرض</p><input id="editName" maxlength="50">
+   <button style="width:100%;margin-top:10px" onclick="changeName()">حفظ الاسم</button>
+   <p class="notice" style="margin-top:15px">الدرجات لا يمكن تعديلها من صفحة «نتيجتي». إدارة الدرجات الحقيقية يجب أن تكون من خادم آمن بصلاحيات مدير.</p>
+  </div>
+ </section>
+
+ <section id="admin" class="page">
+  <div class="card">
+   <h2>🔐 إدارة الدرجات</h2>
+   <p class="notice">هذه إدارة محلية تجريبية وليست محمية أمنياً. لا تستخدمها لبيانات طلاب حقيقية قبل ربطها بخادم آمن.</p>
+   <label>رمز الإدارة</label><input id="adminCode" type="password" placeholder="رمز الإدارة">
+   <button style="margin-top:10px" onclick="adminLogin()">فتح إدارة الدرجات</button>
+   <div id="adminPanel" class="hidden">
+    <label>رمز الطالب المستهدف</label><input id="targetCode" placeholder="رمز الطالب">
+    <label>اسم المادة</label><input id="adminSubject" placeholder="المادة">
+    <label>اسم الامتحان</label><input id="adminExam" placeholder="شهري أو يومي">
+    <div class="grid">
+     <div><label>الدرجة</label><input id="adminValue" type="number" min="0"></div>
+     <div><label>الدرجة الكاملة</label><input id="adminMax" type="number" min="1" value="100"></div>
     </div>
-    <div class="top-actions">
-      <button class="secondary" onclick="toggleTheme()" id="themeBtn">🌙</button>
-      <button class="secondary" onclick="logout()">خروج</button>
-    </div>
-  </header>
+    <button style="width:100%;margin-top:12px" onclick="adminAddGrade()">حفظ الدرجة</button>
+    <div id="adminGrades" class="list" style="margin-top:15px"></div>
+   </div>
+  </div>
+ </section>
 
-  <main>
-    <section id="home" class="page active">
-      <div class="hero">
-        <div class="emoji">🎯</div>
-        <p style="margin-bottom:4px">أهلاً بيك، <span id="welcomeName">طالبنا</span></p>
-        <h2>مستقبلك يبدأ من دراستك!</h2>
-        <p>نظّم وقتك، تابع واجباتك، وحقق أهدافك الدراسية خطوة بخطوة.</p>
-        <button onclick="showPage('tasks')">📋 شوف واجباتي</button>
-      </div>
-
-      <div class="grid">
-        <div class="card stat"><div class="stat-icon">📋</div><div><div class="small">الواجبات</div><strong id="taskCount">0</strong></div></div>
-        <div class="card stat"><div class="stat-icon">📖</div><div><div class="small">المواد</div><strong id="subjectCount">0</strong></div></div>
-        <div class="card stat"><div class="stat-icon">🏆</div><div><div class="small">المعدل</div><strong id="average">—</strong></div></div>
-        <div class="card stat"><div class="stat-icon">⏱️</div><div><div class="small">دقائق اليوم</div><strong id="studyMinutes">0</strong></div></div>
-      </div>
-
-      <div class="section card">
-        <div class="section-head"><h2>🎯 هدف الدراسة اليومي</h2><span id="goalLabel" class="tag">0%</span></div>
-        <div class="form">
-          <div class="field"><label>هدفك بالدقائق</label><input id="dailyGoal" type="number" min="1" max="1440" value="120" onchange="saveGoal()"></div>
-          <div class="field"><label>المنجز اليوم</label><input id="doneToday" disabled value="0 دقيقة"></div>
-        </div>
-        <div class="progress" style="margin-top:14px"><span id="goalProgress"></span></div>
-      </div>
-
-      <div class="section card">
-        <div class="section-head"><h2>⚡ مهامك القادمة</h2><button class="secondary" onclick="showPage('tasks')">عرض الكل</button></div>
-        <div id="homeTasks" class="list"></div>
-      </div>
-    </section>
-
-    <section id="tasks" class="page">
-      <div class="card">
-        <h2>📝 تنظيم الواجبات</h2>
-        <div class="form">
-          <div class="field"><label>اسم الواجب</label><input id="taskName" placeholder="مثلاً: حل مسائل الفصل الثاني"></div>
-          <div class="field"><label>المادة</label><input id="taskSubject" placeholder="رياضيات"></div>
-          <div class="field"><label>موعد التسليم</label><input id="taskDate" type="date"></div>
-          <div class="field"><label>الأهمية</label><select id="taskPriority"><option>عادية</option><option>مهمة</option><option>عاجلة</option></select></div>
-          <div class="field full"><button style="width:100%" onclick="addTask()">＋ إضافة واجب</button></div>
-        </div>
-      </div>
-      <div class="section card"><div class="section-head"><h2>قائمة الواجبات</h2></div><div id="taskList" class="list"></div></div>
-    </section>
-
-    <section id="subjects" class="page">
-      <div class="card">
-        <h2>📚 المواد الدراسية</h2>
-        <div class="form">
-          <div class="field"><label>اسم المادة</label><input id="subjectName" placeholder="مثلاً: الفيزياء"></div>
-          <div class="field"><label>اسم المدرس (اختياري)</label><input id="teacherName" placeholder="اسم المدرس"></div>
-          <div class="field full"><button style="width:100%" onclick="addSubject()">＋ إضافة مادة</button></div>
-        </div>
-      </div>
-      <div class="section card"><div id="subjectList" class="list"></div></div>
-    </section>
-
-    <section id="grades" class="page">
-      <div class="card">
-        <h2>🏆 سجل الدرجات</h2>
-        <div class="form">
-          <div class="field"><label>المادة</label><input id="gradeSubject" placeholder="اسم المادة"></div>
-          <div class="field"><label>اسم الامتحان</label><input id="gradeExam" placeholder="شهري أو يومي"></div>
-          <div class="field"><label>الدرجة المحصّلة</label><input id="gradeValue" type="number" min="0" step="0.5" placeholder="85"></div>
-          <div class="field"><label>الدرجة الكاملة</label><input id="gradeMax" type="number" min="1" value="100"></div>
-          <div class="field full"><button style="width:100%" onclick="addGrade()">＋ تسجيل الدرجة</button></div>
-        </div>
-      </div>
-      <div class="section card">
-        <h2>نتائجك</h2>
-        <div id="gradeList" class="list"></div>
-        <div class="notice" style="margin-top:12px">المعدل المعروض هو نسبة مجموع درجاتك إلى مجموع الدرجات الكاملة المسجلة هنا.</div>
-      </div>
-    </section>
-
-    <section id="attendance" class="page">
-      <div class="card">
-        <h2>📅 سجل الحضور والغياب</h2>
-        <div class="form">
-          <div class="field"><label>التاريخ</label><input id="attDate" type="date"></div>
-          <div class="field"><label>الحالة</label><select id="attStatus"><option value="حاضر">حاضر</option><option value="غائب">غائب</option><option value="متأخر">متأخر</option></select></div>
-          <div class="field full"><label>ملاحظات (اختياري)</label><input id="attNote" placeholder="سبب الغياب أو ملاحظات"></div>
-          <div class="field full"><button style="width:100%" onclick="addAttendance()">＋ تسجيل الحالة</button></div>
-        </div>
-      </div>
-      <div class="section card"><h2>السجل</h2><div id="attendanceList" class="list"></div></div>
-    </section>
-
-    <section id="timerPage" class="page">
-      <div class="card timer">
-        <div style="font-size:42px">🍅</div>
-        <h2>مؤقت بومودورو</h2>
-        <p class="small">ركّز بالدراسة وخذ استراحة بوقتها</p>
-        <div class="clock" id="clock">25:00</div>
-        <div class="form" style="max-width:340px;margin:0 auto 18px">
-          <div class="field"><label>وقت الدراسة بالدقائق</label><input id="studyLength" type="number" min="1" max="180" value="25"></div>
-          <div class="field"><label>الاستراحة بالدقائق</label><input id="breakLength" type="number" min="1" max="60" value="5"></div>
-        </div>
-        <div class="timer-actions">
-          <button onclick="startTimer()">▶ ابدأ</button>
-          <button class="secondary" onclick="pauseTimer()">⏸ إيقاف مؤقت</button>
-          <button class="secondary" onclick="resetTimer()">↻ إعادة</button>
-        </div>
-        <div id="timerStatus" class="notice" style="margin-top:18px">جاهز للدراسة؟ يلا نبدأ!</div>
-      </div>
-    </section>
-
-    <section id="settings" class="page">
-      <div class="card">
-        <h2>⚙️ الإعدادات</h2>
-        <label>اسم الطالب</label><input id="editName" maxlength="50">
-        <button style="width:100%;margin-top:10px" onclick="changeName()">حفظ الاسم</button>
-        <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
-        <h3>البيانات</h3>
-        <p class="small" style="line-height:1.8">هذه النسخة تحفظ بياناتها داخل المتصفح على هذا الجهاز. حذف بيانات المتصفح قد يؤدي إلى فقدانها.</p>
-        <button class="secondary" style="width:100%;margin-bottom:10px" onclick="exportData()">⬇️ تصدير نسخة احتياطية</button>
-        <button class="danger" style="width:100%" onclick="clearData()">حذف جميع البيانات</button>
-      </div>
-    </section>
-  </main>
-  <footer>دَرسي © 2026 — خطوتك اليوم تصنع نجاحك غداً 🌱</footer>
+ <footer>دَرسي © 2026</footer>
 </div>
 
 <nav id="nav" class="nav hidden">
-  <button class="active" data-page="home" onclick="showPage('home')"><span>🏠</span>الرئيسية</button>
-  <button data-page="tasks" onclick="showPage('tasks')"><span>📝</span>الواجبات</button>
-  <button data-page="subjects" onclick="showPage('subjects')"><span>📚</span>المواد</button>
-  <button data-page="grades" onclick="showPage('grades')"><span>🏆</span>الدرجات</button>
-  <button data-page="timerPage" onclick="showPage('timerPage')"><span>⏱️</span>المؤقت</button>
-  <button data-page="settings" onclick="showPage('settings')"><span>⚙️</span>الإعدادات</button>
+ <button data-page="home" class="active" onclick="showPage('home')"><span>🏠</span>الرئيسية</button>
+ <button data-page="myResult" onclick="showPage('myResult')"><span>📊</span>نتيجتي</button>
+ <button data-page="tasks" onclick="showPage('tasks')"><span>📝</span>واجباتي</button>
+ <button data-page="subjects" onclick="showPage('subjects')"><span>📚</span>المواد</button>
+ <button data-page="timerPage" onclick="showPage('timerPage')"><span>⏱️</span>المؤقت</button>
+ <button data-page="settings" onclick="showPage('settings')"><span>⚙️</span>الإعدادات</button>
 </nav>
 
 <script>
-const $ = id => document.getElementById(id);
-const KEY = "darsi_single_file_v1";
-const today = () => new Date().toLocaleDateString("en-CA");
-let data = {name:"",tasks:[],subjects:[],grades:[],attendance:[],goal:120,studyLog:{}};
-let remaining=1500, timer=null, running=false, mode="study";
+const $=id=>document.getElementById(id);
+const STORAGE="darsi_app_v2";
+let db={users:[],tasks:[],subjects:[],grades:[],goal:120,studyLog:{}};
+let currentUser=null, timer=null, running=false, mode="study",remaining=1500;
 
-function load(){
-  try {
-    const saved=JSON.parse(localStorage.getItem(KEY)||"null");
-    if(saved) data={...data,...saved};
-  } catch(e){console.warn("تعذر قراءة البيانات المحفوظة");}
-  if(localStorage.getItem("darsi_theme")==="dark") document.documentElement.dataset.theme="dark";
-  updateThemeButton();
-  if(data.name) enterApp();
+function esc(v){
+ return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
-function save(){localStorage.setItem(KEY,JSON.stringify(data));renderAll();}
+function load(){
+ try{const x=JSON.parse(localStorage.getItem(STORAGE)||"null");if(x)db={...db,...x};}catch(e){}
+ if(localStorage.getItem("darsi_theme")==="dark")document.documentElement.dataset.theme="dark";
+ updateThemeButton();
+}
+function save(){localStorage.setItem(STORAGE,JSON.stringify(db));renderAll();}
 function login(){
-  const name=$("studentName").value.trim();
-  if(!name){alert("اكتب اسمك أولاً");return;}
-  data.name=name; save(); enterApp();
+ const name=$("loginName").value.trim(),code=$("loginCode").value.trim();
+ if(!name||!code)return alert("اكتب الاسم ورمز الطالب");
+ currentUser={name,code};
+ if(!db.users.some(u=>u.code===code)){
+  db.users.push({name,code});
+  save();
+ }
+ const user=db.users.find(u=>u.code===code);
+ user.name=name;
+ save();
+ enterApp();
 }
 function enterApp(){
-  $("loginPage").classList.add("hidden");
-  $("mainApp").classList.remove("hidden");
-  $("nav").classList.remove("hidden");
-  $("welcomeName").textContent=data.name;
-  $("editName").value=data.name;
-  $("dailyGoal").value=data.goal||120;
-  $("studentName").value=data.name;
-  renderAll();
+ $("loginPage").classList.add("hidden");
+ $("mainApp").classList.remove("hidden");
+ $("nav").classList.remove("hidden");
+ $("welcomeName").textContent=currentUser.name;
+ $("editName").value=currentUser.name;
+ $("dailyGoal").value=db.goal||120;
+ renderAll();
 }
 function logout(){
-  pauseTimer();
-  $("mainApp").classList.add("hidden");
-  $("nav").classList.add("hidden");
-  $("loginPage").classList.remove("hidden");
-}
-function changeName(){
-  const n=$("editName").value.trim();
-  if(!n)return alert("اكتب الاسم الجديد");
-  data.name=n;save();$("welcomeName").textContent=n;alert("تم حفظ الاسم");
+ pauseTimer();currentUser=null;
+ $("mainApp").classList.add("hidden");$("nav").classList.add("hidden");$("loginPage").classList.remove("hidden");
 }
 function showPage(id){
-  document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));
-  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
-  window.scrollTo({top:0,behavior:"smooth"});
+ document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id===id));
+ document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+ if(id==="admin")renderAdminGrades();
+ window.scrollTo({top:0,behavior:"smooth"});
 }
 function toggleTheme(){
-  const dark=document.documentElement.dataset.theme!=="dark";
-  if(dark)document.documentElement.dataset.theme="dark";
-  else delete document.documentElement.dataset.theme;
-  localStorage.setItem("darsi_theme",dark?"dark":"light");updateThemeButton();
+ const dark=document.documentElement.dataset.theme!=="dark";
+ if(dark)document.documentElement.dataset.theme="dark";else delete document.documentElement.dataset.theme;
+ localStorage.setItem("darsi_theme",dark?"dark":"light");updateThemeButton();
 }
-function updateThemeButton(){
-  $("themeBtn").textContent=document.documentElement.dataset.theme==="dark"?"☀️":"🌙";
-}
-function esc(s){
-  return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function updateThemeButton(){$("themeBtn").textContent=document.documentElement.dataset.theme==="dark"?"☀️":"🌙";}
+function myGrades(){return db.grades.filter(g=>currentUser&&g.code===currentUser.code);}
+function renderMyResult(){
+ const grades=myGrades();
+ const sum=grades.reduce((n,g)=>n+Number(g.value),0);
+ const max=grades.reduce((n,g)=>n+Number(g.max),0);
+ $("myAverage").textContent=max?(sum/max*100).toFixed(1)+"%":"—";
+ $("mySubjectsCount").textContent=new Set(grades.map(g=>g.subject)).size;
+ $("myResultList").innerHTML=grades.length?grades.map(g=>`
+  <div class="item">
+   <div><div class="item-title">${esc(g.subject)}</div><div class="small">${esc(g.exam||"امتحان")}</div></div>
+   <div style="text-align:left"><strong>${Number(g.value)} / ${Number(g.max)}</strong><div class="small">${(g.value/g.max*100).toFixed(1)}%</div></div>
+  </div>`).join(""):'<div class="empty">لا توجد نتائج معلنة لحسابك حالياً.</div>';
 }
 function addTask(){
-  const name=$("taskName").value.trim();
-  if(!name)return alert("اكتب اسم الواجب");
-  data.tasks.push({id:Date.now(),name,subject:$("taskSubject").value.trim(),date:$("taskDate").value,priority:$("taskPriority").value,done:false});
-  ["taskName","taskSubject","taskDate"].forEach(id=>$(id).value="");
-  save();
+ const name=$("taskName").value.trim();if(!name)return alert("اكتب اسم الواجب");
+ db.tasks.push({id:Date.now(),code:currentUser.code,name,subject:$("taskSubject").value.trim(),date:$("taskDate").value,priority:$("taskPriority").value,done:false});
+ $("taskName").value="";$("taskSubject").value="";$("taskDate").value="";save();
 }
-function toggleTask(id){
-  const t=data.tasks.find(x=>x.id===id);if(t)t.done=!t.done;save();
-}
-function deleteItem(type,id){
-  if(!confirm("متأكد تريد حذف هذا العنصر؟"))return;
-  data[type]=data[type].filter(x=>x.id!==id);save();
+function toggleTask(id){const t=db.tasks.find(t=>t.id===id&&t.code===currentUser.code);if(t)t.done=!t.done;save();}
+function deleteTask(id){
+ if(!confirm("حذف الواجب؟"))return;
+ db.tasks=db.tasks.filter(t=>!(t.id===id&&t.code===currentUser.code));save();
 }
 function addSubject(){
-  const name=$("subjectName").value.trim();
-  if(!name)return alert("اكتب اسم المادة");
-  data.subjects.push({id:Date.now(),name,teacher:$("teacherName").value.trim()});
-  $("subjectName").value="";$("teacherName").value="";save();
-}
-function addGrade(){
-  const subject=$("gradeSubject").value.trim(),exam=$("gradeExam").value.trim();
-  const value=Number($("gradeValue").value),max=Number($("gradeMax").value);
-  if(!subject||!Number.isFinite(value)||!Number.isFinite(max)||max<=0||value<0||value>max)
-    return alert("تأكد من اسم المادة والدرجات المدخلة");
-  data.grades.push({id:Date.now(),subject,exam,value,max});
-  $("gradeSubject").value="";$("gradeExam").value="";$("gradeValue").value="";save();
-}
-function addAttendance(){
-  const date=$("attDate").value||today();
-  data.attendance.push({id:Date.now(),date,status:$("attStatus").value,note:$("attNote").value.trim()});
-  $("attNote").value="";save();
-}
-function saveGoal(){
-  data.goal=Math.max(1,Math.min(1440,Number($("dailyGoal").value)||120));save();
-}
-function listHTML(items,empty,fn){
-  return items.length?items.join(""):`<div class="empty">${empty}</div>`;
+ const name=$("subjectName").value.trim();if(!name)return alert("اكتب اسم المادة");
+ db.subjects.push({id:Date.now(),code:currentUser.code,name,teacher:$("teacherName").value.trim()});
+ $("subjectName").value="";$("teacherName").value="";save();
 }
 function renderTasks(){
-  const sorted=[...data.tasks].sort((a,b)=>Number(a.done)-Number(b.done));
-  const html=t=>`<div class="item"><div>
-    <div class="item-title" style="${t.done?'text-decoration:line-through;opacity:.6':''}">${esc(t.name)}</div>
-    <div class="small">${esc(t.subject||"بدون مادة")} · ${esc(t.date||"بلا موعد")}</div>
-    <div style="margin-top:7px"><span class="tag">${esc(t.priority)}</span> ${t.done?'<span class="tag">مكتمل ✓</span>':""}</div>
-    </div><div class="item-actions"><button class="secondary" onclick="toggleTask(${t.id})">${t.done?"↩":"✓"}</button><button class="danger" onclick="deleteItem('tasks',${t.id})">حذف</button></div></div>`;
-  $("taskList").innerHTML=listHTML(sorted.map(html),"ما عندك واجبات بعد، أضف أول واجب.");
-  const pending=sorted.filter(t=>!t.done);
-  $("homeTasks").innerHTML=listHTML(pending.slice(0,3).map(html),"ممتاز! ما عندك واجبات معلّقة 🎉");
-  $("taskCount").textContent=pending.length;
+ const tasks=db.tasks.filter(t=>t.code===currentUser.code);
+ const make=t=>`<div class="item"><div><div class="item-title" style="${t.done?"text-decoration:line-through":""}">${esc(t.name)}</div><div class="small">${esc(t.subject||"بدون مادة")} · ${esc(t.date||"بلا موعد")}</div><span class="tag">${esc(t.priority)}</span></div><div style="display:grid;gap:5px"><button class="secondary" onclick="toggleTask(${t.id})">${t.done?"إلغاء":"تم ✓"}</button><button class="danger" onclick="deleteTask(${t.id})">حذف</button></div></div>`;
+ $("taskList").innerHTML=tasks.length?tasks.map(make).join(""):'<div class="empty">ما عندك واجبات بعد.</div>';
+ const pending=tasks.filter(t=>!t.done);
+ $("homeTasks").innerHTML=pending.length?pending.slice(0,3).map(make).join(""):'<div class="empty">ما عندك واجبات معلّقة 🎉</div>';
+ $("taskCount").textContent=pending.length;
 }
 function renderSubjects(){
-  $("subjectList").innerHTML=listHTML(data.subjects.map(s=>`<div class="item"><div><div class="item-title">${esc(s.name)}</div><div class="small">${esc(s.teacher||"لم يُحدد المدرس")}</div></div><button class="danger" onclick="deleteItem('subjects',${s.id})">حذف</button></div>`),"ما أضفت مواد دراسية بعد.");
-  $("subjectCount").textContent=data.subjects.length;
-}
-function renderGrades(){
-  $("gradeList").innerHTML=listHTML([...data.grades].reverse().map(g=>`<div class="item"><div><div class="item-title">${esc(g.subject)}</div><div class="small">${esc(g.exam||"امتحان")} · ${g.value} من ${g.max}</div><div class="progress" style="width:150px;margin-top:8px"><span style="width:${g.value/g.max*100}%"></span></div></div><button class="danger" onclick="deleteItem('grades',${g.id})">حذف</button></div>`),"ما مسجل درجات بعد.");
-  const sum=data.grades.reduce((a,g)=>a+g.value,0),max=data.grades.reduce((a,g)=>a+g.max,0);
-  $("average").textContent=max?(sum/max*100).toFixed(1)+"%":"—";
-}
-function renderAttendance(){
-  $("attendanceList").innerHTML=listHTML([...data.attendance].reverse().map(a=>`<div class="item"><div><div class="item-title">${esc(a.date)} · ${esc(a.status)}</div><div class="small">${esc(a.note||"بدون ملاحظات")}</div></div><button class="danger" onclick="deleteItem('attendance',${a.id})">حذف</button></div>`),"ماكو سجلات حضور أو غياب.");
+ const subjects=db.subjects.filter(s=>s.code===currentUser.code);
+ $("subjectCount").textContent=subjects.length;
+ $("subjectList").innerHTML=subjects.length?subjects.map(s=>`<div class="item"><div><div class="item-title">${esc(s.name)}</div><div class="small">${esc(s.teacher||"لم يحدد المدرس")}</div></div><span class="tag">مادة</span></div>`).join(""):'<div class="empty">لم تضف مواد بعد.</div>';
 }
 function renderGoal(){
-  const mins=data.studyLog[today()]||0,goal=data.goal||120,pct=Math.min(100,Math.round(mins/goal*100));
-  $("studyMinutes").textContent=mins;$("doneToday").value=mins+" دقيقة";
-  $("goalLabel").textContent=pct+"%";$("goalProgress").style.width=pct+"%";
+ const mins=db.studyLog[currentUser.code+"_"+new Date().toLocaleDateString("en-CA")]||0;
+ const goal=db.goal||120,pct=Math.min(100,Math.round(mins/goal*100));
+ $("studyMinutes").textContent=mins;$("goalLabel").textContent=pct+"% من الهدف";$("goalProgress").style.width=pct+"%";
 }
-function renderAll(){renderTasks();renderSubjects();renderGrades();renderAttendance();renderGoal();}
+function renderAdminGrades(){
+ const grades=db.grades;
+ $("adminGrades").innerHTML=grades.length?grades.map(g=>`<div class="item"><div><div class="item-title">${esc(g.subject)}</div><div class="small">رمز الطالب: ${esc(g.code)} · ${g.value}/${g.max}</div></div><button class="danger" onclick="adminDeleteGrade(${g.id})">حذف</button></div>`).join(""):'<div class="empty">لا توجد درجات مسجلة.</div>';
+}
+function adminLogin(){
+ // هذا رمز تجريبي للواجهة فقط وليس نظام صلاحيات آمناً.
+ if($("adminCode").value!=="ADMIN-CHANGE-ME")return alert("رمز الإدارة غير صحيح");
+ $("adminPanel").classList.remove("hidden");renderAdminGrades();
+}
+function adminAddGrade(){
+ const code=$("targetCode").value.trim(),subject=$("adminSubject").value.trim();
+ const exam=$("adminExam").value.trim(),value=Number($("adminValue").value),max=Number($("adminMax").value);
+ if(!code||!subject||!Number.isFinite(value)||!Number.isFinite(max)||max<=0||value<0||value>max)return alert("تحقق من البيانات");
+ if(!db.users.some(u=>u.code===code))return alert("هذا الرمز لم يسجل الدخول بعد");
+ db.grades.push({id:Date.now(),code,subject,exam,value,max});
+ ["adminSubject","adminExam","adminValue"].forEach(id=>$(id).value="");
+ save();renderAdminGrades();alert("تمت إضافة الدرجة");
+}
+function adminDeleteGrade(id){
+ if(!confirm("متأكد من حذف الدرجة؟"))return;
+ db.grades=db.grades.filter(g=>g.id!==id);save();renderAdminGrades();
+}
+function saveGoal(){db.goal=Math.max(1,Math.min(1440,Number($("dailyGoal").value)||120));save();}
+function changeName(){
+ const name=$("editName").value.trim();if(!name)return alert("اكتب الاسم");
+ currentUser.name=name;
+ const user=db.users.find(u=>u.code===currentUser.code);if(user)user.name=name;
+ save();$("welcomeName").textContent=name;alert("تم حفظ الاسم");
+}
 function startTimer(){
-  if(running)return;
-  if(!remaining||remaining<1)remaining=(Number($("studyLength").value)||25)*60;
-  running=true;$("timerStatus").textContent=mode==="study"?"وقت التركيز! أبعد المشتتات 💪":"استراحة قصيرة، تستاهلها ☕";
-  timer=setInterval(()=>{
-    remaining--;
-    if(remaining<=0){
-      clearInterval(timer);timer=null;running=false;
-      if(mode==="study"){
-        data.studyLog[today()]=(data.studyLog[today()]||0)+(Number($("studyLength").value)||25);
-        save();mode="break";remaining=(Number($("breakLength").value)||5)*60;
-        $("timerStatus").textContent="أحسنت! خلصت جلسة دراسة. خذ استراحة وابدأ جلسة جديدة.";
-      }else{
-        mode="study";remaining=(Number($("studyLength").value)||25)*60;
-        $("timerStatus").textContent="خلصت الاستراحة، جاهز لجلسة جديدة؟";
-      }
-      renderClock();return;
-    }
-    renderClock();
-  },1000);
+ if(running)return;
+ if(remaining<=0)remaining=(Number($("studyLength").value)||25)*60;
+ running=true;
+ timer=setInterval(()=>{
+  remaining--;renderClock();
+  if(remaining<=0){
+   clearInterval(timer);timer=null;running=false;
+   if(mode==="study"){
+    const key=currentUser.code+"_"+new Date().toLocaleDateString("en-CA");
+    db.studyLog[key]=(db.studyLog[key]||0)+(Number($("studyLength").value)||25);
+    save();mode="break";remaining=(Number($("breakLength").value)||5)*60;
+    $("timerStatus").textContent="أحسنت! وقت الاستراحة ☕";
+   }else{
+    mode="study";remaining=(Number($("studyLength").value)||25)*60;
+    $("timerStatus").textContent="انتهت الاستراحة، وقت الدراسة 💪";
+   }
+   renderClock();
+  }
+ },1000);
+ $("timerStatus").textContent=mode==="study"?"وقت التركيز!":"وقت الاستراحة!";
 }
 function pauseTimer(){if(timer)clearInterval(timer);timer=null;running=false;}
-function resetTimer(){
-  pauseTimer();mode="study";remaining=(Number($("studyLength").value)||25)*60;
-  $("timerStatus").textContent="تمت إعادة المؤقت.";renderClock();
+function resetTimer(){pauseTimer();mode="study";remaining=(Number($("studyLength").value)||25)*60;$("timerStatus").textContent="تمت إعادة المؤقت";renderClock();}
+function renderClock(){const m=Math.floor(remaining/60),s=remaining%60;$("clock").textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");}
+function renderAll(){
+ if(!currentUser)return;
+ renderTasks();renderSubjects();renderMyResult();renderGoal();
+ const grades=myGrades(),sum=grades.reduce((n,g)=>n+Number(g.value),0),max=grades.reduce((n,g)=>n+Number(g.max),0);
+ $("homeAverage").textContent=max?(sum/max*100).toFixed(1)+"%":"—";
 }
-function renderClock(){
-  const m=Math.floor(remaining/60),s=remaining%60;
-  $("clock").textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
-}
-function exportData(){
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
-  const url=URL.createObjectURL(blob),a=document.createElement("a");
-  a.href=url;a.download="darsi-backup.json";a.click();URL.revokeObjectURL(url);
-}
-function clearData(){
-  if(!confirm("هذا راح يحذف واجباتك وموادك ودرجاتك وسجلاتك من هذا الجهاز. متأكد؟"))return;
-  pauseTimer();localStorage.removeItem(KEY);
-  data={name:"",tasks:[],subjects:[],grades:[],attendance:[],goal:120,studyLog:{}};
-  location.reload();
-}
-$("studyLength").addEventListener("change",()=>{if(!running&&mode==="study")resetTimer();});
-$("breakLength").addEventListener("change",()=>{if(!running&&mode==="break"){remaining=(Number($("breakLength").value)||5)*60;renderClock();}});
-$("attDate").value=today();
 load();renderClock();
 </script>
 </body>
 </html>
+ 
