@@ -1,7 +1,7 @@
 
 const express = require("express");
 const path = require("path");
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectId } = require("mongodb");
 const crypto = require("crypto");
 
 const app = express();
@@ -295,6 +295,69 @@ app.post("/api/admin", async (req, res) => {
     return res.status(500).json({
       error: "حدث خطأ أثناء تنفيذ العملية"
     });
+  }
+});
+
+// إدارة محتوى الأقسام (سيارات، عقارات، وظائف ...) — المسار الذي تطلبه لوحة /admin
+const SECTIONS = ["cars", "realestate", "jobs", "shops", "medical", "tourism", "study"];
+
+app.post("/api/content", async (req, res) => {
+  const b = req.body || {};
+
+  if (!process.env.ADMIN_CODE || String(b.pass || "") !== process.env.ADMIN_CODE) {
+    return res.sendStatus(401);
+  }
+
+  const section = String(b.section || "");
+  if (!SECTIONS.includes(section)) {
+    return res.status(400).json({ error: "قسم غير صحيح" });
+  }
+
+  try {
+    const col = (await db()).collection("content");
+
+    if (b.action === "list") {
+      const list = await col.find({ section }).sort({ updatedAt: -1 }).limit(500).toArray();
+      return res.json(list.map(d => ({ ...d, _id: String(d._id) })));
+    }
+
+    if (b.action === "save") {
+      const i = b.item || {};
+      const title = String(i.title || "").trim().slice(0, 180);
+      if (!title) return res.status(400).json({ error: "العنوان مطلوب" });
+
+      const image = String(i.image || "").trim();
+      const doc = {
+        section,
+        title,
+        price: String(i.price || "").slice(0, 80),
+        location: String(i.location || "").slice(0, 120),
+        contact: String(i.contact || "").slice(0, 40),
+        image: /^https?:\/\//i.test(image) ? image.slice(0, 500) : "",
+        status: i.status === "draft" ? "draft" : "published",
+        description: String(i.description || "").slice(0, 5000),
+        updatedAt: new Date()
+      };
+
+      if (i._id) {
+        if (!ObjectId.isValid(String(i._id))) return res.status(400).json({ error: "معرّف غير صحيح" });
+        await col.updateOne({ _id: new ObjectId(String(i._id)), section }, { $set: doc });
+      } else {
+        await col.insertOne({ ...doc, createdAt: new Date() });
+      }
+      return res.json({ ok: true });
+    }
+
+    if (b.action === "delete") {
+      if (!ObjectId.isValid(String(b.id || ""))) return res.status(400).json({ error: "معرّف غير صحيح" });
+      await col.deleteOne({ _id: new ObjectId(String(b.id)), section });
+      return res.json({ ok: true });
+    }
+
+    return res.sendStatus(400);
+  } catch (error) {
+    console.error("Content API error:", error.message);
+    return res.status(500).json({ error: "حدث خطأ أثناء تنفيذ العملية" });
   }
 });
 
