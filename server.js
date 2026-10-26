@@ -5,11 +5,15 @@ const { MongoClient } = require("mongodb");
 const crypto = require("crypto");
 
 const app = express();
-app.use(express.json({ limit: "1mb" }));\napp.use(express.static(path.join(__dirname, "public")));
+
+// إعدادات الموقع — تم إصلاح الخطأ هنا
+app.use(express.json({ limit: "1mb" }));
+app.use(express.static(path.join(__dirname, "public")));
 
 let client;
 let dbPromise;
 
+// الاتصال بقاعدة البيانات MongoDB
 async function db() {
   if (!process.env.MONGODB_URI) {
     throw new Error("MONGODB_URI is not configured");
@@ -43,6 +47,7 @@ app.get("/api/health", async (req, res) => {
     });
   } catch (error) {
     console.error("Health check failed:", error.message);
+
     res.status(503).json({
       ok: false,
       connected: false
@@ -50,17 +55,21 @@ app.get("/api/health", async (req, res) => {
   }
 });
 
-// الصفحة الرئيسية من مجلد public
+// الصفحة الرئيسية
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(
+    path.join(__dirname, "public", "index.html")
+  );
 });
 
 // لوحة المدير
 app.get("/admin", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "admin.html"));
+  res.sendFile(
+    path.join(__dirname, "public", "admin.html")
+  );
 });
 
-// بيانات الطالب حسب الكود
+// جلب بيانات الطالب حسب الكود
 app.get("/api/student", async (req, res) => {
   try {
     const code = String(req.query.code || "");
@@ -75,7 +84,9 @@ app.get("/api/student", async (req, res) => {
 
     res.set("Cache-Control", "no-store");
 
-    if (!student) return res.sendStatus(404);
+    if (!student) {
+      return res.sendStatus(404);
+    }
 
     res.json({
       n: student.n || "",
@@ -83,16 +94,21 @@ app.get("/api/student", async (req, res) => {
       x: student.x || {},
       ab: student.ab || []
     });
+
   } catch (error) {
     console.error("Student API error:", error.message);
-    res.status(500).json({ error: "حدث خطأ في الخادم" });
+
+    res.status(500).json({
+      error: "حدث خطأ في الخادم"
+    });
   }
 });
 
-// لوحة الإدارة
+// واجهة الإدارة
 app.post("/api/admin", async (req, res) => {
   const body = req.body || {};
 
+  // التحقق من رمز المدير
   if (
     !process.env.ADMIN_CODE ||
     String(body.pass || "") !== process.env.ADMIN_CODE
@@ -103,11 +119,12 @@ app.post("/api/admin", async (req, res) => {
   try {
     const collection = (await db()).collection("students");
 
+    // التحقق من رمز المدير
     if (body.action === "check") {
       return res.json({ ok: true });
     }
 
-    // إنشاء طالب جديد وكود دخول فريد
+    // إنشاء طالب جديد
     if (body.action === "create") {
       const name = String(body.n || "").trim();
 
@@ -137,25 +154,35 @@ app.post("/api/admin", async (req, res) => {
 
           created = true;
           break;
+
         } catch (error) {
-          if (error.code !== 11000) throw error;
+          if (error.code !== 11000) {
+            throw error;
+          }
         }
       }
 
       if (!created) {
-        throw new Error("Could not generate a unique student code");
+        throw new Error(
+          "Could not generate a unique student code"
+        );
       }
 
       return res.status(201).json({
         ok: true,
-        student: { c: code, n: name }
+        student: {
+          c: code,
+          n: name
+        }
       });
     }
 
     // عرض الطلاب
     if (body.action === "list") {
       const students = await collection
-        .find({}, { projection: { n: 1 } })
+        .find({}, {
+          projection: { n: 1 }
+        })
         .sort({ n: 1 })
         .toArray();
 
@@ -167,9 +194,11 @@ app.post("/api/admin", async (req, res) => {
       );
     }
 
-    // نشر الدرجات
+    // نشر درجات الطلاب
     if (body.action === "publish") {
-      const items = Array.isArray(body.items) ? body.items : [];
+      const items = Array.isArray(body.items)
+        ? body.items
+        : [];
 
       const operations = items
         .filter(item =>
@@ -186,7 +215,9 @@ app.post("/api/admin", async (req, res) => {
         )
         .map(item => ({
           updateOne: {
-            filter: { _id: String(item.c) },
+            filter: {
+              _id: String(item.c)
+            },
             update: {
               $set: {
                 n: String(item.n || ""),
@@ -211,20 +242,29 @@ app.post("/api/admin", async (req, res) => {
         await collection.bulkWrite(operations);
       }
 
-      return res.json({ ok: true, n: operations.length });
+      return res.json({
+        ok: true,
+        n: operations.length
+      });
     }
 
-    // تسجيل غياب
+    // تسجيل غياب الطالب
     if (body.action === "absence") {
       const code = String(body.c || "");
 
       if (!/^\d{4,12}$/.test(code)) {
-        return res.status(400).json({ error: "كود غير صحيح" });
+        return res.status(400).json({
+          error: "كود غير صحيح"
+        });
       }
 
       await collection.updateOne(
         { _id: code },
-        { $addToSet: { ab: String(body.d || "") } }
+        {
+          $addToSet: {
+            ab: String(body.d || "")
+          }
+        }
       );
 
       return res.json({ ok: true });
@@ -235,22 +275,30 @@ app.post("/api/admin", async (req, res) => {
       const code = String(body.c || "");
 
       if (!/^\d{4,12}$/.test(code)) {
-        return res.status(400).json({ error: "كود غير صحيح" });
+        return res.status(400).json({
+          error: "كود غير صحيح"
+        });
       }
 
-      await collection.deleteOne({ _id: code });
+      await collection.deleteOne({
+        _id: code
+      });
+
       return res.json({ ok: true });
     }
 
     return res.sendStatus(400);
+
   } catch (error) {
     console.error("Admin API error:", error.message);
+
     return res.status(500).json({
       error: "حدث خطأ أثناء تنفيذ العملية"
     });
   }
 });
 
+// تشغيل الخادم
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
