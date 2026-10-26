@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة إدارة دَرسي</title>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--ink:#17243a;--muted:#68778c;--green:#13785a;--line:#e2e8f0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,Arial,sans-serif}
+header{background:#102033;color:white;padding:20px 5%;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{margin:0;font-size:21px}header small{color:#b7c8d9}
+main{max-width:1100px;margin:24px auto;padding:0 14px}.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:18px;box-shadow:0 8px 28px #17243a0a}
+.login{max-width:480px;margin:50px auto}.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+label{display:block;font-size:13px;font-weight:bold;margin-bottom:6px}input,textarea,select{width:100%;padding:11px;border:1px solid #ccd6e2;border-radius:9px;font:inherit;background:white;color:var(--ink)}textarea{min-height:100px;resize:vertical}
+button{border:0;border-radius:9px;padding:11px 15px;background:var(--green);color:white;font:inherit;font-weight:bold;cursor:pointer}button.secondary{background:#e8eef5;color:#24364c}button.danger{background:#b8323a}button:disabled{opacity:.5}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}.tabs button{background:#e5edf4;color:#24364c}.tabs button.active{background:var(--green);color:white}
+.item{border:1px solid var(--line);border-radius:11px;padding:13px;margin-top:10px;display:flex;justify-content:space-between;gap:12px;align-items:center}.item p{margin:5px 0;color:var(--muted);font-size:13px}.actions{display:flex;gap:7px;flex-wrap:wrap}
+.notice{padding:11px;border-radius:9px;background:#edf8f2;color:#176144;margin:12px 0}.hidden{display:none}.section-title{margin-top:0}.status{font-size:12px;color:var(--muted)}
+@media(max-width:550px){header{padding:16px} .item{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<header><div><h1>لوحة إدارة دَرسي</h1><small>إدارة أقسام الموقع والمنشورات</small></div><a href="/" style="color:#fff">العودة للموقع</a></header>
+<main>
+<section id="login" class="panel login">
+<h2>دخول المدير</h2><p class="status">أدخل رمز المدير المحدد في إعدادات Render باسم ADMIN_CODE.</p>
+<label for="pass">الرمز السري</label><input id="pass" type="password" autocomplete="current-password" placeholder="رمز المدير">
+<p><button id="loginBtn">دخول</button></p><div id="loginMsg" class="status"></div>
+</section>
+<section id="dashboard" class="hidden">
+<div class="panel">
+<h2 class="section-title">إدارة محتوى الموقع</h2>
+<div class="tabs" id="tabs"></div>
+<div id="notice" class="notice hidden"></div>
+<form id="editor">
+<input type="hidden" id="itemId">
+<div class="row">
+<div><label for="title">العنوان *</label><input id="title" required maxlength="180" placeholder="مثلاً: سيارة تويوتا للبيع"></div>
+<div><label for="price">السعر</label><input id="price" placeholder="السعر بالدينار العراقي"></div>
+<div><label for="location">الموقع</label><input id="location" placeholder="المحافظة / المنطقة"></div>
+<div><label for="contact">رقم التواصل</label><input id="contact" placeholder="رقم الهاتف"></div>
+<div><label for="image">رابط الصورة</label><input id="image" type="url" placeholder="https://..."></div>
+<div><label for="status">حالة المنشور</label><select id="status"><option value="published">منشور</option><option value="draft">مسودة</option></select></div>
+</div>
+<p><label for="description">التفاصيل</label><textarea id="description" placeholder="اكتب مواصفات المنشور وتفاصيله"></textarea></p>
+<div class="actions"><button type="submit">حفظ / نشر</button><button type="button" class="secondary" id="clear">تفريغ الحقول</button><button type="button" class="secondary" id="refresh">تحديث القائمة</button></div>
+</form>
+</div>
+<div class="panel"><h2 class="section-title">المنشورات الحالية</h2><div id="items"></div></div>
+</section>
+</main>
+<script>
+const sections={
+ cars:"سوق السيارات",realestate:"العقارات",jobs:"الوظائف",shops:"المتاجر والمنتجات",
+ medical:"الأطباء والمراكز الطبية",tourism:"الأماكن السياحية",study:"المحتوى الدراسي"
+};
+let password="",section="cars",records=[];
+const $=id=>document.getElementById(id);
+async function api(url,data){const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...data,pass:password})});let j={};try{j=await r.json()}catch{}if(!r.ok)throw Error(j.error||"فشل الطلب");return j}
+function msg(t){$("notice").textContent=t;$("notice").classList.remove("hidden");setTimeout(()=>$("notice").classList.add("hidden"),3500)}
+function drawTabs(){$("tabs").innerHTML=Object.entries(sections).map(([k,v])=>`<button type="button" class="${k===section?"active":""}" data-section="${k}">${v}</button>`).join("");$("tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{section=b.dataset.section;drawTabs();load()})}
+function clearForm(){$("editor").reset();$("itemId").value=""}
+async function load(){try{records=await api("/api/content",{action:"list",section});$("items").innerHTML=records.length?records.map(x=>`<div class="item"><div><strong>${esc(x.title||"بدون عنوان")}</strong><p>${esc(x.price||"")}${x.location?" • "+esc(x.location):""} • ${x.status==="draft"?"مسودة":"منشور"}</p></div><div class="actions"><button class="secondary" data-edit="${esc(x._id)}">تعديل</button><button class="danger" data-delete="${esc(x._id)}">حذف</button></div></div>`).join(""):"<p class='status'>لا توجد منشورات في هذا القسم بعد.</p>";$("items").querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>edit(b.dataset.edit));$("items").querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>del(b.dataset.delete))}catch(e){msg(e.message)}}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function edit(id){const x=records.find(r=>r._id===id);if(!x)return;$("itemId").value=x._id;$("title").value=x.title||"";$("price").value=x.price||"";$("location").value=x.location||"";$("contact").value=x.contact||"";$("image").value=x.image||"";$("status").value=x.status||"published";$("description").value=x.description||"";window.scrollTo({top:0,behavior:"smooth"})}
+async function del(id){if(!confirm("تأكيد حذف المنشور؟"))return;try{await api("/api/content",{action:"delete",section,id});msg("تم حذف المنشور");load()}catch(e){msg(e.message)}}
+$("loginBtn").onclick=async()=>{password=$("pass").value;try{await api("/api/admin",{action:"check"});$("login").classList.add("hidden");$("dashboard").classList.remove("hidden");drawTabs();load()}catch(e){$("loginMsg").textContent="تعذر الدخول. تأكد من رمز المدير ووجود إعدادات قاعدة البيانات."}};
+$("editor").onsubmit=async e=>{e.preventDefault();const item={_id:$("itemId").value,title:$("title").value,price:$("price").value,location:$("location").value,contact:$("contact").value,image:$("image").value,status:$("status").value,description:$("description").value};try{await api("/api/content",{action:"save",section,item});clearForm();msg("تم حفظ المنشور");load()}catch(e){msg(e.message)}};
+$("clear").onclick=clearForm;$("refresh").onclick=load;
+</script>
+</body></html>
