@@ -16,6 +16,7 @@ button{border:0;border-radius:9px;padding:11px 15px;background:var(--green);colo
 .item{border:1px solid var(--line);border-radius:11px;padding:13px;margin-top:10px;display:flex;justify-content:space-between;gap:12px;align-items:center}.item p{margin:5px 0;color:var(--muted);font-size:13px}.actions{display:flex;gap:7px;flex-wrap:wrap}
 .notice{padding:11px;border-radius:9px;background:#edf8f2;color:#176144;margin:12px 0}.hidden{display:none}.section-title{margin-top:0}.status{font-size:12px;color:var(--muted)}
 @media(max-width:550px){header{padding:16px} .item{align-items:flex-start;flex-direction:column}}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.th{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;border:1px solid var(--line);display:grid;place-items:center;background:#f3f6fb}.th img{width:100%;height:100%;object-fit:cover}.th button{position:absolute;top:3px;left:3px;width:24px;height:24px;padding:0;border-radius:50%;background:#b8323a;color:#fff;line-height:1}
 </style>
 </head>
 <body>
@@ -41,6 +42,7 @@ button{border:0;border-radius:9px;padding:11px 15px;background:var(--green);colo
 <div><label for="image">رابط الصورة</label><input id="image" type="url" placeholder="https://..."></div>
 <div><label for="status">حالة المنشور</label><select id="status"><option value="published">منشور</option><option value="draft">مسودة</option></select></div>
 </div>
+<div style="margin:6px 0 14px"><label for="pick">صور المنشور (من معرض الهاتف)</label><input id="pick" type="file" accept="image/*" multiple><div id="thumbs" class="thumbs"></div><p class="status">حتى 8 صور، وتُصغَّر تلقائياً قبل الرفع. الصورة الأولى هي الغلاف.</p></div>
 <p><label for="description">التفاصيل</label><textarea id="description" placeholder="اكتب مواصفات المنشور وتفاصيله"></textarea></p>
 <div class="actions"><button type="submit">حفظ / نشر</button><button type="button" class="secondary" id="clear">تفريغ الحقول</button><button type="button" class="secondary" id="refresh">تحديث القائمة</button></div>
 </form>
@@ -66,5 +68,53 @@ async function del(id){if(!confirm("تأكيد حذف المنشور؟"))return;
 $("loginBtn").onclick=async()=>{password=$("pass").value;try{await api("/api/admin",{action:"check"});$("login").classList.add("hidden");$("dashboard").classList.remove("hidden");drawTabs();load()}catch(e){$("loginMsg").textContent="تعذر الدخول. تأكد من رمز المدير ووجود إعدادات قاعدة البيانات."}};
 $("editor").onsubmit=async e=>{e.preventDefault();const item={_id:$("itemId").value,title:$("title").value,price:$("price").value,location:$("location").value,contact:$("contact").value,image:$("image").value,status:$("status").value,description:$("description").value};try{await api("/api/content",{action:"save",section,item});clearForm();msg("تم حفظ المنشور");load()}catch(e){msg(e.message)}};
 $("clear").onclick=clearForm;$("refresh").onclick=load;
+</script>
+<script>
+var imgs=[],busy=0;
+function drawImgs(){
+  $("thumbs").innerHTML=imgs.map(function(id,i){return '<div class="th"><img src="/api/img/'+id+'" alt=""><button type="button" data-r="'+i+'" aria-label="حذف الصورة">×</button></div>'}).join("")+(busy?'<div class="th">⏳</div>':"");
+  $("thumbs").querySelectorAll("[data-r]").forEach(function(b){b.onclick=function(){imgs.splice(+b.dataset.r,1);drawImgs()}});
+}
+function shrink(file){
+  return new Promise(function(ok,no){
+    var u=URL.createObjectURL(file),im=new Image();
+    im.onload=function(){
+      var s=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement("canvas"),x=c.getContext("2d");
+      c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);
+      x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);
+      URL.revokeObjectURL(u);
+      var q=.8,d=c.toDataURL("image/jpeg",q);
+      while(d.length>700000&&q>.4){q-=.1;d=c.toDataURL("image/jpeg",q)}
+      ok(d);
+    };
+    im.onerror=function(){no(Error("تعذر قراءة الصورة"))};
+    im.src=u;
+  });
+}
+$("pick").onchange=async function(){
+  var fs=Array.from(this.files);this.value="";
+  for(var i=0;i<fs.length;i++){
+    if(imgs.length>=8){msg("الحد الأقصى 8 صور");break}
+    busy++;drawImgs();
+    try{var r=await api("/api/upload",{data:await shrink(fs[i])});imgs.push(r.id)}catch(e){msg(e.message)}
+    busy--;drawImgs();
+  }
+};
+function clearForm(){$("editor").reset();$("itemId").value="";imgs=[];drawImgs()}
+function edit(id){
+  var x=records.find(function(r){return r._id===id});if(!x)return;
+  $("itemId").value=x._id;
+  ["title","price","location","contact","image","description"].forEach(function(k){$(k).value=x[k]||""});
+  $("status").value=x.status||"published";
+  imgs=(x.images||[]).slice();drawImgs();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+$("clear").onclick=clearForm;
+$("editor").onsubmit=async function(e){
+  e.preventDefault();
+  if(busy){msg("انتظر حتى تكتمل صور الرفع");return}
+  var item={_id:$("itemId").value,title:$("title").value,price:$("price").value,location:$("location").value,contact:$("contact").value,image:$("image").value,status:$("status").value,description:$("description").value,images:imgs};
+  try{await api("/api/content",{action:"save",section,item});clearForm();msg("تم حفظ المنشور");load()}catch(er){msg(er.message)}
+};
 </script>
 </body></html>
