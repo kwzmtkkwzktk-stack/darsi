@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دليل العراق</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f7fb;--ink:#142033;--muted:#718096;--primary:#176b55;--dark:#101827;--surface:#fff;--line:#e7edf3}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Cairo",system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:inherit;text-decoration:none}
+header{background:var(--dark);color:#fff;padding:18px 0}
+.wrap{width:min(1160px,calc(100% - 28px));margin-inline:auto}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.top a{color:#a9e6ce;font-weight:700;font-size:14px}
+.title{display:flex;align-items:center;gap:12px;margin-top:14px}
+.title .ic{width:50px;height:50px;border-radius:15px;background:rgba(255,255,255,.1);display:grid;place-items:center;font-size:26px}
+.title h1{margin:0;font-size:24px;font-weight:900}
+.title small{color:#b6c2d0}
+.tools{margin:22px 0 18px}
+.tools input{width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:14px;font:inherit;background:#fff;color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;padding-bottom:50px}
+.post{background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;cursor:pointer;display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s}
+.post:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(25,43,67,.09)}
+.pic{aspect-ratio:16/10;background:linear-gradient(135deg,#e7f5ef,#edf4fb);display:grid;place-items:center;font-size:44px;overflow:hidden}
+.pic img{width:100%;height:100%;object-fit:cover;display:block}
+.body{padding:15px;display:flex;flex-direction:column;gap:6px;flex:1}
+.body h3{margin:0;font-size:17px;font-weight:800;line-height:1.6}
+.price{color:var(--primary);font-weight:900}
+.loc{color:var(--muted);font-size:13px}
+.desc{color:#4a5a70;font-size:13px;line-height:1.8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.more{margin-top:auto;color:var(--primary);font-weight:800;font-size:13px}
+.msg{text-align:center;color:var(--muted);padding:50px 14px;background:#fff;border:1px dashed #d5dee8;border-radius:18px;margin-bottom:50px}
+.msg button{margin-top:12px}
+button,.btn{font:inherit;border:0;border-radius:12px;padding:11px 18px;background:var(--primary);color:#fff;font-weight:800;cursor:pointer;display:inline-block}
+.btn.wa{background:#1fa855}
+.ov{position:fixed;inset:0;background:rgba(10,18,30,.6);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.ov.on{display:flex}
+.sheet{background:#fff;width:min(640px,100%);max-height:92vh;overflow:auto;border-radius:24px 24px 0 0;padding:0 0 22px}
+.sheet .pic{aspect-ratio:16/9;border-radius:0}
+.sheet .in{padding:18px}
+.sheet h2{margin:0 0 8px;font-size:22px;font-weight:900;line-height:1.5}
+.sheet .full{white-space:pre-wrap;line-height:2;color:#33445b;margin:12px 0;font-size:15px}
+.close{position:absolute;margin:12px;background:rgba(16,24,39,.7);width:38px;height:38px;border-radius:50%;padding:0;z-index:2}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+@media(min-width:700px){.ov{align-items:center}.sheet{border-radius:24px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="top"><a href="/">→ كل الأقسام</a><span id="cnt" style="color:#b6c2d0;font-size:13px"></span></div>
+  <div class="title"><div class="ic" id="ic">🇮🇶</div><div><h1 id="h">دليل العراق</h1><small>آخر المنشورات في هذا القسم</small></div></div>
+</div></header>
+<main class="wrap">
+  <div class="tools"><input id="q" type="search" placeholder="ابحث داخل القسم..." aria-label="بحث"></div>
+  <div id="list"></div>
+</main>
+<div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
+
+<script>
+var SEC={study:["منصة دراسية","🎓"],jobs:["وظائف العراق","💼"],shops:["المحلات الإلكترونية","🛍️"],cars:["بيع وشراء السيارات","🚘"],realestate:["بيع وشراء العقارات","🏡"],tourism:["الأماكن السياحية في العراق","🏛️"],medical:["مراكز الأطباء العراقيين","🩺"]};
+var key=new URLSearchParams(location.search).get("s"),info=SEC[key],posts=[];
+function $(i){return document.getElementById(i)}
+function esc(v){var d=document.createElement("div");d.textContent=v==null?"":v;return d.innerHTML}
+function safeUrl(u){return /^https?:\/\//i.test(u||"")?u:""}
+function pic(p,icon){var u=safeUrl(p.image);return '<div class="pic">'+(u?'<img src="'+esc(u)+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">':"")+(u?"":icon)+"</div>"}
+function digits(s){return String(s||"").replace(/[^\d+]/g,"")}
+function wa(s){var d=String(s||"").replace(/\D/g,"");if(d.indexOf("00")===0)d=d.slice(2);else if(d.charAt(0)==="0")d="964"+d.slice(1);return d}
+
+if(!info){
+  $("list").innerHTML='<div class="msg">هذا القسم غير موجود.<br><a class="btn" style="margin-top:12px" href="/">الرجوع للأقسام</a></div>';
+}else{
+  document.title=info[0]+" | دليل العراق";$("h").textContent=info[0];$("ic").textContent=info[1];load();
+}
+function load(){
+  $("list").innerHTML='<div class="msg">جاري التحميل... إذا كان الموقع نايم قد يتأخر قليلاً ⏳</div>';
+  fetch("/api/posts?section="+encodeURIComponent(key),{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(d){posts=d;draw()}).catch(function(){
+    $("list").innerHTML='<div class="msg">تعذر تحميل المنشورات، حاول مرة ثانية.<br><button id="retry">إعادة المحاولة</button></div>';$("retry").onclick=load});
+}
+function draw(){
+  var s=$("q").value.trim().toLowerCase(),
+      f=posts.filter(function(p){return !s||(p.title+" "+p.location+" "+p.description+" "+p.price).toLowerCase().indexOf(s)>-1});
+  $("cnt").textContent=posts.length?posts.length+" منشور":"";
+  if(!f.length){$("list").innerHTML='<div class="msg">'+(posts.length?"ما لكينا نتائج مطابقة لبحثك.":"ما كو منشورات بهذا القسم حالياً، تابعنا قريباً 🌱")+"</div>";return}
+  $("list").innerHTML='<div class="grid">'+f.map(function(p){var i=posts.indexOf(p);
+    return '<article class="post" data-i="'+i+'">'+pic(p,info[1])+'<div class="body"><h3>'+esc(p.title)+"</h3>"+(p.price?'<div class="price">'+esc(p.price)+"</div>":"")+(p.location?'<div class="loc">📍 '+esc(p.location)+"</div>":"")+(p.description?'<div class="desc">'+esc(p.description)+"</div>":"")+'<span class="more">عرض التفاصيل ←</span></div></article>'}).join("")+"</div>";
+  document.querySelectorAll(".post").forEach(function(c){c.onclick=function(){open_(+c.dataset.i)}});
+}
+function open_(i){
+  var p=posts[i];if(!p)return;
+  $("sheet").innerHTML='<button class="close" id="x" aria-label="إغلاق">✕</button>'+pic(p,info[1])+'<div class="in"><h2>'+esc(p.title)+"</h2>"+(p.price?'<div class="price">'+esc(p.price)+"</div>":"")+(p.location?'<div class="loc">📍 '+esc(p.location)+"</div>":"")+(p.description?'<div class="full">'+esc(p.description)+"</div>":"")+
+    (p.contact?'<div class="acts"><a class="btn" href="tel:'+esc(digits(p.contact))+'">📞 اتصال</a><a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/'+esc(wa(p.contact))+'">واتساب</a></div><div class="loc" style="margin-top:8px;direction:ltr;text-align:right">'+esc(p.contact)+"</div>":"")+"</div>";
+  $("ov").classList.add("on");$("x").onclick=close_;
+}
+function close_(){$("ov").classList.remove("on")}
+$("ov").onclick=function(e){if(e.target===this)close_()};
+document.addEventListener("keydown",function(e){if(e.key==="Escape")close_()});
+$("q").oninput=draw;
+</script>
+</body>
+</html>
