@@ -43,6 +43,7 @@ button,.btn{font:inherit;border:0;border-radius:12px;padding:11px 18px;backgroun
 .sheet h2{margin:0 0 8px;font-size:22px;font-weight:900;line-height:1.5}
 .sheet .full{white-space:pre-wrap;line-height:2;color:#33445b;margin:12px 0;font-size:15px}
 .close{position:absolute;margin:12px;background:rgba(16,24,39,.7);width:38px;height:38px;border-radius:50%;padding:0;z-index:2}
+.gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory}.gal img{flex:0 0 100%;width:100%;scroll-snap-align:start;aspect-ratio:16/9;object-fit:cover}
 .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 @media(min-width:700px){.ov{align-items:center}.sheet{border-radius:24px}}
 </style>
@@ -63,8 +64,9 @@ var SEC={study:["منصة دراسية","🎓"],jobs:["وظائف العراق",
 var key=new URLSearchParams(location.search).get("s"),info=SEC[key],posts=[];
 function $(i){return document.getElementById(i)}
 function esc(v){var d=document.createElement("div");d.textContent=v==null?"":v;return d.innerHTML}
-function safeUrl(u){return /^https?:\/\//i.test(u||"")?u:""}
-function pic(p,icon){var u=safeUrl(p.image);return '<div class="pic">'+(u?'<img src="'+esc(u)+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">':"")+(u?"":icon)+"</div>"}
+function safeUrl(u){return /^(https?:\/\/|\/api\/img\/[a-f0-9]{24}$)/i.test(u||"")?u:""}
+function pic(p,icon){var u=safeUrl((p.images&&p.images[0])||p.image);return '<div class="pic">'+(u?'<img src="'+esc(u)+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">':"")+(u?"":icon)+"</div>"}
+function gal(p){var a=(p.images||[]).filter(safeUrl);if(a.length<2)return pic(p,info[1]);return '<div class="gal">'+a.map(function(u){return '<img src="'+esc(u)+'" alt="" loading="lazy">'}).join("")+"</div>"}
 function digits(s){return String(s||"").replace(/[^\d+]/g,"")}
 function wa(s){var d=String(s||"").replace(/\D/g,"");if(d.indexOf("00")===0)d=d.slice(2);else if(d.charAt(0)==="0")d="964"+d.slice(1);return d}
 
@@ -89,7 +91,7 @@ function draw(){
 }
 function open_(i){
   var p=posts[i];if(!p)return;
-  $("sheet").innerHTML='<button class="close" id="x" aria-label="إغلاق">✕</button>'+pic(p,info[1])+'<div class="in"><h2>'+esc(p.title)+"</h2>"+(p.price?'<div class="price">'+esc(p.price)+"</div>":"")+(p.location?'<div class="loc">📍 '+esc(p.location)+"</div>":"")+(p.description?'<div class="full">'+esc(p.description)+"</div>":"")+
+  $("sheet").innerHTML='<button class="close" id="x" aria-label="إغلاق">✕</button>'+gal(p)+'<div class="in"><h2>'+esc(p.title)+"</h2>"+(p.price?'<div class="price">'+esc(p.price)+"</div>":"")+(p.location?'<div class="loc">📍 '+esc(p.location)+"</div>":"")+(p.description?'<div class="full">'+esc(p.description)+"</div>":"")+
     (p.contact?'<div class="acts"><a class="btn" href="tel:'+esc(digits(p.contact))+'">📞 اتصال</a><a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/'+esc(wa(p.contact))+'">واتساب</a></div><div class="loc" style="margin-top:8px;direction:ltr;text-align:right">'+esc(p.contact)+"</div>":"")+"</div>";
   $("ov").classList.add("on");$("x").onclick=close_;
 }
