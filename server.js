@@ -361,6 +361,36 @@ app.post("/api/content", async (req, res) => {
   }
 });
 
+// عرض المنشورات المنشورة للزوار (للقراءة فقط، المسودات لا تظهر)
+app.get("/api/posts", async (req, res) => {
+  const section = String(req.query.section || "");
+  if (!SECTIONS.includes(section)) return res.sendStatus(404);
+
+  try {
+    const list = await (await db())
+      .collection("content")
+      .find({ section, status: "published" })
+      .sort({ updatedAt: -1 })
+      .limit(200)
+      .toArray();
+
+    res.set("Cache-Control", "no-store");
+    res.json(list.map(d => ({
+      id: String(d._id),
+      title: d.title || "",
+      price: d.price || "",
+      location: d.location || "",
+      contact: d.contact || "",
+      image: d.image || "",
+      description: d.description || "",
+      date: d.updatedAt || d.createdAt || null
+    })));
+  } catch (error) {
+    console.error("Posts API error:", error.message);
+    res.status(500).json({ error: "حدث خطأ في الخادم" });
+  }
+});
+
 // تشغيل الخادم
 const PORT = process.env.PORT || 3000;
 
