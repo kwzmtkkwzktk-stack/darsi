@@ -1,13 +1,13 @@
 
 const express = require("express");
 const path = require("path");
-const { MongoClient, ObjectId } = require("mongodb");
+const { MongoClient, ObjectId, Binary } = require("mongodb");
 const crypto = require("crypto");
 
 const app = express();
 
 // إعدادات الموقع — تم إصلاح الخطأ هنا
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "3mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 let client;
@@ -326,6 +326,8 @@ app.post("/api/content", async (req, res) => {
       const title = String(i.title || "").trim().slice(0, 180);
       if (!title) return res.status(400).json({ error: "العنوان مطلوب" });
 
+      const imgs = (Array.isArray(i.images) ? i.images : [])
+        .map(String).filter(x => ObjectId.isValid(x)).slice(0, 8);
       const image = String(i.image || "").trim();
       const doc = {
         section,
@@ -336,12 +338,20 @@ app.post("/api/content", async (req, res) => {
         image: /^https?:\/\//i.test(image) ? image.slice(0, 500) : "",
         status: i.status === "draft" ? "draft" : "published",
         description: String(i.description || "").slice(0, 5000),
+        images: imgs,
         updatedAt: new Date()
       };
 
       if (i._id) {
         if (!ObjectId.isValid(String(i._id))) return res.status(400).json({ error: "معرّف غير صحيح" });
-        await col.updateOne({ _id: new ObjectId(String(i._id)), section }, { $set: doc });
+        const oid = new ObjectId(String(i._id));
+        const old = await col.findOne({ _id: oid, section });
+        await col.updateOne({ _id: oid, section }, { $set: doc });
+        // حذف الصور التي أُزيلت من المنشور
+        const removed = ((old && old.images) || []).filter(x => !imgs.includes(x) && ObjectId.isValid(x));
+        if (removed.length) {
+          await (await db()).collection("images").deleteMany({ _id: { $in: removed.map(x => new ObjectId(x)) } });
+        }
       } else {
         await col.insertOne({ ...doc, createdAt: new Date() });
       }
@@ -350,7 +360,13 @@ app.post("/api/content", async (req, res) => {
 
     if (b.action === "delete") {
       if (!ObjectId.isValid(String(b.id || ""))) return res.status(400).json({ error: "معرّف غير صحيح" });
-      await col.deleteOne({ _id: new ObjectId(String(b.id)), section });
+      const oid = new ObjectId(String(b.id));
+      const old = await col.findOne({ _id: oid, section });
+      await col.deleteOne({ _id: oid, section });
+      const gone = ((old && old.images) || []).filter(x => ObjectId.isValid(x));
+      if (gone.length) {
+        await (await db()).collection("images").deleteMany({ _id: { $in: gone.map(x => new ObjectId(x)) } });
+      }
       return res.json({ ok: true });
     }
 
@@ -382,12 +398,56 @@ app.get("/api/posts", async (req, res) => {
       location: d.location || "",
       contact: d.contact || "",
       image: d.image || "",
+      images: (d.images || []).map(x => "/api/img/" + x),
       description: d.description || "",
       date: d.updatedAt || d.createdAt || null
     })));
   } catch (error) {
     console.error("Posts API error:", error.message);
     res.status(500).json({ error: "حدث خطأ في الخادم" });
+  }
+});
+
+// رفع صورة من المعرض (المدير فقط). تصل مضغوطة من الصفحة بصيغة data URL
+app.post("/api/upload", async (req, res) => {
+  const b = req.body || {};
+  if (!process.env.ADMIN_CODE || String(b.pass || "") !== process.env.ADMIN_CODE) {
+    return res.sendStatus(401);
+  }
+
+  const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(b.data || ""));
+  if (!m) return res.status(400).json({ error: "صيغة الصورة غير مدعومة" });
+
+  const buf = Buffer.from(m[2], "base64");
+  if (buf.length > 1500000) return res.status(413).json({ error: "الصورة كبيرة جداً" });
+
+  try {
+    const r = await (await db()).collection("images").insertOne({
+      type: m[1],
+      data: new Binary(buf),
+      createdAt: new Date()
+    });
+    res.json({ ok: true, id: String(r.insertedId) });
+  } catch (error) {
+    console.error("Upload error:", error.message);
+    res.status(500).json({ error: "تعذر حفظ الصورة" });
+  }
+});
+
+// عرض الصورة للجميع
+app.get("/api/img/:id", async (req, res) => {
+  if (!ObjectId.isValid(req.params.id)) return res.sendStatus(404);
+  try {
+    const d = await (await db()).collection("images").findOne({ _id: new ObjectId(req.params.id) });
+    if (!d) return res.sendStatus(404);
+    res.set({
+      "Content-Type": d.type,
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "X-Content-Type-Options": "nosniff"
+    });
+    res.send(Buffer.from(d.data.buffer));
+  } catch (error) {
+    res.sendStatus(500);
   }
 });
 
