@@ -1,970 +1,319 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>اختبار الفيزياء - السادس العلمي</title>
-
-<style>
-:root {
-  --primary: #4f46e5;
-  --primary-dark: #3730a3;
-  --bg: #f4f6fb;
-  --text: #172033;
-  --muted: #667085;
-  --success: #15803d;
-  --danger: #dc2626;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: Tahoma, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-}
-
-header {
-  background: linear-gradient(135deg, #4338ca, #6366f1);
-  color: white;
-  padding: 30px 18px;
-  text-align: center;
-  border-radius: 0 0 28px 28px;
-}
-
-header h1 {
-  margin: 0 0 10px;
-  font-size: 27px;
-}
-
-header p {
-  margin: 0;
-  opacity: .9;
-}
-
-.container {
-  width: min(920px, 94%);
-  margin: 25px auto;
-}
-
-.card {
-  background: white;
-  padding: 24px;
-  border-radius: 20px;
-  box-shadow: 0 8px 28px rgba(20, 30, 80, .07);
-  margin-bottom: 20px;
-}
-
-.info {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-
-.info span {
-  background: #eef2ff;
-  color: #4338ca;
-  padding: 10px 15px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-button {
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: bold;
-  padding: 13px 20px;
-  border-radius: 12px;
-  transition: .2s;
-}
-
-button:hover {
-  transform: translateY(-2px);
-}
-
-.primary {
-  background: var(--primary);
-  color: white;
-}
-
-.primary:hover {
-  background: var(--primary-dark);
-}
-
-.secondary {
-  background: #eef2ff;
-  color: #4338ca;
-}
-
-.danger {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-.hidden {
-  display: none !important;
-}
-
-.progress-wrap {
-  height: 10px;
-  background: #e5e7eb;
-  border-radius: 20px;
-  overflow: hidden;
-  margin: 15px 0 22px;
-}
-
-.progress {
-  height: 100%;
-  width: 0;
-  background: linear-gradient(90deg, #4f46e5, #818cf8);
-  transition: width .3s;
-}
-
-.question-number {
-  color: var(--primary);
-  font-weight: bold;
-  margin-bottom: 12px;
-}
-
-.question-text {
-  font-size: 21px;
-  line-height: 1.8;
-  margin: 0 0 20px;
-}
-
-.options {
-  display: grid;
-  gap: 12px;
-}
-
-.option {
-  text-align: right;
-  width: 100%;
-  background: #f8fafc;
-  border: 2px solid #e5e7eb;
-  color: var(--text);
-  padding: 15px;
-  border-radius: 13px;
-  line-height: 1.7;
-}
-
-.option:hover {
-  border-color: #a5b4fc;
-  background: #eef2ff;
-}
-
-.option.correct {
-  border-color: #22c55e;
-  background: #dcfce7;
-  color: #166534;
-}
-
-.option.wrong {
-  border-color: #ef4444;
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.option:disabled {
-  cursor: default;
-  transform: none;
-}
-
-.feedback {
-  padding: 14px;
-  margin-top: 17px;
-  border-radius: 12px;
-  line-height: 1.8;
-  font-weight: bold;
-}
-
-.feedback.correct {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.feedback.wrong {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.actions {
-  display: flex;
-  gap: 10px;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  margin-top: 20px;
-}
-
-.result-score {
-  font-size: 44px;
-  font-weight: bold;
-  color: var(--primary);
-  text-align: center;
-  margin: 20px 0;
-}
-
-.result-message {
-  text-align: center;
-  font-size: 18px;
-  line-height: 1.8;
-}
-
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, .65);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
-  z-index: 100;
-}
-
-.modal-box {
-  background: white;
-  width: min(430px, 100%);
-  border-radius: 20px;
-  padding: 25px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
-}
-
-.modal-box h2 {
-  margin-top: 0;
-}
-
-input, select {
-  width: 100%;
-  padding: 13px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  font-family: inherit;
-  font-size: 16px;
-  margin: 10px 0 15px;
-}
-
-.grade-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-
-.grade-table th,
-.grade-table td {
-  padding: 12px;
-  border-bottom: 1px solid #e5e7eb;
-  text-align: right;
-}
-
-.grade-table th {
-  background: #eef2ff;
-  color: #3730a3;
-}
-
-footer {
-  text-align: center;
-  color: #64748b;
-  padding: 25px 10px;
-  font-size: 14px;
-}
-
-@media (max-width: 600px) {
-  header h1 {
-    font-size: 22px;
-  }
-
-  .card {
-    padding: 18px;
-  }
-
-  .question-text {
-    font-size: 18px;
-  }
-
-  .actions button {
-    flex: 1;
-  }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101827">
+  <title>دليل العراق | كل ما تحتاجه بمكان واحد</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --ink: #142033;
+      --muted: #718096;
+      --primary: #176b55;
+      --primary-dark: #10513f;
+      --surface: #ffffff;
+      --line: #e7edf3;
+      --shadow: 0 16px 45px rgba(25, 43, 67, .08);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: "Cairo", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    .container { width: min(1160px, calc(100% - 36px)); margin-inline: auto; }
+    .topbar {
+      background: #101827;
+      color: #dbe5ef;
+      font-size: 12px;
+      padding: 9px 0;
+    }
+    .topbar-inner { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .topbar strong { color: #fff; }
+    header {
+      background: rgba(255,255,255,.94);
+      border-bottom: 1px solid var(--line);
+      position: sticky; top: 0; z-index: 20;
+      backdrop-filter: blur(14px);
+    }
+    .nav { min-height: 76px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .brand { display:flex; align-items:center; gap:11px; font-weight:900; font-size:21px; }
+    .brand-mark {
+      width: 44px; height:44px; display:grid; place-items:center; border-radius:14px;
+      background: linear-gradient(135deg,#1a8063,#10513f); color:white; font-size:23px;
+      box-shadow: 0 8px 18px rgba(23,107,85,.2);
+    }
+    .brand small { display:block; font-size:10px; color:var(--muted); font-weight:600; margin-top:-4px; }
+    .nav-links { display:flex; align-items:center; gap:24px; color:#536176; font-size:13px; font-weight:700; }
+    .nav-links a:hover { color:var(--primary); }
+    .nav-cta {
+      background:var(--primary); color:#fff; border:0; border-radius:12px; padding:11px 17px;
+      font-weight:800; cursor:pointer; transition:.2s;
+    }
+    .nav-cta:hover { background:var(--primary-dark); transform:translateY(-1px); }
+    .hero {
+      position:relative; overflow:hidden; padding:72px 0 65px;
+      background:
+        radial-gradient(circle at 12% 25%,rgba(92,190,150,.17),transparent 28%),
+        radial-gradient(circle at 90% 80%,rgba(83,145,225,.12),transparent 26%),
+        linear-gradient(135deg,#101827 0%,#17283b 58%,#163e39 100%);
+      color:#fff;
+    }
+    .hero::after {
+      content:""; position:absolute; width:390px; height:390px; border:1px solid rgba(255,255,255,.08);
+      border-radius:50%; left:-140px; top:-210px; box-shadow:0 0 0 45px rgba(255,255,255,.025),0 0 0 95px rgba(255,255,255,.02);
+      pointer-events:none;
+    }
+    .hero-content { position:relative; z-index:1; max-width:760px; }
+    .eyebrow {
+      display:inline-flex; align-items:center; gap:8px; color:#a9e6ce; background:rgba(66,170,126,.13);
+      border:1px solid rgba(123,220,177,.23); border-radius:99px; padding:7px 13px;
+      font-size:12px; font-weight:800; margin-bottom:20px;
+    }
+    .hero h1 { margin:0; font-size:clamp(32px,5vw,56px); line-height:1.35; font-weight:900; letter-spacing:-1px; }
+    .hero h1 span { color:#83d8b4; }
+    .hero p { max-width:620px; color:#c2ccda; font-size:15px; line-height:2; margin:18px 0 28px; }
+    .search-wrap {
+      display:flex; gap:9px; background:#fff; padding:8px; border-radius:17px; max-width:650px;
+      box-shadow:0 18px 45px rgba(0,0,0,.18);
+    }
+    .search-wrap .search-icon { align-self:center; color:#7b8798; font-size:20px; padding:0 9px; }
+    .search-wrap input { flex:1; min-width:0; border:0; outline:0; color:var(--ink); padding:10px 3px; font-size:14px; }
+    .search-wrap button { border:0; border-radius:12px; padding:12px 22px; background:var(--primary); color:#fff; font-weight:800; cursor:pointer; }
+    .hero-tags { display:flex; gap:9px; flex-wrap:wrap; margin-top:18px; color:#b6c2d0; font-size:12px; }
+    .hero-tags span { border:1px solid rgba(255,255,255,.14); padding:5px 10px; border-radius:99px; }
+    main { padding:56px 0 72px; }
+    .section-head { display:flex; justify-content:space-between; align-items:end; gap:20px; margin-bottom:26px; }
+    .section-kicker { color:var(--primary); font-size:12px; font-weight:900; margin-bottom:7px; }
+    .section-head h2 { font-size:clamp(24px,3vw,32px); margin:0; font-weight:900; }
+    .section-head p { color:var(--muted); font-size:13px; margin:9px 0 0; }
+    .count { background:#e7f3ee; color:var(--primary); padding:8px 13px; border-radius:10px; font-size:12px; font-weight:900; white-space:nowrap; }
+    .cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
+    .card {
+      --accent:#176b55; --tint:#e7f5ef;
+      background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:23px;
+      min-height:225px; display:flex; flex-direction:column; position:relative; overflow:hidden;
+      box-shadow:0 5px 18px rgba(25,43,67,.025); transition:transform .25s, box-shadow .25s, border-color .25s;
+    }
+    .card::before { content:""; position:absolute; width:120px; height:120px; border-radius:50%; background:var(--tint); left:-50px; top:-55px; opacity:.8; }
+    .card:hover { transform:translateY(-6px); box-shadow:var(--shadow); border-color:color-mix(in srgb,var(--accent),white 65%); }
+    .card-top { display:flex; justify-content:space-between; align-items:center; position:relative; }
+    .card-icon { width:58px; height:58px; border-radius:17px; display:grid; place-items:center; background:var(--tint); color:var(--accent); font-size:29px; }
+    .card-number { font-size:11px; color:#9aa6b6; font-weight:800; }
+    .card h3 { font-size:18px; font-weight:900; margin:20px 0 7px; }
+    .card p { color:var(--muted); font-size:12px; line-height:1.9; margin:0 0 18px; }
+    .card-link { display:flex; align-items:center; gap:7px; color:var(--accent); font-size:12px; font-weight:900; margin-top:auto; }
+    .card-link span { transition:transform .2s; }
+    .card:hover .card-link span { transform:translateX(-4px); }
+    .empty { display:none; text-align:center; color:var(--muted); padding:40px 15px; background:white; border:1px dashed #d5dee8; border-radius:18px; }
+    .feature-band {
+      margin-top:55px; border-radius:24px; padding:30px; display:flex; align-items:center; justify-content:space-between; gap:24px;
+      background:linear-gradient(115deg,#e7f5ef,#edf4fb); border:1px solid #dcebe5;
+    }
+    .feature-band h3 { margin:0 0 7px; font-size:21px; font-weight:900; }
+    .feature-band p { margin:0; color:#66778b; font-size:13px; line-height:1.9; }
+    .feature-band .feature-icon { font-size:43px; }
+    .feature-band a { flex-shrink:0; background:var(--primary); color:#fff; padding:12px 18px; border-radius:12px; font-size:13px; font-weight:800; }
+    footer { background:#101827; color:#c2ccda; padding:30px 0; }
+    .footer-inner { display:flex; justify-content:space-between; align-items:center; gap:20px; }
+    footer .brand { color:#fff; font-size:17px; }
+    footer p { margin:5px 0 0; font-size:11px; color:#8d9aab; }
+    .footer-note { font-size:12px; }
+    @media (max-width:950px) {
+      .cards { grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .nav-links { gap:14px; }
+    }
+    @media (max-width:700px) {
+      .container { width:min(100% - 28px,1160px); }
+      .topbar-inner { justify-content:center; }
+      .topbar-inner span:last-child { display:none; }
+      .nav { min-height:66px; }
+      .brand { font-size:18px; }
+      .brand-mark { width:39px; height:39px; }
+      .nav-links { display:none; }
+      .nav-cta { padding:9px 12px; font-size:12px; }
+      .hero { padding:53px 0 48px; }
+      .hero p { font-size:13px; }
+      .search-wrap { gap:4px; }
+      .search-wrap button { padding:11px 14px; }
+      main { padding:40px 0 55px; }
+      .section-head { align-items:start; }
+      .section-head p { max-width:260px; }
+      .cards { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+      .card { min-height:210px; padding:17px; border-radius:17px; }
+      .card-icon { width:50px; height:50px; font-size:25px; border-radius:14px; }
+      .card h3 { font-size:15px; margin-top:17px; }
+      .card p { font-size:11px; }
+      .feature-band { padding:22px; flex-wrap:wrap; }
+      .feature-band .feature-icon { font-size:34px; }
+      .feature-band a { width:100%; text-align:center; }
+      .footer-inner { flex-direction:column; align-items:flex-start; }
+    }
+    @media (max-width:390px) {
+      .cards { grid-template-columns:1fr; }
+      .card { min-height:190px; }
+      .count { font-size:10px; padding:7px 9px; }
+    }
+  </style>
 </head>
-
 <body>
-
-<header>
-  <h1>منصة الاختبارات الإلكترونية</h1>
-  <p>الفيزياء | السادس العلمي | الفصل الأول: المتسعات</p>
-</header>
-
-<div class="container">
-
-  <div class="card">
-    <div class="info">
-      <span>📘 السادس العلمي</span>
-      <span>⚡ الفصل الأول: المتسعات</span>
-      <span>📝 40 سؤالًا</span>
+  <div class="topbar">
+    <div class="container topbar-inner">
+      <span>🇮🇶 <strong>دليل العراق</strong> — وجهتك لكل الخدمات</span>
+      <span>منصة عراقية تجمع الخدمات والمعلومات بمكان واحد</span>
     </div>
-
-    <p style="line-height:1.9">
-      اختبر معلوماتك في الفصل الأول من مادة الفيزياء.
-      اختر الإجابة الصحيحة لكل سؤال، وستظهر نتيجتك بعد إكمال الاختبار.
-    </p>
-
-    <button class="primary" onclick="startQuiz()">ابدأ الاختبار</button>
-    <button class="secondary" onclick="openPassword()">نتيجتي</button>
   </div>
 
-  <section id="quizSection" class="card hidden">
-    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
-      <strong id="questionCounter">السؤال 1 من 40</strong>
-      <strong id="scoreCounter">الدرجة: 0</strong>
+  <header>
+    <div class="container nav">
+      <a class="brand" href="#" aria-label="الصفحة الرئيسية">
+        <span class="brand-mark">🇮🇶</span>
+        <span>دليل العراق<small>كل ما تحتاجه بمكان واحد</small></span>
+      </a>
+      <nav class="nav-links" aria-label="التنقل الرئيسي">
+        <a href="#sections">الأقسام</a>
+        <a href="#about">عن الموقع</a>
+        <a href="#contact">تواصل معنا</a>
+      </nav>
+      <a class="nav-cta" href="#sections">استكشف الأقسام ←</a>
     </div>
+  </header>
 
-    <div class="progress-wrap">
-      <div class="progress" id="progressBar"></div>
-    </div>
-
-    <div id="questionNumber" class="question-number"></div>
-    <h2 id="questionText" class="question-text"></h2>
-    <div id="options" class="options"></div>
-    <div id="feedback" class="hidden"></div>
-
-    <div class="actions">
-      <button class="secondary" onclick="previousQuestion()" id="prevBtn">
-        السؤال السابق
-      </button>
-
-      <button class="primary" onclick="nextQuestion()" id="nextBtn">
-        السؤال التالي
-      </button>
+  <section class="hero">
+    <div class="container hero-content">
+      <div class="eyebrow">✦ منصتك العراقية الشاملة</div>
+      <h1>كل العراق بين <span>إيديك</span></h1>
+      <p>من التعليم والوظائف إلى التسوق والعقارات والسياحة والصحة — اكتشف خدمات وأماكن وفرص من جميع أنحاء العراق، بسهولة ومن مكان واحد.</p>
+      <form class="search-wrap" id="searchForm" role="search">
+        <span class="search-icon">⌕</span>
+        <input id="searchInput" type="search" placeholder="شنو دا تدور؟ ابحث عن قسم..." aria-label="ابحث عن قسم">
+        <button type="submit">ابحث</button>
+      </form>
+      <div class="hero-tags">
+        <span>🎓 التعليم</span><span>💼 الوظائف</span><span>🛍️ التسوق</span><span>🏡 العقارات</span><span>🩺 الصحة</span>
+      </div>
     </div>
   </section>
 
-  <section id="resultSection" class="card hidden">
-    <h2 style="text-align:center">انتهى الاختبار 🎉</h2>
+  <main>
+    <section class="container" id="sections">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">اكتشف خدماتنا</div>
+          <h2>أقسام دليل العراق</h2>
+          <p>اختار القسم اللي تحتاجه، وخلي رحلتك أسهل وأسرع.</p>
+        </div>
+        <span class="count">7 أقسام رئيسية</span>
+      </div>
 
-    <div class="result-score" id="finalScore">0 / 40</div>
-    <div class="result-message" id="finalMessage"></div>
+      <div class="cards" id="cards">
+        <a class="card" href="education.html" data-search="منصة دراسية التعليم الطلاب المدارس الجامعات امتحانات">
+          <div class="card-top"><span class="card-icon" style="--accent:#3978d4;--tint:#eaf2ff">🎓</span><span class="card-number">01 / 07</span></div>
+          <h3>منصة دراسية</h3>
+          <p>مصادر تعليمية، امتحانات، ملخصات، ومحتوى يساعد الطلاب على التفوق.</p>
+          <span class="card-link">استكشف المنصة <span>←</span></span>
+        </a>
 
-    <div style="text-align:center;margin-top:22px">
-      <button class="primary" onclick="startQuiz()">إعادة الاختبار</button>
-      <button class="secondary" onclick="openPassword()">عرض نتيجتي</button>
+        <a class="card" href="jobs.html" data-search="وظائف العراق عمل توظيف فرص شغل">
+          <div class="card-top"><span class="card-icon" style="--accent:#9b5bd1;--tint:#f4eaff">💼</span><span class="card-number">02 / 07</span></div>
+          <h3>وظائف العراق</h3>
+          <p>اكتشف فرص العمل والتوظيف حسب المحافظة والتخصص والخبرة.</p>
+          <span class="card-link">شوف الوظائف <span>←</span></span>
+        </a>
+
+        <a class="card" href="shops.html" data-search="محلات إلكترونية تسوق متاجر منتجات شراء">
+          <div class="card-top"><span class="card-icon" style="--accent:#e18b2d;--tint:#fff3e4">🛍️</span><span class="card-number">03 / 07</span></div>
+          <h3>المحلات الإلكترونية</h3>
+          <p>تسوق من المتاجر العراقية واكتشف المنتجات والعروض المتنوعة.</p>
+          <span class="card-link">تصفح المحلات <span>←</span></span>
+        </a>
+
+        <a class="card" href="cars.html" data-search="بيع شراء سيارات مركبات سيارات مستعملة">
+          <div class="card-top"><span class="card-icon" style="--accent:#2996a5;--tint:#e5f8fa">🚘</span><span class="card-number">04 / 07</span></div>
+          <h3>بيع وشراء السيارات</h3>
+          <p>ابحث عن سيارة مناسبة أو اعرض سيارتك للبيع بسهولة.</p>
+          <span class="card-link">اكتشف السيارات <span>←</span></span>
+        </a>
+
+        <a class="card" href="realestate.html" data-search="بيع شراء عقارات بيوت شقق أراضي إيجار">
+          <div class="card-top"><span class="card-icon" style="--accent:#39865b;--tint:#e8f7ed">🏡</span><span class="card-number">05 / 07</span></div>
+          <h3>بيع وشراء العقارات</h3>
+          <p>بيوت، شقق، أراضٍ ومحلات — ابحث عن عقارك أو أضف إعلانك.</p>
+          <span class="card-link">تصفح العقارات <span>←</span></span>
+        </a>
+
+        <a class="card" href="tourism.html" data-search="أماكن سياحية العراق سياحة آثار سفر طبيعة">
+          <div class="card-top"><span class="card-icon" style="--accent:#d45c78;--tint:#fff0f4">🏛️</span><span class="card-number">06 / 07</span></div>
+          <h3>الأماكن السياحية في العراق</h3>
+          <p>اكتشف المعالم التاريخية والطبيعة والأماكن الجميلة في العراق.</p>
+          <span class="card-link">اكتشف الأماكن <span>←</span></span>
+        </a>
+
+        <a class="card" href="doctors.html" data-search="مراكز أطباء عراقيين طبيب عيادات مراكز طبية صحة">
+          <div class="card-top"><span class="card-icon" style="--accent:#3982c8;--tint:#eaf4ff">🩺</span><span class="card-number">07 / 07</span></div>
+          <h3>مراكز الأطباء العراقيين</h3>
+          <p>دليل للأطباء والعيادات والمراكز الطبية حسب الاختصاص والمحافظة.</p>
+          <span class="card-link">ابحث عن طبيب <span>←</span></span>
+        </a>
+      </div>
+      <div class="empty" id="emptyState">ما لكينا قسم بهذا الاسم. جرّب كلمة ثانية.</div>
+
+      <div class="feature-band" id="about">
+        <div style="display:flex;align-items:center;gap:17px">
+          <div class="feature-icon">✨</div>
+          <div>
+            <h3>العراق أقرب إلك</h3>
+            <p>منصة واحدة تجمع أهم الأقسام والخدمات العراقية، ونسعى نضيف المزيد حتى تكون تجربتك أفضل.</p>
+          </div>
+        </div>
+        <a href="#sections">ابدأ الاستكشاف</a>
+      </div>
+    </section>
+  </main>
+
+  <footer id="contact">
+    <div class="container footer-inner">
+      <div>
+        <div class="brand"><span class="brand-mark">🇮🇶</span><span>دليل العراق</span></div>
+        <p>كل ما تحتاجه بمكان واحد.</p>
+      </div>
+      <div class="footer-note">© <span id="year"></span> دليل العراق — جميع الحقوق محفوظة</div>
     </div>
-  </section>
-
-</div>
-
-<footer>
-  تم تصميم من قبل قتيبه
-</footer>
-
-<!-- نافذة الرمز السري -->
-<div id="passwordModal" class="modal hidden">
-  <div class="modal-box">
-    <h2>🔐 عرض النتيجة</h2>
-    <p>يرجى إدخال الرمز السري لعرض نتيجة الطالب.</p>
-
-    <input type="password" id="passwordInput" placeholder="أدخل الرمز السري">
-
-    <div class="actions">
-      <button class="primary" onclick="checkPassword()">عرض النتيجة</button>
-      <button class="secondary" onclick="closePassword()">إلغاء</button>
-    </div>
-
-    <p id="passwordError" style="color:#dc2626"></p>
-  </div>
-</div>
-
-<!-- نافذة اختيار الطالب -->
-<div id="studentModal" class="modal hidden">
-  <div class="modal-box">
-    <h2>👨‍🎓 اختر اسم الطالب</h2>
-
-    <select id="studentSelect">
-      <option value="mohammed">محمد علي</option>
-    </select>
-
-    <div class="actions">
-      <button class="primary" onclick="showStudentResult()">عرض الدرجات</button>
-      <button class="secondary" onclick="closeStudent()">إغلاق</button>
-    </div>
-  </div>
-</div>
-
-<!-- نافذة درجات الطالب -->
-<div id="gradesModal" class="modal hidden">
-  <div class="modal-box">
-    <h2>📊 درجات الطالب</h2>
-    <h3 id="studentName">محمد علي</h3>
-
-    <table class="grade-table">
-      <thead>
-        <tr>
-          <th>المادة</th>
-          <th>الدرجة</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr><td>الفيزياء</td><td id="physicsGrade">--</td></tr>
-        <tr><td>الكيمياء</td><td>85</td></tr>
-        <tr><td>الأحياء</td><td>90</td></tr>
-        <tr><td>الرياضيات</td><td>88</td></tr>
-        <tr><td>اللغة العربية</td><td>92</td></tr>
-        <tr><td>اللغة الإنكليزية</td><td>86</td></tr>
-      </tbody>
-    </table>
-
-    <div class="actions">
-      <button class="secondary" onclick="closeGrades()">إغلاق</button>
-    </div>
-  </div>
-</div>
-
-<script>
-/* ===================================================
-   بنك أسئلة الفصل الأول: المتسعات
-   الإجابة الصحيحة محددة بالخاصية answer
-=================================================== */
-
-const questions = [
-
-{
-q: "ما المقصود بالمتسعة الكهربائية؟",
-options: ["جهاز يخزن الشحنة الكهربائية والطاقة", "جهاز يولد تيارًا مستمرًا", "جهاز يقيس المقاومة", "جهاز يحول الطاقة الحرارية إلى كهربائية"],
-answer: 0,
-explain: "المتسعة جهاز يُستخدم لخزن الشحنة والطاقة في المجال الكهربائي."
-},
-
-{
-q: "ما وحدة قياس السعة الكهربائية في النظام الدولي؟",
-options: ["الأوم", "الفاراد", "التسلا", "الفولت/متر"],
-answer: 1,
-explain: "وحدة السعة الكهربائية هي الفاراد (F)."
-},
-
-{
-q: "تعرف سعة المتسعة بأنها النسبة بين:",
-options: ["فرق الجهد والشحنة", "الشحنة وفرق الجهد", "التيار والمقاومة", "الطاقة والزمن"],
-answer: 1,
-explain: "السعة C تساوي مقدار الشحنة Q مقسومًا على فرق الجهد V."
-},
-
-{
-q: "إذا زادت الشحنة المخزونة في متسعة مع ثبوت فرق الجهد، فإن سعتها:",
-options: ["تزداد", "تقل", "تبقى ثابتة", "تصبح صفرًا"],
-answer: 2,
-explain: "السعة خاصية للمتسعة وتتحدد بأبعادها والوسط العازل."
-},
-
-{
-q: "ما العلاقة الرياضية للسعة الكهربائية؟",
-options: ["C = V/Q", "C = Q/V", "C = QV", "C = I/V"],
-answer: 1,
-explain: "C = Q/V."
-},
-
-{
-q: "الفاراد الواحد يساوي:",
-options: ["كولوم/فولت", "فولت/كولوم", "جول/كولوم", "أوم/ثانية"],
-answer: 0,
-explain: "من العلاقة C = Q/V تكون وحدة الفاراد كولوم لكل فولت."
-},
-
-{
-q: "المتسعة ذات الصفيحتين المتوازيتين تتكون من:",
-options: ["صفيحتين موصلتين يفصل بينهما عازل", "سلكين متصلين مباشرة", "مقاومتين متصلتين", "ملف ومغناطيس"],
-answer: 0,
-explain: "تتكون من صفيحتين موصلتين متقابلتين بينهما مادة عازلة أو هواء."
-},
-
-{
-q: "عند زيادة مساحة صفيحتي متسعة متوازية، فإن سعتها:",
-options: ["تقل", "تزداد", "لا تتغير", "تصبح سالبة"],
-answer: 1,
-explain: "السعة تتناسب طرديًا مع مساحة الصفيحتين."
-},
-
-{
-q: "عند زيادة المسافة بين صفيحتي متسعة متوازية، فإن سعتها:",
-options: ["تزداد", "تقل", "تبقى ثابتة", "تتضاعف دائمًا"],
-answer: 1,
-explain: "السعة تتناسب عكسيًا مع المسافة بين الصفيحتين."
-},
-
-{
-q: "ما العلاقة لسعة متسعة ذات صفيحتين متوازيتين في الهواء؟",
-options: ["C = ε₀A/d", "C = ε₀d/A", "C = Ad/ε₀", "C = ε₀Ad"],
-answer: 0,
-explain: "C = ε₀A/d، حيث A مساحة الصفيحة و d المسافة بين الصفيحتين."
-},
-
-{
-q: "يرمز إلى سماحية الفراغ الكهربائية بالرمز:",
-options: ["μ₀", "ε₀", "ρ", "σ"],
-answer: 1,
-explain: "ε₀ هو رمز سماحية الفراغ الكهربائية."
-},
-
-{
-q: "عند إدخال عازل كهربائي بين صفيحتي متسعة مع بقائها متصلة بالبطارية، فإن سعتها:",
-options: ["تقل", "تزداد", "لا تتغير", "تصبح صفرًا"],
-answer: 1,
-explain: "وجود العازل يزيد السعة بمقدار ثابت العزل النسبي."
-},
-
-{
-q: "ثابت العزل الكهربائي النسبي لمادة ما يساوي:",
-options: ["سعة المتسعة بالعازل إلى سعتها بالفراغ", "المقاومة إلى التيار", "الشحنة إلى الطاقة", "المسافة إلى المساحة"],
-answer: 0,
-explain: "K = C مع العازل / C في الفراغ."
-},
-
-{
-q: "إذا كان ثابت العزل النسبي لمادة يساوي 4، فإن سعة المتسعة عند ملئها بهذه المادة:",
-options: ["تقل إلى الربع", "تزداد أربعة أضعاف", "تزداد مرتين", "لا تتغير"],
-answer: 1,
-explain: "السعة الجديدة تساوي K مضروبًا في السعة الأصلية."
-},
-
-{
-q: "عند ربط متسعتين على التوازي، فإن فرق الجهد بينهما:",
-options: ["يختلف دائمًا", "متساوٍ", "يساوي صفرًا", "يتناسب عكسيًا مع السعة"],
-answer: 1,
-explain: "المتسعات على التوازي تكون مرتبطة بين النقطتين نفسيهما، لذا فرق الجهد متساوٍ."
-},
-
-{
-q: "السعة المكافئة لمتسعات مربوطة على التوازي تساوي:",
-options: ["مجموع السعات", "مقلوب مجموع السعات", "حاصل ضرب السعات", "أصغر سعة"],
-answer: 0,
-explain: "Ceq = C1 + C2 + C3 + ... في ربط التوازي."
-},
-
-{
-q: "متسعتان سعتاهما 2μF و 3μF ربطتا على التوازي. السعة المكافئة:",
-options: ["1μF", "5μF", "6μF", "1.2μF"],
-answer: 1,
-explain: "في التوازي: 2 + 3 = 5μF."
-},
-
-{
-q: "عند ربط المتسعات على التوالي، فإن الشحنة على كل متسعة:",
-options: ["متساوية", "مختلفة دائمًا", "تساوي صفرًا", "تتناسب مع فرق الجهد فقط"],
-answer: 0,
-explain: "في ربط التوالي تكون مقادير الشحنات على المتسعات متساوية."
-},
-
-{
-q: "السعة المكافئة لمتسعات مربوطة على التوالي تحسب من:",
-options: ["Ceq = C1 + C2", "1/Ceq = 1/C1 + 1/C2", "Ceq = C1C2", "Ceq = V/Q²"],
-answer: 1,
-explain: "مقلوب السعة المكافئة يساوي مجموع مقلوبات السعات."
-},
-
-{
-q: "متسعتان 4μF و 4μF ربطتا على التوالي. السعة المكافئة:",
-options: ["8μF", "4μF", "2μF", "16μF"],
-answer: 2,
-explain: "للمتسعتين المتساويتين على التوالي تكون السعة المكافئة نصف إحداهما."
-},
-
-{
-q: "عند ربط متسعتين مختلفتين على التوالي، تكون السعة المكافئة:",
-options: ["أكبر من السعة الكبرى", "أصغر من السعة الصغرى", "مساوية لمجموعهما", "مساوية للسعة الكبرى"],
-answer: 1,
-explain: "السعة المكافئة في التوالي تكون أقل من أصغر سعة في المجموعة."
-},
-
-{
-q: "الطاقة المختزنة في متسعة مشحونة يمكن حسابها من العلاقة:",
-options: ["U = ½CV²", "U = CV", "U = C/V", "U = V/C"],
-answer: 0,
-explain: "الطاقة المختزنة U = ½CV²."
-},
-
-{
-q: "أي من العلاقات الآتية تمثل طاقة المتسعة بدلالة الشحنة والسعة؟",
-options: ["U = Q²/2C", "U = 2CQ", "U = Q/C²", "U = C²Q"],
-answer: 0,
-explain: "يمكن حساب الطاقة أيضًا من U = Q²/(2C)."
-},
-
-{
-q: "إذا تضاعف فرق الجهد على متسعة ثابتة السعة، فإن الطاقة المختزنة:",
-options: ["تتضاعف", "تزداد أربعة أضعاف", "تقل إلى النصف", "لا تتغير"],
-answer: 1,
-explain: "الطاقة تتناسب مع مربع فرق الجهد."
-},
-
-{
-q: "إذا تضاعفت شحنة متسعة مع ثبوت سعتها، فإن فرق الجهد:",
-options: ["يتضاعف", "يقل للنصف", "يزداد أربعة أضعاف", "لا يتغير"],
-answer: 0,
-explain: "من V = Q/C، فرق الجهد يتناسب طرديًا مع الشحنة."
-},
-
-{
-q: "ما الذي يخزن الطاقة في المتسعة؟",
-options: ["المجال الكهربائي بين الصفيحتين", "الأسلاك الخارجية فقط", "البطارية وحدها", "المقاومة"],
-answer: 0,
-explain: "تخزن الطاقة في المجال الكهربائي الموجود بين صفيحتي المتسعة."
-},
-
-{
-q: "عند شحن متسعة من خلال مقاومة، فإن التيار في بداية الشحن يكون:",
-options: ["أكبر ما يمكن", "صفرًا دائمًا", "ثابتًا إلى الأبد", "سالبًا بالضرورة"],
-answer: 0,
-explain: "في بداية الشحن يكون فرق الجهد على المتسعة صفرًا تقريبًا، فيكون تيار الشحن أعظميًا."
-},
-
-{
-q: "بعد مرور زمن طويل على شحن متسعة في دائرة تيار مستمر، فإن التيار:",
-options: ["يصبح أعظميًا", "يصبح صفرًا", "يبقى ثابتًا", "يتضاعف"],
-answer: 1,
-explain: "بعد اكتمال الشحن تتصرف المتسعة كدائرة مفتوحة للتيار المستمر."
-},
-
-{
-q: "ثابت الزمن في دائرة RC يساوي:",
-options: ["R/C", "RC", "C/R", "R + C"],
-answer: 1,
-explain: "ثابت الزمن τ = RC."
-},
-
-{
-q: "وحدة قياس ثابت الزمن RC هي:",
-options: ["الفاراد", "الأوم", "الثانية", "الفولت"],
-answer: 2,
-explain: "ثابت الزمن يقاس بوحدة الثانية."
-},
-
-{
-q: "عند زيادة المقاومة في دائرة شحن متسعة، فإن ثابت الزمن:",
-options: ["يقل", "يزداد", "لا يتغير", "يساوي صفرًا"],
-answer: 1,
-explain: "بما أن τ = RC، فإن زيادة المقاومة تزيد ثابت الزمن."
-},
-
-{
-q: "عند زيادة سعة المتسعة في دائرة RC مع ثبوت المقاومة، فإن ثابت الزمن:",
-options: ["يزداد", "يقل", "لا يتغير", "يصبح سالبًا"],
-answer: 0,
-explain: "ثابت الزمن يتناسب طرديًا مع السعة."
-},
-
-{
-q: "في أثناء شحن متسعة من مصدر جهد ثابت، فإن فرق الجهد على المتسعة:",
-options: ["يزداد تدريجيًا", "يقل تدريجيًا", "يبقى صفرًا", "يكون سالبًا دائمًا"],
-answer: 0,
-explain: "يزداد فرق الجهد على المتسعة تدريجيًا حتى يقترب من جهد المصدر."
-},
-
-{
-q: "في أثناء تفريغ متسعة مشحونة عبر مقاومة، فإن شحنتها:",
-options: ["تزداد", "تتناقص تدريجيًا", "تبقى ثابتة", "تتضاعف"],
-answer: 1,
-explain: "تتناقص الشحنة تدريجيًا أثناء التفريغ."
-},
-
-{
-q: "إذا كانت سعة متسعة 2μF وفرق الجهد عليها 10V، فإن شحنتها تساوي:",
-options: ["5μC", "20μC", "12μC", "2μC"],
-answer: 1,
-explain: "Q = CV = 2 × 10 = 20μC."
-},
-
-{
-q: "متسعة سعتها 5μF وشحنتها 10μC. فرق الجهد عليها:",
-options: ["2V", "5V", "10V", "50V"],
-answer: 0,
-explain: "V = Q/C = 10/5 = 2V."
-},
-
-{
-q: "متسعة سعتها 2F وفرق الجهد عليها 3V. الطاقة المختزنة:",
-options: ["3J", "6J", "9J", "18J"],
-answer: 2,
-explain: "U = ½ × 2 × 3² = 9J."
-},
-
-{
-q: "أي العوامل الآتية يزيد سعة المتسعة ذات الصفيحتين المتوازيتين؟",
-options: ["زيادة المسافة بين الصفيحتين", "تقليل مساحة الصفيحتين", "إدخال عازل مناسب", "تقليل السماحية"],
-answer: 2,
-explain: "إدخال عازل ذي ثابت عزل أكبر يزيد السعة."
-},
-
-{
-q: "إذا كانت متسعة معزولة عن البطارية ثم أدخل عازل بين صفيحتيها، فإن شحنتها:",
-options: ["تبقى ثابتة", "تزداد", "تقل إلى الصفر", "تتضاعف دائمًا"],
-answer: 0,
-explain: "عند عزل المتسعة عن البطارية لا يوجد مسار لتغير الشحنة، لذا تبقى ثابتة."
-},
-
-{
-q: "عند إدخال عازل في متسعة معزولة ومشحونة، فإن فرق الجهد عليها:",
-options: ["يزداد", "يقل", "يبقى ثابتًا", "يصبح صفرًا دائمًا"],
-answer: 1,
-explain: "تزداد السعة مع ثبات الشحنة، وبما أن V = Q/C فإن فرق الجهد يقل."
-},
-
-{
-q: "ما الغرض من استخدام المتسعات في الدوائر الكهربائية؟",
-options: ["خزن الشحنة والطاقة", "زيادة كتلة الدائرة", "إلغاء المقاومة دائمًا", "توليد المجال المغناطيسي فقط"],
-answer: 0,
-explain: "من أهم وظائف المتسعات خزن الشحنة والطاقة الكهربائية."
-},
-
-{
-q: "في ربط التوالي، فرق الجهد الكلي على مجموعة المتسعات يساوي:",
-options: ["فرق الجهد على متسعة واحدة دائمًا", "مجموع فروق الجهد", "صفرًا", "حاصل ضرب فروق الجهد"],
-answer: 1,
-explain: "فرق الجهد الكلي يساوي مجموع فروق الجهد على المتسعات المتصلة على التوالي."
-}
-
-];
-
-/* ===================================================
-   إدارة الاختبار
-=================================================== */
-
-let currentQuestion = 0;
-let score = 0;
-let answered = Array(questions.length).fill(false);
-let selectedAnswers = Array(questions.length).fill(null);
-let quizFinished = false;
-
-function startQuiz() {
-  currentQuestion = 0;
-  score = 0;
-  answered = Array(questions.length).fill(false);
-  selectedAnswers = Array(questions.length).fill(null);
-  quizFinished = false;
-
-  document.getElementById("quizSection").classList.remove("hidden");
-  document.getElementById("resultSection").classList.add("hidden");
-
-  renderQuestion();
-
-  window.scrollTo({
-    top: document.getElementById("quizSection").offsetTop - 20,
-    behavior: "smooth"
-  });
-}
-
-function renderQuestion() {
-  const item = questions[currentQuestion];
-
-  document.getElementById("questionCounter").textContent =
-    `السؤال ${currentQuestion + 1} من ${questions.length}`;
-
-  document.getElementById("scoreCounter").textContent =
-    `الدرجة: ${score}`;
-
-  document.getElementById("questionNumber").textContent =
-    `السؤال رقم ${currentQuestion + 1}`;
-
-  document.getElementById("questionText").textContent = item.q;
-
-  document.getElementById("progressBar").style.width =
-    ((currentQuestion + 1) / questions.length * 100) + "%";
-
-  const optionsDiv = document.getElementById("options");
-  optionsDiv.innerHTML = "";
-
-  item.options.forEach((option, index) => {
-    const button = document.createElement("button");
-    button.className = "option";
-    button.textContent = `${["أ", "ب", "ج", "د"][index]} ـ ${option}`;
-
-    button.onclick = () => selectAnswer(index);
-
-    if (answered[currentQuestion]) {
-      button.disabled = true;
-
-      if (index === item.answer) {
-        button.classList.add("correct");
-      }
-
-      if (index === selectedAnswers[currentQuestion] &&
-          index !== item.answer) {
-        button.classList.add("wrong");
-      }
+  </footer>
+
+  <script>
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchInput');
+    const cards = [...document.querySelectorAll('.card')];
+    const emptyState = document.getElementById('emptyState');
+
+    function filterSections() {
+      const query = searchInput.value.trim().toLowerCase();
+      let visible = 0;
+      cards.forEach(card => {
+        const text = (card.innerText + ' ' + card.dataset.search).toLowerCase();
+        const matches = text.includes(query);
+        card.style.display = matches ? 'flex' : 'none';
+        if (matches) visible++;
+      });
+      emptyState.style.display = visible ? 'none' : 'block';
     }
 
-    optionsDiv.appendChild(button);
-  });
-
-  const feedback = document.getElementById("feedback");
-
-  if (answered[currentQuestion]) {
-    feedback.classList.remove("hidden");
-    feedback.className = "feedback " +
-      (selectedAnswers[currentQuestion] === item.answer ? "correct" : "wrong");
-
-    feedback.textContent =
-      (selectedAnswers[currentQuestion] === item.answer
-        ? "إجابة صحيحة! "
-        : "إجابة غير صحيحة. ") + item.explain;
-  } else {
-    feedback.className = "hidden";
-    feedback.textContent = "";
-  }
-
-  document.getElementById("prevBtn").disabled =
-    currentQuestion === 0;
-
-  document.getElementById("nextBtn").textContent =
-    currentQuestion === questions.length - 1
-      ? "إنهاء الاختبار"
-      : "السؤال التالي";
-}
-
-function selectAnswer(index) {
-  if (answered[currentQuestion] || quizFinished) return;
-
-  const item = questions[currentQuestion];
-
-  selectedAnswers[currentQuestion] = index;
-  answered[currentQuestion] = true;
-
-  if (index === item.answer) {
-    score++;
-  }
-
-  renderQuestion();
-}
-
-function nextQuestion() {
-  if (!answered[currentQuestion]) {
-    alert("يرجى اختيار إجابة أولاً.");
-    return;
-  }
-
-  if (currentQuestion < questions.length - 1) {
-    currentQuestion++;
-    renderQuestion();
-  } else {
-    finishQuiz();
-  }
-}
-
-function previousQuestion() {
-  if (currentQuestion > 0) {
-    currentQuestion--;
-    renderQuestion();
-  }
-}
-
-function finishQuiz() {
-  quizFinished = true;
-
-  document.getElementById("quizSection").classList.add("hidden");
-  document.getElementById("resultSection").classList.remove("hidden");
-
-  document.getElementById("finalScore").textContent =
-    `${score} / ${questions.length}`;
-
-  const percentage = Math.round(score / questions.length * 100);
-
-  let message = "";
-
-  if (percentage >= 90) {
-    message = "ممتاز جدًا! أداء رائع 👏";
-  } else if (percentage >= 75) {
-    message = "أحسنت! مستوى جيد جدًا.";
-  } else if (percentage >= 50) {
-    message = "جيد، استمر بالمراجعة حتى تحقق نتيجة أفضل.";
-  } else {
-    message = "لا بأس، حاول مرة أخرى وراجع موضوع المتسعات.";
-  }
-
-  document.getElementById("finalMessage").textContent =
-    `نسبتك هي ${percentage}% — ${message}`;
-
-  // تحديث درجة الفيزياء في صفحة الطالب
-  document.getElementById("physicsGrade").textContent =
-    `${score} / ${questions.length}`;
-
-  window.scrollTo({
-    top: document.getElementById("resultSection").offsetTop - 20,
-    behavior: "smooth"
-  });
-}
-
-/* ===================================================
-   نافذة النتيجة والرمز السري
-=================================================== */
-
-function openPassword() {
-  document.getElementById("passwordModal").classList.remove("hidden");
-  document.getElementById("passwordInput").value = "";
-  document.getElementById("passwordError").textContent = "";
-}
-
-function closePassword() {
-  document.getElementById("passwordModal").classList.add("hidden");
-}
-
-function checkPassword() {
-  const password = document.getElementById("passwordInput").value;
-
-  // الرمز السري التجريبي
-  if (password === "1234") {
-    closePassword();
-
-    document.getElementById("studentModal").classList.remove("hidden");
-  } else {
-    document.getElementById("passwordError").textContent =
-      "الرمز السري غير صحيح، حاول مرة أخرى.";
-  }
-}
-
-function closeStudent() {
-  document.getElementById("studentModal").classList.add("hidden");
-}
-
-function showStudentResult() {
-  const student = document.getElementById("studentSelect").value;
-
-  if (student === "mohammed") {
-    document.getElementById("studentName").textContent = "محمد علي";
-
-    // إذا لم يكمل الاختبار تظهر الدرجة الافتراضية
-    if (!quizFinished) {
-      document.getElementById("physicsGrade").textContent = "--";
-    }
-
-    closeStudent();
-
-    document.getElementById("gradesModal").classList.remove("hidden");
-  }
-}
-
-function closeGrades() {
-  document.getElementById("gradesModal").classList.add("hidden");
-}
-
-/* ===================================================
-   تشغيل أولي
-=================================================== */
-
-document.addEventListener("keydown", function(event) {
-  if (event.key === "Escape") {
-    closePassword();
-    closeStudent();
-    closeGrades();
-  }
-});
-
-</script>
-
+    searchForm.addEventListener('submit', event => {
+      event.preventDefault();
+      filterSections();
+      document.getElementById('sections').scrollIntoView({ behavior: 'smooth' });
+    });
+    searchInput.addEventListener('input', filterSections);
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
-</html> 
+</html>
