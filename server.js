@@ -451,6 +451,9 @@ app.get("/api/img/:id", async (req, res) => {
   }
 });
 
+// نشر الزوار للمنشورات (مثلاً في قسم السيارات)
+require("./public-posts")(app, db);
+
 // المنصة الدراسية (الطلاب، الملازم، المحاضرات، الامتحانات)
 require("./study-api")(app, db, express);
 
