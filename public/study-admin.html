@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>إدارة المنصة الدراسية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+
+:root{--bg:#ffffff;--card:#fff;--tx:#14213d;--mut:#8a94a3;--pri:#2459a8;--pri2:#e6eefa;--red:#c8102e;--bd:#e6eaee;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f141c;--card:#18202b;--tx:#e8edf5;--mut:#93a0b3;--pri:#6aa6ff;--pri2:#1b2a40;--bd:#263244}}
+:root[data-theme="dark"]{--bg:#0f141c;--card:#18202b;--tx:#e8edf5;--mut:#93a0b3;--pri:#6aa6ff;--pri2:#1b2a40;--bd:#263244}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font-family:'Tajawal',system-ui,sans-serif;min-height:100vh}
+.wrap{max-width:560px;margin:0 auto;padding:14px 16px calc(96px + env(safe-area-inset-bottom,0px))}
+h1{font-size:24px;margin:0;font-weight:800}
+h2{font-size:21px;margin:26px 0 14px;font-weight:800}
+.sub{color:var(--mut);font-size:14px;margin:2px 0}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:6px 0 18px}
+.top select{width:auto;max-width:56%;font-size:13px;padding:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tile{background:var(--card);border:1px solid var(--bd);border-radius:28px;padding:22px 8px 18px;text-align:center;color:var(--tx);font:inherit;font-weight:800;font-size:17px;cursor:pointer;box-shadow:0 4px 18px rgba(20,33,61,.07)}
+.tile:active{transform:scale(.97)}
+.ic{width:58px;height:58px;border-radius:19px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center}.ic svg{width:26px;height:26px;fill:currentColor}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.st{background:var(--card);border:1px solid var(--bd);border-radius:26px;padding:18px 4px 14px;text-align:center;box-shadow:0 4px 18px rgba(20,33,61,.07)}
+.st em{display:block;font-style:normal;height:22px}.st em svg{width:22px;height:22px;fill:currentColor}#e1{color:#2459a8}#e2{color:#2e9e5b}#e3{color:#e8a31c}
+.st b{display:block;font-size:30px;margin:6px 0 2px;font-weight:800}
+.st span{font-size:12px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:16px;margin-bottom:12px}
+.hero{background:linear-gradient(135deg,#2e6fc7,#1b4a8f);color:#fff;border:0}
+.hero h2{margin:0 0 4px}.hero p{margin:0;color:#dbe8fb}.hero a{color:#fff}
+select,input[type=text]{width:100%;padding:12px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;font-size:15px}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 16px;background:var(--pri);color:#fff;font-weight:700}
+button.ghost{background:var(--pri2);color:var(--pri)}
+button.sm{padding:6px 12px;font-size:14px}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.row>button{flex:0 0 auto}
+.bar{display:flex;align-items:center;gap:10px;margin:6px 0 16px}
+.back{background:var(--card);color:var(--tx);width:42px;height:42px;padding:0;font-size:20px;border:1px solid var(--bd)}
+.ln{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--bd)}
+.ln:last-child{border:0}
+.badge{background:var(--pri2);color:var(--pri);border-radius:10px;padding:4px 10px;font-size:13px;font-weight:700;white-space:nowrap}
+.bar2{height:8px;background:var(--pri2);border-radius:8px;overflow:hidden;margin:8px 0}.bar2 i{display:block;height:100%;background:var(--pri)}
+.err{color:var(--red);font-size:14px;margin:8px 0 0}
+.seg{display:flex;gap:6px;margin-bottom:10px}.seg button{flex:1;background:var(--pri2);color:var(--pri)}.seg button.on{background:var(--pri);color:#fff}
+.ring{position:relative;width:220px;height:220px;margin:8px auto}.ring svg{transform:rotate(-90deg)}
+.ring .t{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:800;direction:ltr}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:420px;font-size:13px}th,td{border:1px solid var(--bd);padding:8px 4px;text-align:center}th{background:var(--pri2);color:var(--pri)}
+.opt{display:flex;justify-content:space-between;align-items:center;width:100%;background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:16px;color:var(--tx);font-weight:700;font-size:16px;margin-bottom:10px;text-align:right}.qa{margin-top:10px;padding:10px 12px;background:var(--pri2);border-radius:12px;line-height:1.8;font-size:15px}.qa b{color:var(--pri)}
+.ch{display:block;width:100%;text-align:right;background:var(--card);color:var(--tx);border:1.5px solid var(--bd);border-radius:14px;padding:12px 14px;margin-top:8px;font-weight:500;font-size:15px;line-height:1.7}.ch.good{background:rgba(46,158,91,.16);border-color:#2e9e5b}.ch.bad{background:rgba(214,69,69,.14);border-color:#d64545}.msg{margin-top:10px;font-size:14px;font-weight:700}
+.hide{display:none}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bd);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
+nav button{flex:1;background:none;color:var(--mut);padding:8px 0;font-size:12px;border-radius:12px}
+nav button i{display:block;margin:0 auto 2px;width:22px;height:22px;font-style:normal}nav button svg{width:22px;height:22px;fill:currentColor}nav button.on{color:var(--pri);background:var(--pri2)}
+
+.wrap{max-width:860px}
+label{display:block;font-weight:700;font-size:14px;margin:12px 0 5px}
+input[type=number],input[type=search],input[type=date],input[type=password],input[type=url]{width:100%;padding:12px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;font-size:15px}
+textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;font-size:15px;min-height:100px;line-height:1.8}
+input[type=file]{width:100%;padding:10px;border:1px dashed var(--bd);border-radius:12px;background:var(--card);color:var(--tx);font:inherit}
+header.top2{background:#101827;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+header.top2 a,header.top2 button{color:#a9e6ce;font-size:14px;font-weight:700;background:none;padding:0;text-decoration:none}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px}
+.chip{flex:0 0 auto;background:var(--card);border:1px solid var(--bd);color:var(--tx);border-radius:20px;padding:9px 18px;font-size:14px;font-weight:700}
+.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+#toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#142033;color:#fff;border-radius:14px;padding:12px 18px;z-index:50;font-weight:700;max-width:92%;display:none;text-align:center}
+#toast.err{background:#b8323a}
+.codeBox{background:var(--pri2);border-radius:14px;padding:12px;text-align:center;margin-top:10px}
+.codeBox b{font-size:24px;letter-spacing:2px;color:var(--pri);direction:ltr;display:block}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{background:var(--pri2);color:var(--pri);border-radius:10px;padding:5px 10px;font-size:13px;font-weight:700}
+.tag button{background:none;color:var(--red);padding:0 0 0 6px;font-size:15px}
+.thumb{width:90px;height:60px;border-radius:10px;object-fit:cover;border:1px solid var(--bd);margin-top:8px;display:block}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px 6px;border-bottom:1px solid var(--bd);text-align:right}
+.small{font-size:12px;color:var(--mut)}
+.prog{height:8px;background:var(--pri2);border-radius:8px;overflow:hidden;margin-top:8px}.prog i{display:block;height:100%;background:var(--pri);width:0}
+button.del{background:#fde4e4;color:#b8323a}
+#sl,#bo,#fl,#vl,#ql,#nl{overflow-x:auto}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<header class="top2"><b>⚙️ إدارة المنصة الدراسية</b><span><a href="/admin" style="margin-inline-end:14px">لوحة المنشورات</a><a href="/study.html">عرض المنصة</a> <button id="out" class="hide" style="margin-inline-start:14px">خروج</button></span></header>
+<div class="wrap">
+  <div id="login" class="card" style="margin-top:20px">
+    <b>🔐 رمز الإدارة</b>
+    <div class="row" style="margin-top:10px"><input type="password" id="pw" placeholder="رمز الإدارة" autocomplete="current-password"><button id="lg">دخول</button></div>
+  </div>
+  <div id="dash" class="hide">
+    <div class="chips" id="tabs"></div>
+    <div id="pane"></div>
+  </div>
+</div>
+
+<script>
+var $=function(s){return document.querySelector(s)},esc=function(v){var d=document.createElement("div");d.textContent=v==null?"":v;return d.innerHTML};
+var PASS=sessionStorage.getItem("sp")||"",ST=null,TAB="students",tt=0;
+var TABS=[["students","👥 الطلاب"],["files","📚 الملازم"],["videos","🎬 المحاضرات"],["questions","✏️ الأسئلة"],["news","📢 الإعلانات"],["settings","⚙️ الإعدادات"]];
+function toast(t,bad){var e=$("#toast");e.textContent=t;e.className=bad?"err":"";e.style.display="block";clearTimeout(tt);tt=setTimeout(function(){e.style.display="none"},4200)}
+async function api(action,body){
+  var r=await fetch("/api/study/admin",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(Object.assign({pass:PASS,action:action},body||{}))});
+  var j={};try{j=await r.json()}catch(e){}
+  if(!r.ok)throw Error(r.status===401?"رمز الإدارة غير صحيح":r.status===429?"محاولات كثيرة، انتظر قليلاً":j.error||"فشل الطلب");
+  return j;
+}
+function opts(a,sel,first){return (first!=null?'<option value="">'+first+"</option>":"")+a.map(function(x){return '<option'+(x===sel?" selected":"")+">"+esc(x)+"</option>"}).join("")}
+function loading(){$("#pane").innerHTML='<div class="card" style="text-align:center">جاري التحميل...</div>'}
+function ask(t){return confirm(t)}
+
+/* الدخول */
+async function enter(){
+  try{await api("check");ST=await api("settings.get")}catch(e){PASS="";sessionStorage.removeItem("sp");$("#login").classList.remove("hide");$("#dash").classList.add("hide");$("#out").classList.add("hide");if(e.message)toast(e.message,1);return}
+  sessionStorage.setItem("sp",PASS);$("#login").classList.add("hide");$("#dash").classList.remove("hide");$("#out").classList.remove("hide");tabs();show(TAB);
+}
+$("#lg").onclick=function(){PASS=$("#pw").value.trim();if(PASS)enter()};
+$("#pw").onkeydown=function(e){if(e.key==="Enter")$("#lg").click()};
+$("#out").onclick=function(){PASS="";sessionStorage.removeItem("sp");location.reload()};
+function tabs(){
+  $("#tabs").innerHTML=TABS.map(function(t){return '<button class="chip'+(t[0]===TAB?" on":"")+'" data-t="'+t[0]+'">'+t[1]+"</button>"}).join("");
+  $("#tabs").querySelectorAll("button").forEach(function(b){b.onclick=function(){TAB=b.dataset.t;tabs();show(TAB)}});
+}
+function show(t){loading();({students:tStudents,files:tFiles,videos:tVideos,questions:tQuestions,news:tNews,settings:tSettings})[t]().catch(function(e){toast(e.message,1)})}
+
+/* ضغط الصور قبل الرفع */
+function shrink(file){
+  return new Promise(function(ok,no){
+    var u=URL.createObjectURL(file),im=new Image();
+    im.onload=function(){
+      var s=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement("canvas"),x=c.getContext("2d");
+      c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);
+      var q=.8,d=c.toDataURL("image/jpeg",q);while(d.length>700000&&q>.4){q-=.1;d=c.toDataURL("image/jpeg",q)}ok(d);
+    };
+    im.onerror=function(){no(Error("تعذر قراءة الصورة"))};im.src=u;
+  });
+}
+async function uploadImage(file){
+  var r=await fetch("/api/upload",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pass:PASS,data:await shrink(file)})});
+  var j={};try{j=await r.json()}catch(e){}if(!r.ok)throw Error(j.error||"تعذر رفع الصورة");return j.id;
+}
+
+/* ================= الطلاب ================= */
+var cur,ex=0,SL=[];
+function blank(){var g=Object.keys(ST.grades)[0];return{code:"",n:"",g:g,x:{},ab:[]}}
+async function tStudents(){SL=await api("students.list");if(!cur)cur=blank();drawStudents()}
+function drawStudents(){
+  var gs=Object.keys(ST.grades);
+  $("#pane").innerHTML=
+  '<div class="card"><b>➕ إضافة جماعية بأسماء الطلاب</b><p class="sub">اكتب اسم كل طالب في سطر، وسيُولَّد لكل واحد رمز خاص به.</p><label>الصف</label><select id="bg">'+opts(gs,cur.g)+'</select><label>الأسماء (اسم في كل سطر)</label><textarea id="bn" placeholder="علي محمد&#10;زينب أحمد"></textarea><div style="margin-top:10px"><button id="bb">إنشاء الرموز</button></div><div id="bo"></div></div>'+
+  '<div class="card"><b id="ft">'+(cur.code?"✏️ تعديل الطالب":"👤 طالب جديد")+'</b><div class="grid2"><div><label>اسم الطالب *</label><input type="text" id="sn" value="'+esc(cur.n)+'"></div><div><label>الرمز (اتركه فارغاً ليُولَّد تلقائياً)</label><input type="text" id="sc" inputmode="numeric" style="direction:ltr;text-align:center" value="'+esc(cur.code)+'"'+(cur.code?" readonly":"")+'></div></div><label>الصف</label><select id="sg">'+opts(gs,cur.g)+'</select>'+
+  '<label>درجات الامتحان</label><select id="se">'+ST.examNames.map(function(e,i){return '<option value="'+i+'"'+(i===ex?" selected":"")+">"+esc(e)+(cur.x[i]?" ✓":"")+"</option>"}).join("")+'</select><div id="sm"></div>'+
+  '<label>أيام الغياب</label><div class="row"><input type="date" id="sd"><button id="sa" class="ghost">إضافة</button></div><div class="tags" id="st"></div>'+
+  '<div class="row" style="margin-top:14px"><button id="ss">حفظ الطالب</button><button id="sx" class="ghost">طالب جديد</button></div><div id="so"></div></div>'+
+  '<div class="card"><b id="sct">قائمة الطلاب ('+SL.length+')</b><input type="search" id="sq" placeholder="ابحث بالاسم أو الرمز" style="margin:10px 0"><div id="sl"></div></div>';
+  drawMarks();drawAb();drawList();
+  $("#bb").onclick=bulk;
+  $("#sg").onchange=function(){cur.n=$("#sn").value;cur.code=$("#sc").value;cur.g=this.value;cur.x={};drawStudents();toast("تم تصفير الدرجات لأن الصف تغيّر")};
+  $("#se").onchange=function(){if(!readMarks()){this.value=ex;return}ex=+this.value;drawMarks()};
+  $("#sa").onclick=function(){var d=$("#sd").value;if(d&&cur.ab.indexOf(d)<0){cur.ab.push(d);cur.ab.sort();drawAb()}$("#sd").value=""};
+  $("#ss").onclick=saveStudent;$("#sx").onclick=function(){cur=blank();ex=0;drawStudents()};
+  $("#sq").oninput=drawList;
+}
+function drawMarks(){var s=ST.grades[cur.g]||[],m=cur.x[ex]||[];$("#sm").innerHTML=s.map(function(n,i){return '<div class="ln"><span>'+esc(n)+'</span><input type="number" min="0" max="100" inputmode="decimal" style="width:90px;text-align:center" value="'+(m[i]!=null?m[i]:"")+'"></div>'}).join("")+'<p class="small">أكمل درجات كل المواد أو اتركها كلها فارغة.</p>'}
+function readMarks(){
+  var v=Array.from(document.querySelectorAll("#sm input")).map(function(i){return i.value.trim()});
+  if(v.every(function(x){return x===""})){delete cur.x[ex];return true}
+  if(v.some(function(x){return x===""||isNaN(+x)||+x<0||+x>100})){toast("أكمل درجات كل المواد (من 0 إلى 100) أو اتركها كلها فارغة",1);return false}
+  cur.x[ex]=v.map(Number);return true;
+}
+function drawAb(){$("#st").innerHTML=cur.ab.map(function(d,i){return '<span class="tag">'+esc(d)+' <button data-i="'+i+'" aria-label="حذف">×</button></span>'}).join("")||'<span class="small">لا يوجد غياب مسجّل</span>';$("#st").querySelectorAll("button").forEach(function(b){b.onclick=function(){cur.ab.splice(+b.dataset.i,1);drawAb()}})}
+async function saveStudent(){
+  cur.n=$("#sn").value.trim();cur.code=$("#sc").value.trim();cur.g=$("#sg").value;
+  if(!cur.n){toast("اكتب اسم الطالب",1);return}
+  if(!readMarks())return;
+  try{
+    var r=await api("students.save",{code:cur.code,n:cur.n,g:cur.g,x:cur.x,ab:cur.ab});cur.code=r.code;SL=await api("students.list");
+    drawStudents();$("#so").innerHTML='<div class="codeBox">تم الحفظ ✅ رمز الطالب:<b>'+esc(r.code)+"</b></div>";toast("تم حفظ الطالب");
+  }catch(e){toast(e.message,1)}
+}
+function drawList(){
+  var q=$("#sq").value.trim().toLowerCase(),l=SL.filter(function(s){return !q||(s.n+" "+s.code).toLowerCase().indexOf(q)>-1});
+  $("#sl").innerHTML=l.length?'<table>'+l.map(function(s){return '<tr><td><b>'+esc(s.n)+'</b><div class="small">'+esc(s.g)+'</div></td><td style="direction:ltr;text-align:center">'+esc(s.code)+'</td><td style="white-space:nowrap"><button class="sm ghost" data-e="'+esc(s.code)+'">تعديل</button> <button class="sm del" data-d="'+esc(s.code)+'">حذف</button></td></tr>'}).join("")+"</table>":'<p class="sub">لا يوجد طلاب.</p>';
+  $("#sl").querySelectorAll("[data-e]").forEach(function(b){b.onclick=function(){cur=JSON.parse(JSON.stringify(SL.filter(function(s){return s.code===b.dataset.e})[0]));ex=0;drawStudents();window.scrollTo({top:0,behavior:"smooth"})}});
+  $("#sl").querySelectorAll("[data-d]").forEach(function(b){b.onclick=async function(){if(!ask("حذف هذا الطالب نهائياً؟"))return;try{await api("students.delete",{code:b.dataset.d});SL=await api("students.list");if(cur.code===b.dataset.d)cur=blank();drawStudents();toast("تم الحذف")}catch(e){toast(e.message,1)}}});
+}
+async function bulk(){
+  var names=$("#bn").value.split("\n").map(function(x){return x.trim()}).filter(Boolean);
+  if(!names.length){toast("اكتب اسماً واحداً على الأقل",1);return}
+  try{
+    var r=await api("students.bulk",{g:$("#bg").value,names:names});SL=await api("students.list");
+    var csv="\ufeffالرمز,الاسم\n"+r.list.map(function(x){return x.code+',"'+x.n.replace(/"/g,'""')+'"'}).join("\n"),txt=r.list.map(function(x){return x.code+"\t"+x.n}).join("\n");
+    $("#bo").innerHTML='<div class="codeBox">تم إنشاء '+r.list.length+' رمز ✅</div><table>'+r.list.map(function(x){return "<tr><td>"+esc(x.n)+'</td><td style="direction:ltr;text-align:center"><b>'+esc(x.code)+"</b></td></tr>"}).join("")+'</table><div class="row" style="margin-top:10px"><button id="cp" class="ghost">نسخ القائمة</button><button id="dl" class="ghost">تنزيل CSV</button></div>';
+    $("#cp").onclick=function(){navigator.clipboard.writeText(txt).then(function(){toast("تم النسخ")},function(){toast("تعذر النسخ",1)})};
+    $("#dl").onclick=function(){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="student-codes.csv";a.click()};
+    $("#bn").value="";$("#sct").textContent="قائمة الطلاب ("+SL.length+")";drawList();
+  }catch(e){toast(e.message,1)}
+}
+
+/* ================= الملازم ================= */
+async function tFiles(){
+  var l=await api("files.list"),gs=Object.keys(ST.grades);
+  $("#pane").innerHTML='<div class="card"><b>📤 نشر ملزمة جديدة</b><label>الملف (PDF أو صورة أو Word أو PowerPoint، حتى 15 ميغابايت)</label><input type="file" id="ff" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.ppt,.pptx,application/pdf,image/*"><label>العنوان</label><input type="text" id="ft" placeholder="مثال: ملزمة الفيزياء - الفصل الأول"><div class="grid2"><div><label>الصف</label><select id="fg">'+opts(gs,"","كل الصفوف")+'</select></div><div><label>المادة</label><input type="text" id="fs" list="fsl" placeholder="مثال: الفيزياء"><datalist id="fsl"></datalist></div></div><div class="prog"><i id="fp"></i></div><div style="margin-top:12px"><button id="fu">رفع ونشر</button></div></div><div class="card"><b>الملازم المنشورة ('+l.length+')</b><div id="fl"></div></div>';
+  function sl(){var g=$("#fg").value,a=g?ST.grades[g]||[]:[].concat.apply([],Object.values(ST.grades));$("#fsl").innerHTML=Array.from(new Set(a)).map(function(s){return '<option value="'+esc(s)+'">'}).join("")}
+  $("#fg").onchange=sl;sl();
+  $("#fl").innerHTML=l.length?"<table>"+l.map(function(f){return '<tr><td><b>'+esc(f.title)+'</b><div class="small">'+esc(f.subject)+" · "+esc(f.grade||"كل الصفوف")+" · "+(f.size>1048576?(f.size/1048576).toFixed(1)+" MB":Math.round(f.size/1024)+" KB")+'</div></td><td><a class="small" target="_blank" href="/api/study/file/'+f.id+'">عرض</a></td><td><button class="sm del" data-d="'+f.id+'">حذف</button></td></tr>'}).join("")+"</table>":'<p class="sub">لا توجد ملازم بعد.</p>';
+  $("#fl").querySelectorAll("[data-d]").forEach(function(b){b.onclick=async function(){if(!ask("حذف هذه الملزمة نهائياً؟"))return;try{await api("files.delete",{id:b.dataset.d});toast("تم الحذف");tFiles()}catch(e){toast(e.message,1)}}});
+  $("#fu").onclick=function(){
+    var f=$("#ff").files[0];if(!f){toast("اختر ملفاً",1);return}
+    if(f.size>15*1048576){toast("الملف أكبر من 15 ميغابايت",1);return}
+    var meta={title:$("#ft").value.trim()||f.name.replace(/\.[^.]+$/,""),subject:$("#fs").value.trim(),grade:$("#fg").value},btn=$("#fu");btn.disabled=true;btn.textContent="جاري الرفع...";
+    var x=new XMLHttpRequest();x.open("POST","/api/study/upload");
+    x.setRequestHeader("x-admin",PASS);x.setRequestHeader("x-filename",encodeURIComponent(f.name));x.setRequestHeader("x-meta",encodeURIComponent(JSON.stringify(meta)));x.setRequestHeader("content-type","application/octet-stream");
+    x.upload.onprogress=function(e){if(e.lengthComputable)$("#fp").style.width=Math.round(e.loaded/e.total*100)+"%"};
+    x.onload=function(){var j={};try{j=JSON.parse(x.responseText)}catch(e){}
+      if(x.status<300){toast("تم نشر الملزمة ✅");tFiles()}else{btn.disabled=false;btn.textContent="رفع ونشر";toast(x.status===413?"الملف كبير (الحد 15 ميغابايت)":x.status===401?"رمز الإدارة غير صحيح":j.error||"فشل الرفع",1)}};
+    x.onerror=function(){btn.disabled=false;btn.textContent="رفع ونشر";toast("تعذر الاتصال بالخادم",1)};
+    x.send(f);
+  };
+}
+
+/* ================= المحاضرات ================= */
+var VE=null,VL=[];
+async function tVideos(){VL=await api("videos.list");VE=VE||{id:"",title:"",url:"",grade:"",subject:"",desc:"",cover:""};drawVideos()}
+function drawVideos(){
+  var gs=Object.keys(ST.grades),v=VE;
+  $("#pane").innerHTML='<div class="card"><b>'+(v.id?"✏️ تعديل محاضرة":"🎬 نشر محاضرة")+'</b><label>العنوان *</label><input type="text" id="vt" value="'+esc(v.title)+'"><label>رابط الفيديو * (يوتيوب أو Google Drive أو رابط mp4)</label><input type="url" id="vu" style="direction:ltr" placeholder="https://youtu.be/..." value="'+esc(v.url)+'"><div class="grid2"><div><label>الصف</label><select id="vg">'+opts(gs,v.grade,"كل الصفوف")+'</select></div><div><label>المادة</label><input type="text" id="vs" value="'+esc(v.subject)+'"></div></div><label>وصف (اختياري)</label><textarea id="vd">'+esc(v.desc)+'</textarea><label>صورة غلاف من المعرض (اختياري)</label><input type="file" id="vc" accept="image/*">'+(v.cover?'<img class="thumb" src="/api/img/'+esc(v.cover)+'" alt=""><button class="sm del" id="vcx" style="margin-top:6px">إزالة الغلاف</button>':"")+'<p class="small">نصيحة: ارفع الفيديو على يوتيوب بوضع «غير مدرج» وانسخ رابطه هنا، فهو أخف على الموقع.</p><div class="row" style="margin-top:12px"><button id="vsv">'+(v.id?"حفظ التعديل":"نشر")+'</button>'+(v.id?'<button class="ghost" id="vcl">إلغاء</button>':"")+'</div></div><div class="card"><b>المحاضرات ('+VL.length+')</b><div id="vl"></div></div>';
+  $("#vl").innerHTML=VL.length?"<table>"+VL.map(function(x,i){return "<tr><td><b>"+esc(x.title)+'</b><div class="small">'+esc(x.subject)+" · "+esc(x.grade||"كل الصفوف")+'</div></td><td style="white-space:nowrap"><button class="sm ghost" data-e="'+i+'">تعديل</button> <button class="sm del" data-d="'+x.id+'">حذف</button></td></tr>'}).join("")+"</table>":'<p class="sub">لا توجد محاضرات.</p>';
+  $("#vl").querySelectorAll("[data-e]").forEach(function(b){b.onclick=function(){var x=VL[+b.dataset.e];VE={id:x.id,title:x.title,url:x.url,grade:x.grade,subject:x.subject,desc:x.desc,cover:(x.cover||"").replace("/api/img/","")};drawVideos();window.scrollTo({top:0,behavior:"smooth"})}});
+  $("#vl").querySelectorAll("[data-d]").forEach(function(b){b.onclick=async function(){if(!ask("حذف هذه المحاضرة؟"))return;try{await api("videos.delete",{id:b.dataset.d});VE=null;toast("تم الحذف");tVideos()}catch(e){toast(e.message,1)}}});
+  var cl=$("#vcl");if(cl)cl.onclick=function(){VE=null;tVideos()};var cx=$("#vcx");if(cx)cx.onclick=function(){VE.cover="";readV();drawVideos()};
+  $("#vsv").onclick=async function(){
+    readV();var f=$("#vc").files[0];
+    try{if(f)VE.cover=await uploadImage(f);await api("videos.save",{id:VE.id,title:VE.title,url:VE.url,grade:VE.grade,subject:VE.subject,desc:VE.desc,cover:VE.cover});toast("تم الحفظ ✅");VE=null;tVideos()}catch(e){toast(e.message,1)}
+  };
+}
+function readV(){VE.title=$("#vt").value.trim();VE.url=$("#vu").value.trim();VE.grade=$("#vg").value;VE.subject=$("#vs").value.trim();VE.desc=$("#vd").value.trim()}
+
+/* ================= الأسئلة ================= */
+var QE=null,QL=[],QF="";
+async function tQuestions(){QL=await api("questions.list");QE=QE||{id:"",grade:"",subject:"",chapter:"",q:"",a:"",o:["","",""]};drawQ()}
+function drawQ(){
+  var gs=Object.keys(ST.grades),e=QE,subs=e.grade?ST.grades[e.grade]||[]:Array.from(new Set([].concat.apply([],Object.values(ST.grades)))),chs=Array.from(new Set(QL.filter(function(q){return q.subject===e.subject}).map(function(q){return q.chapter})));
+  var all=Array.from(new Set(QL.map(function(q){return q.subject}))),vis=QL.filter(function(q){return !QF||q.subject===QF});
+  $("#pane").innerHTML='<div class="card"><b>'+(e.id?"✏️ تعديل سؤال":"➕ إضافة سؤال")+'</b><div class="grid2"><div><label>الصف</label><select id="qg">'+opts(gs,e.grade,"كل الصفوف")+'</select></div><div><label>المادة *</label><input type="text" id="qs" list="qsl" value="'+esc(e.subject)+'"><datalist id="qsl">'+subs.map(function(s){return '<option value="'+esc(s)+'">'}).join("")+'</datalist></div></div><label>الفصل *</label><input type="text" id="qc" list="qcl" placeholder="مثال: الفصل الأول" value="'+esc(e.chapter)+'"><datalist id="qcl">'+chs.map(function(s){return '<option value="'+esc(s)+'">'}).join("")+'</datalist><label>السؤال *</label><textarea id="qq" style="min-height:70px">'+esc(e.q)+'</textarea><label>الجواب الصحيح *</label><textarea id="qa" style="min-height:60px">'+esc(e.a)+'</textarea><label>ثلاثة خيارات خاطئة *</label><input type="text" id="o0" placeholder="خاطئ 1" value="'+esc(e.o[0])+'" style="margin-bottom:8px"><input type="text" id="o1" placeholder="خاطئ 2" value="'+esc(e.o[1])+'" style="margin-bottom:8px"><input type="text" id="o2" placeholder="خاطئ 3" value="'+esc(e.o[2])+'"><div class="row" style="margin-top:12px"><button id="qsv">'+(e.id?"حفظ التعديل":"إضافة السؤال")+'</button>'+(e.id?'<button class="ghost" id="qcl2">إلغاء</button>':"")+'</div><p class="small">بعد الإضافة تبقى المادة والفصل كما هما لتسريع إدخال الأسئلة.</p></div><div class="card"><b>الأسئلة ('+vis.length+')</b><select id="qf" style="margin:10px 0">'+opts(all,QF,"كل المواد")+'</select><div id="ql"></div></div>';
+  $("#ql").innerHTML=vis.length?"<table>"+vis.map(function(q){return "<tr><td><b>"+esc(q.q)+'</b><div class="small">'+esc(q.subject)+" · "+esc(q.chapter)+'</div></td><td style="white-space:nowrap"><button class="sm ghost" data-e="'+q.id+'">تعديل</button> <button class="sm del" data-d="'+q.id+'">حذف</button></td></tr>'}).join("")+"</table>":'<p class="sub">لا توجد أسئلة.</p>';
+  $("#qg").onchange=qLists;$("#qs").oninput=qLists;$("#qf").onchange=function(){readQ();QF=this.value;drawQ()};
+  $("#ql").querySelectorAll("[data-e]").forEach(function(b){b.onclick=function(){var q=QL.filter(function(x){return x.id===b.dataset.e})[0];QE={id:q.id,grade:q.grade,subject:q.subject,chapter:q.chapter,q:q.q,a:q.a,o:q.o.slice()};drawQ();window.scrollTo({top:0,behavior:"smooth"})}});
+  $("#ql").querySelectorAll("[data-d]").forEach(function(b){b.onclick=async function(){if(!ask("حذف هذا السؤال؟"))return;try{await api("questions.delete",{id:b.dataset.d});toast("تم الحذف");QL=await api("questions.list");drawQ()}catch(e){toast(e.message,1)}}});
+  var c=$("#qcl2");if(c)c.onclick=function(){QE=null;tQuestions()};
+  $("#qsv").onclick=async function(){
+    readQ();
+    try{
+      await api("questions.save",{id:QE.id,grade:QE.grade,subject:QE.subject,chapter:QE.chapter,q:QE.q,a:QE.a,o:QE.o});toast("تم الحفظ ✅");
+      QE={id:"",grade:QE.grade,subject:QE.subject,chapter:QE.chapter,q:"",a:"",o:["","",""]};QL=await api("questions.list");drawQ();
+    }catch(er){toast(er.message,1)}
+  };
+}
+function qLists(){
+  var g=$("#qg").value,subs=g?ST.grades[g]||[]:Array.from(new Set([].concat.apply([],Object.values(ST.grades)))),s=$("#qs").value.trim(),
+      chs=Array.from(new Set(QL.filter(function(q){return q.subject===s}).map(function(q){return q.chapter})));
+  $("#qsl").innerHTML=subs.map(function(x){return '<option value="'+esc(x)+'">'}).join("");
+  $("#qcl").innerHTML=chs.map(function(x){return '<option value="'+esc(x)+'">'}).join("");
+}
+function readQ(){QE.grade=$("#qg").value;QE.subject=$("#qs").value.trim();QE.chapter=$("#qc").value.trim();QE.q=$("#qq").value.trim();QE.a=$("#qa").value.trim();QE.o=[$("#o0").value.trim(),$("#o1").value.trim(),$("#o2").value.trim()]}
+
+/* ================= الإعلانات ================= */
+async function tNews(){
+  var l=await api("news.list");
+  $("#pane").innerHTML='<div class="card"><b>📢 نشر إعلان</b><label>العنوان *</label><input type="text" id="nt"><label>النص</label><textarea id="nx"></textarea><label>صورة من المعرض (اختياري)</label><input type="file" id="ni" accept="image/*"><div style="margin-top:12px"><button id="nsv">نشر الإعلان</button></div></div><div class="card"><b>الإعلانات ('+l.length+')</b><div id="nl"></div></div>';
+  $("#nl").innerHTML=l.length?"<table>"+l.map(function(n){return "<tr><td>"+(n.image?'<img class="thumb" style="margin:0" src="/api/img/'+esc(n.image)+'" alt="">':"")+"</td><td><b>"+esc(n.title)+'</b><div class="small">'+esc(n.text.slice(0,70))+'</div></td><td><button class="sm del" data-d="'+n.id+'">حذف</button></td></tr>'}).join("")+"</table>":'<p class="sub">لا توجد إعلانات.</p>';
+  $("#nl").querySelectorAll("[data-d]").forEach(function(b){b.onclick=async function(){if(!ask("حذف هذا الإعلان؟"))return;try{await api("news.delete",{id:b.dataset.d});toast("تم الحذف");tNews()}catch(e){toast(e.message,1)}}});
+  $("#nsv").onclick=async function(){
+    var t=$("#nt").value.trim();if(!t){toast("اكتب عنوان الإعلان",1);return}
+    try{var f=$("#ni").files[0],img=f?await uploadImage(f):"";await api("news.save",{title:t,text:$("#nx").value.trim(),image:img});toast("تم النشر ✅");tNews()}catch(e){toast(e.message,1)}
+  };
+}
+
+/* ================= الإعدادات ================= */
+async function tSettings(){
+  ST=await api("settings.get");
+  var g=Object.keys(ST.grades).map(function(k){return k+": "+ST.grades[k].join("، ")}).join("\n");
+  $("#pane").innerHTML='<div class="card"><b>📅 مواعيد الامتحانات</b><div id="er"></div><div class="row" style="margin-top:10px"><button id="ea" class="ghost">+ موعد</button><button id="es">حفظ المواعيد</button></div></div>'+
+  '<div class="card"><b>📝 أسماء الامتحانات (تظهر في قائمة النتائج)</b><textarea id="en">'+esc(ST.examNames.join("\n"))+'</textarea><div style="margin-top:10px"><button id="ens">حفظ الأسماء</button></div></div>'+
+  '<div class="card"><b>🎓 الصفوف والمواد</b><p class="sub">سطر لكل صف بهذا الشكل: اسم الصف: مادة، مادة، مادة</p><textarea id="gr" style="min-height:200px">'+esc(g)+'</textarea><div style="margin-top:10px"><button id="gs">حفظ الصفوف</button></div></div>';
+  var ex=ST.exams.slice();
+  function rows(){$("#er").innerHTML=ex.map(function(e,i){return '<div class="row" style="margin-top:8px"><input type="text" data-n="'+i+'" value="'+esc(e.n)+'" placeholder="اسم الامتحان"><input type="date" data-d="'+i+'" value="'+esc(e.d)+'" style="max-width:170px"><button class="sm del" data-x="'+i+'">×</button></div>'}).join("")||'<p class="sub">لا توجد مواعيد.</p>';
+    $("#er").querySelectorAll("[data-n]").forEach(function(i){i.oninput=function(){ex[+i.dataset.n].n=i.value}});$("#er").querySelectorAll("[data-d]").forEach(function(i){i.oninput=function(){ex[+i.dataset.d].d=i.value}});$("#er").querySelectorAll("[data-x]").forEach(function(b){b.onclick=function(){ex.splice(+b.dataset.x,1);rows()}})}
+  rows();$("#ea").onclick=function(){ex.push({n:"",d:""});rows()};
+  $("#es").onclick=async function(){try{await api("settings.save",{exams:ex.filter(function(e){return e.n.trim()&&e.d})});toast("تم حفظ المواعيد ✅")}catch(e){toast(e.message,1)}};
+  $("#ens").onclick=async function(){try{await api("settings.save",{examNames:$("#en").value.split("\n").map(function(x){return x.trim()}).filter(Boolean)});toast("تم حفظ الأسماء ✅");ST=await api("settings.get")}catch(e){toast(e.message,1)}};
+  $("#gs").onclick=async function(){
+    var o={};$("#gr").value.split("\n").forEach(function(l){var i=l.search(/[:：]/);if(i<1)return;var n=l.slice(0,i).trim(),s=l.slice(i+1).split(/[،,]/).map(function(x){return x.trim()}).filter(Boolean);if(n&&s.length)o[n]=s});
+    if(!Object.keys(o).length){toast("اكتب صفاً واحداً على الأقل بالشكل المطلوب",1);return}
+    try{await api("settings.save",{grades:o});ST=await api("settings.get");cur=null;toast("تم حفظ الصفوف ✅")}catch(e){toast(e.message,1)}
+  };
+}
+
+if(PASS)enter();
+</script>
+</body>
+</html>
