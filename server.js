@@ -451,6 +451,9 @@ app.get("/api/img/:id", async (req, res) => {
   }
 });
 
+// المنصة الدراسية (الطلاب، الملازم، المحاضرات، الامتحانات)
+require("./study-api")(app, db, express);
+
 // تشغيل الخادم
 const PORT = process.env.PORT || 3000;
 
