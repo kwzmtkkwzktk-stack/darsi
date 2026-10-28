@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>المنصة الدراسية | دليل العراق</title>
+<title>المنصة الدراسية | دليني العراقية</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
 
@@ -130,7 +130,7 @@ var TITLES={files:"ملازمي",videos:"محاضراتي",quiz:"امتحانا�
 var R={home:rHome,files:rFiles,videos:rVideos,quiz:rQuiz,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
 
 function build(){
-  var h='<section id="v-home" class="v"><div class="top"><div><a class="site" href="/">→ دليل العراق</a><h1 id="hi" style="margin-top:4px">أهلاً بك 👋</h1></div><select id="grade" aria-label="الصف"></select></div><div id="news"></div><div class="grid" id="tiles"></div><h2>إحصائيات سريعة</h2><div class="stats"><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظاتي</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم متبقي</span></div><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div></div><div class="card" style="margin-top:14px"><b>💡 نصيحة اليوم</b><p id="tip" style="line-height:1.7;margin:6px 0 0"></p></div></section>';
+  var h='<section id="v-home" class="v"><div class="top"><div><a class="site" href="/">→ دليني العراقية</a><h1 id="hi" style="margin-top:4px">أهلاً بك 👋</h1></div><select id="grade" aria-label="الصف"></select></div><div id="news"></div><div class="grid" id="tiles"></div><h2>إحصائيات سريعة</h2><div class="stats"><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظاتي</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم متبقي</span></div><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div></div><div class="card" style="margin-top:14px"><b>💡 نصيحة اليوم</b><p id="tip" style="line-height:1.7;margin:6px 0 0"></p></div></section>';
   Object.keys(TITLES).forEach(function(k){h+='<section id="v-'+k+'" class="v hide"><div class="bar"><button class="back" data-bk="'+k+'" aria-label="رجوع">→</button><h1 id="t-'+k+'">'+TITLES[k]+'</h1></div><div id="b-'+k+'"></div></section>'});
   $("#app").innerHTML=h;
   document.querySelectorAll("[data-ic]").forEach(function(e){e.innerHTML=ico(e.dataset.ic)});
