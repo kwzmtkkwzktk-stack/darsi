@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>دليل العراق</title>
+<title>دليني العراقية</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f4f7fb;--ink:#142033;--muted:#718096;--primary:#176b55;--primary2:#e7f5ef;--dark:#101827;--surface:#fff;--line:#e7edf3;--red:#c0392b}
@@ -74,7 +74,7 @@ header{background:var(--dark);color:#fff;padding:16px 0 20px}
 <div id="toast"></div>
 <header><div class="wrap">
   <div class="top"><a href="/">→ كل الأقسام</a><span id="cnt" style="color:#b6c2d0;font-size:13px"></span></div>
-  <div class="title"><div class="ic" id="ic">🇮🇶</div><div><h1 id="h">دليل العراق</h1><small>آخر المنشورات في هذا القسم</small></div></div>
+  <div class="title"><div class="ic" id="ic">🇮🇶</div><div><h1 id="h">دليني العراقية</h1><small>آخر المنشورات في هذا القسم</small></div></div>
 </div></header>
 <main class="wrap">
   <div class="tools"><input id="q" type="search" placeholder="ابحث داخل القسم..." aria-label="بحث"><select id="so" aria-label="الترتيب"><option value="n">الأحدث</option><option value="o">الأقدم</option></select></div>
@@ -107,7 +107,7 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape")close_()});
 if(!info){
   $("list").innerHTML='<div class="msg">هذا القسم غير موجود.<br><a class="btn" style="margin-top:12px" href="/">الرجوع للأقسام</a></div>';
 }else{
-  document.title=info[0]+" | دليل العراق";$("h").textContent=info[0];$("ic").textContent=info[1];
+  document.title=info[0]+" | دليني العراقية";$("h").textContent=info[0];$("ic").textContent=info[1];
   fetch("/api/public/config",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(c){if(c){CFG=c;$("fab").style.display=c.sections.indexOf(key)>-1?"block":"none";if(posts.length===0&&$("list").querySelector(".msg"))draw()}}).catch(function(){});
   load();
 }
