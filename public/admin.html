@@ -18,6 +18,24 @@ button{border:0;border-radius:9px;padding:11px 15px;background:var(--green);colo
 @media(max-width:550px){header{padding:16px} .item{align-items:flex-start;flex-direction:column}}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.th{position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;border:1px solid var(--line);display:grid;place-items:center;background:#f3f6fb}.th img{width:100%;height:100%;object-fit:cover}.th button{position:absolute;top:3px;left:3px;width:24px;height:24px;padding:0;border-radius:50%;background:#b8323a;color:#fff;line-height:1}
 </style>
+<style>
+#statsOv{position:fixed;inset:0;background:#f4f7fb;z-index:60;overflow:auto;display:none;color:#142033}
+#statsOv.on{display:block}
+.st-wrap{max-width:900px;margin:auto;padding:16px 14px 60px}
+.st-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.st-h h2{margin:0;font-size:22px}.st-h button,.st-btn{background:#e7f5ef;color:#176b55;border:0;border-radius:10px;padding:9px 14px;font:inherit;font-weight:700;cursor:pointer}
+.st-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px}
+.st-c{background:#fff;border:1px solid #e7edf3;border-radius:16px;padding:14px;text-align:center}
+.st-c b{display:block;font-size:28px;color:#176b55}.st-c span{font-size:12.5px;color:#718096}.st-c small{display:block;color:#a0aec0;font-size:11.5px;margin-top:2px}
+.st-box{background:#fff;border:1px solid #e7edf3;border-radius:16px;padding:14px;margin-top:12px}
+.st-box h3{margin:0 0 10px;font-size:16px}.st-box p{margin:0;color:#718096;font-size:13px}
+.st-row{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:14px}.st-row>span:first-child{min-width:112px}.st-row>b{min-width:44px;text-align:left}
+.st-bar{flex:1;height:10px;background:#e7f5ef;border-radius:6px;overflow:hidden}.st-bar i{display:block;height:100%;background:#176b55;border-radius:6px}
+.st-chart{display:flex;align-items:flex-end;gap:5px;height:140px}.st-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:10.5px;color:#718096;gap:3px}.st-col i{display:block;width:100%;background:#176b55;border-radius:6px 6px 0 0;min-height:2px}
+.st-hours{display:flex;align-items:flex-end;gap:2px;height:64px}.st-hours i{flex:1;background:#8cc9b4;border-radius:3px 3px 0 0;min-height:2px}
+.st-t{width:100%;border-collapse:collapse;font-size:14px}.st-t th,.st-t td{padding:8px 6px;border-bottom:1px solid #e7edf3;text-align:right}.st-t td+td,.st-t th+th{text-align:center}
+.st-err{color:#c0392b;font-weight:700}
+</style>
 </head>
 <body>
 <header><div><h1>لوحة إدارة دَرسي</h1><small>إدارة أقسام الموقع والمنشورات</small></div><span><a href="/study-admin.html" style="color:#a9e6ce;margin-inline-end:14px">لوحة المنصة الدراسية</a><a href="/" style="color:#fff">العودة للموقع</a></span></header>
@@ -30,6 +48,7 @@ button{border:0;border-radius:9px;padding:11px 15px;background:var(--green);colo
 <section id="dashboard" class="hidden">
 <div class="panel">
 <h2 class="section-title">إدارة محتوى الموقع</h2>
+<div style="margin:0 0 12px"><button type="button" id="statsBtn" style="background:#176b55;color:#fff;border:0;border-radius:12px;padding:11px 18px;font:inherit;font-weight:800;cursor:pointer">📊 معلومات الموقع</button></div>
 <div class="tabs" id="tabs"></div>
 <div id="notice" class="notice hidden"></div>
 <form id="editor">
@@ -116,5 +135,45 @@ $("editor").onsubmit=async function(e){
   var item={_id:$("itemId").value,title:$("title").value,price:$("price").value,location:$("location").value,contact:$("contact").value,image:$("image").value,status:$("status").value,description:$("description").value,images:imgs};
   try{await api("/api/content",{action:"save",section,item});clearForm();msg("تم حفظ المنشور");load()}catch(er){msg(er.message)}
 };
+</script>
+<script>
+(function(){
+  var PN={home:"الصفحة الرئيسية",section:"صفحات الأقسام",study:"المنصة الدراسية"};
+  var SN={cars:"السيارات",realestate:"العقارات",jobs:"الوظائف",shops:"المحلات",medical:"الأطباء",tourism:"السياحة",study:"منصة دراسية"};
+  var DN={mobile:"📱 جوال",desktop:"💻 كمبيوتر",tablet:"📲 تابلت"};
+  var RN={direct:"دخول مباشر",facebook:"فيسبوك",whatsapp:"واتساب",google:"جوجل",telegram:"تيليغرام",instagram:"إنستغرام",tiktok:"تيك توك",youtube:"يوتيوب",other:"مواقع أخرى"};
+  var el=document.createElement("div");el.id="statsOv";document.body.appendChild(el);
+  function n(v){return Number(v||0).toLocaleString("en-US")}
+  function ago(d){if(!d)return"";var s=(Date.now()-new Date(d))/1000;if(s<60)return"الآن";var m=s/60;if(m<60)return"قبل "+Math.floor(m)+" دقيقة";var h=m/60;if(h<24)return"قبل "+Math.floor(h)+" ساعة";return"قبل "+Math.floor(h/24)+" يوم"}
+  function bars(o,names,pct){
+    var e=Object.entries(o||{}).filter(function(x){return x[1]>0}).sort(function(a,b){return b[1]-a[1]}),t=e.reduce(function(s,x){return s+x[1]},0),mx=e.length?e[0][1]:1;
+    return e.length?e.map(function(x){return '<div class="st-row"><span>'+esc(names[x[0]]||x[0])+'</span><div class="st-bar"><i style="width:'+Math.round(x[1]/mx*100)+'%"></i></div><b>'+(pct?Math.round(x[1]/t*100)+"%":n(x[1]))+"</b></div>"}).join(""):"<p>لا توجد بيانات بعد.</p>";
+  }
+  function hr(h){return h===0?"12 منتصف الليل":h<12?h+" صباحاً":h===12?"12 ظهراً":(h-12)+" مساءً"}
+  function card(t,u,v,sm){return '<div class="st-c"><span>'+t+"</span><b>"+n(u)+"</b>"+(v!=null?"<small>"+n(v)+" "+(sm||"مشاهدة")+"</small>":"")+"</div>"}
+  function render(d){
+    var mx=Math.max.apply(null,d.daily.map(function(x){return x.u}).concat([1])),hmax=Math.max.apply(null,Array.from({length:24},function(_,i){return d.hours[i]||0}).concat([1])),peak=0;
+    for(var i=0;i<24;i++)if((d.hours[i]||0)>(d.hours[peak]||0))peak=i;
+    var c=d.content,secRows=Object.keys(c.sections).map(function(k){var s=c.sections[k];return "<tr><td>"+esc(SN[k]||k)+"</td><td>"+n(s.published)+"</td><td>"+n(s.draft)+"</td></tr>"}).join("");
+    el.innerHTML='<div class="st-wrap"><div class="st-h"><h2>📊 معلومات الموقع</h2><span><button id="stR">تحديث</button> <button id="stX">إغلاق ✕</button></span></div>'+
+      '<div class="st-cards">'+card("🟢 متصلون الآن",d.online)+card("زوار اليوم",d.today.u,d.today.v)+card("زوار أمس",d.yesterday.u,d.yesterday.v)+card("آخر 7 أيام",d.week.u,d.week.v)+card("آخر 30 يوماً",d.month.u,d.month.v)+card("المجموع",d.total.u,d.total.v)+"</div>"+
+      '<div class="st-box"><h3>الزوار في آخر 14 يوماً</h3><div class="st-chart">'+d.daily.map(function(x){return '<div class="st-col"><span>'+(x.u||"")+'</span><i style="height:'+Math.round(x.u/mx*100)+'%"></i><span>'+x.d.slice(8)+"</span></div>"}).join("")+"</div></div>"+
+      '<div class="st-box"><h3>الصفحات الأكثر زيارة (30 يوماً)</h3>'+bars(d.pages,PN)+"</div>"+
+      '<div class="st-box"><h3>الأقسام الأكثر زيارة (30 يوماً)</h3>'+bars(d.sections,SN)+"</div>"+
+      '<div class="st-box"><h3>الأجهزة</h3>'+bars(d.devices,DN,1)+"</div>"+
+      '<div class="st-box"><h3>مصدر الزيارات</h3>'+bars(d.refs,RN,1)+"</div>"+
+      '<div class="st-box"><h3>أوقات الزيارة (بتوقيت بغداد)</h3><div class="st-hours">'+Array.from({length:24},function(_,i){return '<i title="'+hr(i)+': '+(d.hours[i]||0)+'" style="height:'+Math.round((d.hours[i]||0)/hmax*100)+'%"></i>'}).join("")+"</div><p style='margin-top:8px'>"+((d.hours[peak]||0)?"أكثر وقت زيارة: <b>"+hr(peak)+"</b>":"لا توجد بيانات بعد.")+"</p></div>"+
+      '<div class="st-box"><h3>محتوى الموقع</h3><table class="st-t"><tr><th>القسم</th><th>منشور</th><th>مسودة</th></tr>'+secRows+"</table></div>"+
+      '<div class="st-cards" style="margin-top:12px">'+card("منشورات الزوار",c.publicPosts)+card("الطلاب",c.students)+card("الملازم",c.files)+card("المحاضرات",c.videos)+card("أسئلة الامتحانات",c.questions)+card("الإعلانات",c.news)+"</div>"+
+      '<div class="st-box"><h3>آخر المنشورات</h3>'+(d.latest.length?d.latest.map(function(x){return '<div class="st-row"><span style="min-width:0;flex:1"><b>'+esc(x.title)+'</b><br><small style="color:#718096">'+esc(SN[x.section]||x.section)+" · "+(x.source==="public"?"من زائر":"من الإدارة")+(x.status==="draft"?" · مسودة":"")+" · "+ago(x.date)+"</small></span></div>"}).join(""):"<p>لا توجد منشورات.</p>")+"</div>"+
+      '<div class="st-box"><p>العدّ يبدأ من '+(d.since||"اليوم")+'. «الزوار» عدد الأشخاص المختلفين في اليوم، و«المشاهدات» عدد مرات فتح الصفحات. لا تُحفظ عناوين IP، ولا تُحتسب زيارات المحركات والروبوتات ولا زياراتك للوحة الإدارة.</p></div></div>';
+    document.getElementById("stX").onclick=function(){el.classList.remove("on")};document.getElementById("stR").onclick=open;
+  }
+  async function open(){
+    el.classList.add("on");el.innerHTML='<div class="st-wrap"><p>جاري التحميل...</p></div>';
+    try{render(await api("/api/stats",{}))}catch(e){el.innerHTML='<div class="st-wrap"><p class="st-err">'+esc(e.message||"تعذر تحميل المعلومات")+'</p><button class="st-btn" id="stX">إغلاق</button></div>';document.getElementById("stX").onclick=function(){el.classList.remove("on")}}
+  }
+  document.getElementById("statsBtn").onclick=open;
+})();
 </script>
 </body></html>
