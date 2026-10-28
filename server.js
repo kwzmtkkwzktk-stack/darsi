@@ -451,6 +451,9 @@ app.get("/api/img/:id", async (req, res) => {
   }
 });
 
+// إحصائيات الزوار ومعلومات الموقع
+require("./analytics")(app, db);
+
 // نشر الزوار للمنشورات (مثلاً في قسم السيارات)
 require("./public-posts")(app, db);
 
