@@ -7,7 +7,7 @@ const crypto = require("crypto");
 const app = express();
 
 // إعدادات الموقع — تم إصلاح الخطأ هنا
-app.use(express.json({ limit: "3mb" }));
+app.use(express.json({ limit: "8mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 let client;
