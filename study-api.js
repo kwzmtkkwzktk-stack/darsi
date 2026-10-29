@@ -325,7 +325,12 @@ module.exports = function (app, db, express) {
         id: String(p._id),
         grade: p.grade || "",
         subject: p.subject || "",
-        questions: Array.isArray(p.questions) ? p.questions : [],
+        questions: (Array.isArray(p.questions) ? p.questions : []).map((item) => {
+          if (item && typeof item === "object") {
+            return { q: String(item.q || "").trim(), a: String(item.a || "").trim() };
+          }
+          return { q: String(item || "").trim(), a: "" };
+        }),
         date: p.date
       })),
     "paper.save": async (b) => {
@@ -334,11 +339,16 @@ module.exports = function (app, db, express) {
       need(grade, "اختر الصف");
       need(subject, "المادة مطلوبة");
       const questions = (Array.isArray(b.questions) ? b.questions : [])
-        .map((q) => S(q, 800))
-        .filter(Boolean)
+        .map((item) => {
+          if (item && typeof item === "object") {
+            return { q: S(item.q, 800), a: S(item.a, 800) };
+          }
+          return { q: S(item, 800), a: "" };
+        })
+        .filter((item) => item.q)
         .slice(0, 20);
       need(questions.length >= 3, "أضف 3 أسئلة على الأقل");
-      need(questions.length <= 20, "الحد الأقصى 20 سؤالاً");
+      need(questions.every((item) => item.a), "اكتب الجواب الصحيح لكل سؤال");
       return upsert("st_paper", b.id, { grade, subject, questions });
     },
     "paper.delete": async (b) => remove("st_paper", b.id)
@@ -469,6 +479,7 @@ module.exports = function (app, db, express) {
   }
 
   // جلب أسئلة الامتحان الورقي من قاعدة البيانات (يضيفها الأدمن)
+  // للطالب نرجع نص الأسئلة فقط بدون الأجوبة
   app.post("/api/study/paper/generate", async (req, res) => {
     if (tooMany("pg" + (req.ip || "x"), 20, 600000)) return res.sendStatus(429);
     try {
@@ -480,7 +491,11 @@ module.exports = function (app, db, express) {
       need(doc && Array.isArray(doc.questions) && doc.questions.length >= 3,
         "لا يوجد امتحان ورقي لهذه المادة بعد. أضفه من صفحة الإدارة.");
 
-      const questions = doc.questions.map((q) => String(q).trim()).filter(Boolean).slice(0, 20);
+      const questions = doc.questions.map((item) => {
+        if (item && typeof item === "object") return String(item.q || "").trim();
+        return String(item || "").trim();
+      }).filter(Boolean).slice(0, 20);
+      need(questions.length >= 3, "لا يوجد امتحان ورقي لهذه المادة بعد. أضفه من صفحة الإدارة.");
 
       res.json({
         grade,
@@ -491,55 +506,73 @@ module.exports = function (app, db, express) {
     } catch (e) { fail(res, e); }
   });
 
-  // تصحيح الامتحان الورقي من صورة
+  // تصحيح الامتحان الورقي من صورة — يعتمد على الجواب الرسمي من الأدمن
   app.post("/api/study/paper/grade", async (req, res) => {
     if (tooMany("pr" + (req.ip || "x"), 6, 600000)) return res.sendStatus(429);
     try {
       const grade = S(req.body && req.body.grade, 80);
       const subject = S(req.body && req.body.subject, 80);
-      const questions = Array.isArray(req.body && req.body.questions) ? req.body.questions.map(q => String(q).trim()).filter(Boolean) : [];
       const image = String(req.body && req.body.image || "");
 
       need(grade && subject, "الصف والمادة مطلوبان");
-      need(questions.length >= 3, "الأسئلة ناقصة");
       need(/^data:image\/(jpeg|jpg|png|webp);base64,/.test(image), "صورة غير صالحة");
 
-      const qList = questions.map((q, i) => `${i + 1}. ${q}`).join("\n");
+      const doc = await (await col("st_paper")).findOne({ grade, subject });
+      need(doc && Array.isArray(doc.questions) && doc.questions.length >= 3, "لا يوجد امتحان ورقي لهذه المادة");
 
-      const totalQ = questions.length;
-      const system = `أنت مصحح امتحانات عراقي متساهل ومنصف.
-ستصلك صورة لورقة إجابة طالب + قائمة الأسئلة.
+      const items = doc.questions.map((item) => {
+        if (item && typeof item === "object") {
+          return { q: String(item.q || "").trim(), a: String(item.a || "").trim() };
+        }
+        return { q: String(item || "").trim(), a: "" };
+      }).filter((x) => x.q).slice(0, 20);
 
-قواعد التصحيح:
-1. اقرأ إجابات الطالب من الصورة (حتى لو بخط اليد).
-2. إذا كانت الإجابة صحيحة أو قريبة بالمعنى → اعتبرها صحيحة (ok=true) وأعطها درجة كاملة.
-3. لا تتعنت على الصياغة أو ترتيب الكلمات؛ المهم المعنى.
-4. إذا الإجابة صحيحة/قريبة لكن ناقصة كلمات مهمة → اعتبرها صحيحة أيضاً (ok=true)، واذكر في الملاحظة الكلمات الناقصة فقط بوضوح.
-5. اعتبر الإجابة خطأ (ok=false) فقط إذا كانت بعيدة تماماً عن المطلوب أو فارغة أو غلط جوهري.
-6. الدرجة النهائية من ${totalQ} (درجة واحدة لكل سؤال صحيح).
+      need(items.length >= 3, "الأسئلة ناقصة");
+      need(items.every((x) => x.a), "أجوبة النموذج غير مكتملة في الإدارة");
 
-أرجع JSON فقط بهذا الشكل بدون أي نص إضافي:
+      const qList = items.map((x, i) => `${i + 1}. السؤال: ${x.q}\n   الجواب النموذجي: ${x.a}`).join("\n");
+      const totalQ = items.length;
+
+      const system = `أنت مصحح امتحانات محترف ودقيق جداً.
+مهمتك تحليل صورة ورقة إجابة الطالب سؤالاً بسؤال بدون استعجال.
+
+طريقة العمل الإلزامية لكل سؤال بالترتيب:
+أ) اقرأ من الصورة ما كتبه الطالب لهذا السؤال حرفياً قدر الإمكان (حتى لو خط اليد ضعيف).
+ب) قارن ما قرأته مع الجواب النموذجي للمعلم.
+ج) قرر:
+   - ok=true إذا المعنى مطابق أو قريب أو مرادف لنفس المعنى.
+   - ok=true أيضاً إذا المعنى صحيح لكن ناقص كلمات/أجزاء مهمة، واذكر الناقص في note.
+   - ok=false فقط إذا فارغ أو غلط جوهري أو بعيد عن المعنى، واذكر الصحيح باختصار في note.
+د) لا تتخطّ أي سؤال، ولا تعطِ نتيجة عامة بدون تفاصيل لكل سؤال.
+
+قواعد إضافية:
+- لا تتعنت على الصياغة أو ترتيب الكلمات.
+- إذا لم تستطع قراءة جزء من الورقة وضّح ذلك في note ولا تعتبره صح تلقائياً.
+- الدرجة من ${totalQ} (درجة واحدة لكل سؤال ok=true).
+- details يجب أن يحتوي عنصراً واحداً لكل سؤال من 1 إلى ${totalQ}.
+
+أرجع JSON فقط:
 {
   "score": 8,
   "total": ${totalQ},
   "percent": 80,
   "summary": "ملخص قصير عن مستوى الطالب",
   "details": [
-    {"n":1,"ok":true,"note":"إجابة صحيحة"},
-    {"n":2,"ok":true,"note":"إجابتك قريبة وصحيحة، لكن ناقصك: كلمة (...) و (...)"},
-    {"n":3,"ok":false,"note":"الإجابة غير صحيحة. الصحيح تقريباً: ..."}
+    {"n":1,"ok":true,"student":"ما قرأته من ورقة الطالب","note":"إجابة صحيحة"},
+    {"n":2,"ok":true,"student":"...","note":"المعنى صحيح، لكن ناقصك: ..."},
+    {"n":3,"ok":false,"student":"...","note":"غير صحيحة. الصحيح: ..."}
   ]
 }`;
 
       const userContent = [
-        { type: "text", text: `الصف: ${grade}\nالمادة: ${subject}\n\nالأسئلة:\n${qList}\n\nصحّح إجابات الطالب من الصورة. أي جواب قريب اعتبره صح، وإذا ناقصة كلمات مهمة اذكرها في الملاحظة. أرجع JSON فقط.` },
+        { type: "text", text: `الصف: ${grade}\nالمادة: ${subject}\nعدد الأسئلة: ${totalQ}\n\nالأسئلة مع الأجوبة النموذجية:\n${qList}\n\nحلّل الصورة بدقة. لكل سؤال: اقرأ جواب الطالب من الورقة ثم قارنه بالجواب النموذجي. أرجع JSON كامل لكل الأسئلة من 1 إلى ${totalQ}.` },
         { type: "image_url", image_url: { url: image, detail: "high" } }
       ];
 
       const content = await callAI([
         { role: "system", content: system },
         { role: "user", content: userContent }
-      ], 3000);
+      ], 4500);
 
       let result;
       try {
@@ -553,8 +586,18 @@ module.exports = function (app, db, express) {
       const details = (Array.isArray(result.details) ? result.details : []).slice(0, 20).map((d) => ({
         n: Number(d.n) || 0,
         ok: !!d.ok,
+        student: String(d.student || "").slice(0, 400),
         note: String(d.note || "").slice(0, 300)
       }));
+      // تأكد من وجود تفصيل لكل سؤال
+      if (details.length < total) {
+        for (let i = 1; i <= total; i++) {
+          if (!details.some((d) => d.n === i)) {
+            details.push({ n: i, ok: false, student: "", note: "تعذر قراءة إجابة هذا السؤال من الورقة" });
+          }
+        }
+        details.sort((a, b) => a.n - b.n);
+      }
 
       let score = details.length
         ? details.filter((d) => d.ok).length
