@@ -419,15 +419,9 @@ function drawPaperResult() {
   if (r.details && r.details.length) {
     h += '<h2 style="margin:18px 0 10px">تفاصيل التصحيح</h2>';
     r.details.forEach(function(d) {
-      var m = Number(d.mark);
-      if (isNaN(m)) m = d.ok ? 1 : 0;
-      var label = d.label || (m >= 1 ? "صح" : m >= 0.5 ? "نص صح" : m >= 0.25 ? "ربع صح" : "خطأ");
-      var icon = m >= 1 ? "✅" : m >= 0.5 ? "🟡" : m >= 0.25 ? "🟠" : "❌";
-      var cls = m >= 1 ? "rs ok" : m >= 0.25 ? "rs mid" : "rs bad";
+      var cls = d.ok ? "rs ok" : "rs bad";
       h += '<div class="card ' + cls + '" style="margin-bottom:10px">';
-      h += '<b>السؤال ' + ar(d.n) + ' — ' + icon + ' ' + esc(label);
-      if (m > 0 && m < 1) h += ' <span class="sub">(' + m + ')</span>';
-      h += '</b>';
+      h += '<b>السؤال ' + ar(d.n) + ' — ' + (d.ok ? "✅ صح" : "❌ خطأ") + '</b>';
       if (d.note) h += '<div class="sub" style="margin-top:6px;line-height:1.8">' + esc(d.note) + '</div>';
       h += '</div>';
     });
@@ -685,4 +679,5 @@ boot();
 
 </body>
 </html>
+ 
  
