@@ -322,18 +322,50 @@ module.exports = function (app, db, express) {
 
 
   // ===================== الامتحانات الورقية (AI) =====================
-  // يدعم Gemini (مجاني) و OpenAI. يفضّل Gemini إذا وُجد المفتاح.
+  // يدعم OpenRouter (الأولوية) ثم Gemini ثم OpenAI.
+  // OpenRouter: ضع OPENROUTER_API_KEY في إعدادات السيرفر
+  // موديل افتراضي: openai/gpt-4o-mini (يمكن تغييره بـ OPENROUTER_MODEL)
   async function callAI(messages, maxTokens = 2000) {
+    const openrouterKey = process.env.OPENROUTER_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
 
+    if (openrouterKey) {
+      return callOpenRouter(messages, maxTokens, openrouterKey);
+    }
     if (geminiKey) {
       return callGemini(messages, maxTokens, geminiKey);
     }
     if (openaiKey) {
       return callOpenAI(messages, maxTokens, openaiKey);
     }
-    throw bad("خدمة الذكاء الاصطناعي غير مفعّلة. أضف GEMINI_API_KEY (مجاني) أو OPENAI_API_KEY في إعدادات السيرفر.", 503);
+    throw bad("خدمة الذكاء الاصطناعي غير مفعّلة. أضف OPENROUTER_API_KEY (مفضّل) أو GEMINI_API_KEY أو OPENAI_API_KEY في إعدادات السيرفر.", 503);
+  }
+
+  async function callOpenRouter(messages, maxTokens, key) {
+    const model = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
+    const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + key,
+        "Content-Type": "application/json",
+        "HTTP-Referer": process.env.OPENROUTER_SITE_URL || "https://darsi.app",
+        "X-Title": process.env.OPENROUTER_APP_NAME || "Darsi"
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        max_tokens: maxTokens,
+        temperature: 0.4
+      })
+    });
+    if (!r.ok) {
+      const t = await r.text().catch(() => "");
+      console.error("OpenRouter error:", r.status, t.slice(0, 400));
+      throw bad("تعذر الاتصال بخدمة الذكاء الاصطناعي حالياً، حاول لاحقاً.", 502);
+    }
+    const j = await r.json();
+    return (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "";
   }
 
   async function callGemini(messages, maxTokens, key) {
@@ -536,4 +568,5 @@ module.exports = function (app, db, express) {
     try { res.json(await h(req.body || {})); } catch (e) { fail(res, e); }
   });
 };
+ 
  
