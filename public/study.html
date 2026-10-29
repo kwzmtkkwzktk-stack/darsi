@@ -272,7 +272,7 @@ function loginCard(b,after){
   $("#lg").onclick=ok;$("#lc").onkeydown=function(e){if(e.key==="Enter")ok()};
 }
 
-/* الامتحانات الورقية — توليد أسئلة + تصحيح بالصورة */
+/* الامتحانات الورقية — أسئلة من الأدمن + تصحيح بالصورة */
 var PAPER = { step: "pick", subject: "", questions: [], result: null, busy: false };
 
 async function rPaper() {
@@ -290,7 +290,7 @@ async function rPaper() {
 function drawPaperPick() {
   var b = $("#b-paper");
   var list = subs();
-  var h = '<div class="card" style="margin-bottom:14px"><b>📝 الامتحانات الورقية</b><p class="sub" style="line-height:1.8;margin:8px 0 0">اختر المادة، يولّد لك الذكاء الاصطناعي 10 أسئلة. حلّها على ورقة، صوّر الورقة، وارفع الصورة ليصحّحها لك ويعطيك الدرجة والأخطاء.</p></div>';
+  var h = '<div class="card" style="margin-bottom:14px"><b>📝 الامتحانات الورقية</b><p class="sub" style="line-height:1.8;margin:8px 0 0">اختر المادة، تظهر لك الأسئلة اللي حضّرها المعلم. حلّها على ورقة، صوّر الورقة، وارفع الصورة ليصحّحها الذكاء الاصطناعي ويعطيك الدرجة والأخطاء.</p></div>';
   if (!list.length) {
     h += '<div class="card">اختر صفّك أولاً من الصفحة الرئيسية.</div>';
   } else {
@@ -315,7 +315,7 @@ function drawPaperPick() {
       } catch (e) {
         PAPER.busy = false;
         PAPER.step = "pick";
-        b.innerHTML = '<div class="card" style="text-align:center">تعذر توليد الأسئلة حالياً.<br><span class="sub">تأكد من الإنترنت وأن خدمة الذكاء الاصطناعي مفعّلة على السيرفر.</span><br><button id="rt" style="margin-top:12px">حاول مرة ثانية</button></div>';
+        b.innerHTML = '<div class="card" style="text-align:center">لا يوجد امتحان لهذه المادة حالياً.<br><span class="sub">المعلم لم يضف أسئلة بعد، أو تأكد من الإنترنت وحاول مرة ثانية.</span><br><button id="rt" style="margin-top:12px">حاول مرة ثانية</button></div>';
         $("#rt").onclick = function() { PAPER.step = "pick"; rPaper(); };
       }
     };
