@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#101827">
-  <title>دليني العراقية | كل ما تحتاجه بمكان واحد</title>
+  <title>منصة دليني العراقية | منصتك الدراسية الأولى</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -58,9 +58,9 @@
       background:var(--primary); color:#fff; border:0; border-radius:12px; padding:11px 17px;
       font-weight:800; cursor:pointer; transition:.2s;
     }
-    .nav-cta:hover { background:var(--primary-dark); transform:translateY(-1px); }
+    .nav-cta:hover { background:var(--primary-dark); }
     .hero {
-      position:relative; overflow:hidden; padding:72px 0 65px;
+      position: relative; overflow: hidden; padding: 72px 0 80px;
       background:
         radial-gradient(circle at 12% 25%,rgba(92,190,150,.17),transparent 28%),
         radial-gradient(circle at 90% 80%,rgba(83,145,225,.12),transparent 26%),
@@ -81,200 +81,153 @@
     .hero h1 { margin:0; font-size:clamp(32px,5vw,56px); line-height:1.35; font-weight:900; letter-spacing:-1px; }
     .hero h1 span { color:#83d8b4; }
     .hero p { max-width:620px; color:#c2ccda; font-size:15px; line-height:2; margin:18px 0 28px; }
-    .search-wrap {
-      display:flex; gap:9px; background:#fff; padding:8px; border-radius:17px; max-width:650px;
-      box-shadow:0 18px 45px rgba(0,0,0,.18);
+    .hero-actions { display:flex; flex-wrap:wrap; gap:12px; margin-top:8px; }
+    .btn-primary {
+      background:var(--primary); color:#fff; border:0; border-radius:14px; padding:14px 28px;
+      font-weight:800; font-size:15px; cursor:pointer; transition:.2s; display:inline-flex; align-items:center; gap:8px;
     }
-    .search-wrap .search-icon { align-self:center; color:#7b8798; font-size:20px; padding:0 9px; }
-    .search-wrap input { flex:1; min-width:0; border:0; outline:0; color:var(--ink); padding:10px 3px; font-size:14px; }
-    .search-wrap button { border:0; border-radius:12px; padding:12px 22px; background:var(--primary); color:#fff; font-weight:800; cursor:pointer; }
-    .hero-tags { display:flex; gap:9px; flex-wrap:wrap; margin-top:18px; color:#b6c2d0; font-size:12px; }
-    .hero-tags span { border:1px solid rgba(255,255,255,.14); padding:5px 10px; border-radius:99px; }
+    .btn-primary:hover { background:var(--primary-dark); transform:translateY(-2px); }
+    .btn-secondary {
+      background:rgba(255,255,255,.1); color:#fff; border:1px solid rgba(255,255,255,.2);
+      border-radius:14px; padding:14px 24px; font-weight:700; font-size:15px; transition:.2s;
+    }
+    .btn-secondary:hover { background:rgba(255,255,255,.18); }
+    .hero-tags { display:flex; gap:9px; flex-wrap:wrap; margin-top:22px; color:#b6c2d0; font-size:12px; }
+    .hero-tags span { border:1px solid rgba(255,255,255,.14); padding:5px 12px; border-radius:99px; }
     main { padding:56px 0 72px; }
     .section-head { display:flex; justify-content:space-between; align-items:end; gap:20px; margin-bottom:26px; }
     .section-kicker { color:var(--primary); font-size:12px; font-weight:900; margin-bottom:7px; }
     .section-head h2 { font-size:clamp(24px,3vw,32px); margin:0; font-weight:900; }
     .section-head p { color:var(--muted); font-size:13px; margin:9px 0 0; }
-    .count { background:#e7f3ee; color:var(--primary); padding:8px 13px; border-radius:10px; font-size:12px; font-weight:900; white-space:nowrap; }
-    .cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; }
-    .card {
-      --accent:#176b55; --tint:#e7f5ef;
-      background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:23px;
-      min-height:225px; display:flex; flex-direction:column; position:relative; overflow:hidden;
-      box-shadow:0 5px 18px rgba(25,43,67,.025); transition:transform .25s, box-shadow .25s, border-color .25s;
+    .features {
+      display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px;
     }
-    .card::before { content:""; position:absolute; width:120px; height:120px; border-radius:50%; background:var(--tint); left:-50px; top:-55px; opacity:.8; }
-    .card:hover { transform:translateY(-6px); box-shadow:var(--shadow); border-color:color-mix(in srgb,var(--accent),white 65%); }
-    .card-top { display:flex; justify-content:space-between; align-items:center; position:relative; }
-    .card-icon { width:58px; height:58px; border-radius:17px; display:grid; place-items:center; background:var(--tint); color:var(--accent); font-size:29px; }
-    .card-number { font-size:11px; color:#9aa6b6; font-weight:800; }
-    .card h3 { font-size:18px; font-weight:900; margin:20px 0 7px; }
-    .card p { color:var(--muted); font-size:12px; line-height:1.9; margin:0 0 18px; }
-    .card-link { display:flex; align-items:center; gap:7px; color:var(--accent); font-size:12px; font-weight:900; margin-top:auto; }
-    .card-link span { transition:transform .2s; }
-    .card:hover .card-link span { transform:translateX(-4px); }
-    .empty { display:none; text-align:center; color:var(--muted); padding:40px 15px; background:white; border:1px dashed #d5dee8; border-radius:18px; }
-    .feature-band {
-      margin-top:55px; border-radius:24px; padding:30px; display:flex; align-items:center; justify-content:space-between; gap:24px;
+    .feature {
+      background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:28px 24px;
+      box-shadow:0 5px 18px rgba(25,43,67,.025); transition:transform .25s, box-shadow .25s;
+    }
+    .feature:hover { transform:translateY(-5px); box-shadow:var(--shadow); }
+    .feature-icon {
+      width:56px; height:56px; border-radius:16px; display:grid; place-items:center;
+      font-size:26px; margin-bottom:18px;
+    }
+    .feature h3 { margin:0 0 8px; font-size:18px; font-weight:900; }
+    .feature p { margin:0; color:var(--muted); font-size:13px; line-height:1.9; }
+    .cta-band {
+      margin-top:55px; border-radius:24px; padding:40px 36px; text-align:center;
       background:linear-gradient(115deg,#e7f5ef,#edf4fb); border:1px solid #dcebe5;
     }
-    .feature-band h3 { margin:0 0 7px; font-size:21px; font-weight:900; }
-    .feature-band p { margin:0; color:#66778b; font-size:13px; line-height:1.9; }
-    .feature-band .feature-icon { font-size:43px; }
-    .feature-band a { flex-shrink:0; background:var(--primary); color:#fff; padding:12px 18px; border-radius:12px; font-size:13px; font-weight:800; }
+    .cta-band h2 { margin:0 0 10px; font-size:clamp(22px,3vw,30px); font-weight:900; }
+    .cta-band p { margin:0 0 24px; color:#66778b; font-size:14px; line-height:1.9; max-width:520px; margin-inline:auto; }
+    .cta-band .btn-primary { font-size:16px; padding:15px 32px; }
     footer { background:#101827; color:#c2ccda; padding:30px 0; }
     .footer-inner { display:flex; justify-content:space-between; align-items:center; gap:20px; }
     footer .brand { color:#fff; font-size:17px; }
     footer p { margin:5px 0 0; font-size:11px; color:#8d9aab; }
     .footer-note { font-size:12px; }
-    @media (max-width:950px) {
-      .cards { grid-template-columns:repeat(3,minmax(0,1fr)); }
-      .nav-links { gap:14px; }
-    }
-    @media (max-width:700px) {
-      .container { width:min(100% - 28px,1160px); }
-      .topbar-inner { justify-content:center; }
-      .topbar-inner span:last-child { display:none; }
-      .nav { min-height:66px; }
-      .brand { font-size:18px; }
-      .brand-mark { width:39px; height:39px; }
+    @media (max-width:900px) {
+      .features { grid-template-columns:1fr; }
       .nav-links { display:none; }
-      .nav-cta { padding:9px 12px; font-size:12px; }
-      .hero { padding:53px 0 48px; }
-      .hero p { font-size:13px; }
-      .search-wrap { gap:4px; }
-      .search-wrap button { padding:11px 14px; }
-      main { padding:40px 0 55px; }
-      .section-head { align-items:start; }
-      .section-head p { max-width:260px; }
-      .cards { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-      .card { min-height:210px; padding:17px; border-radius:17px; }
-      .card-icon { width:50px; height:50px; font-size:25px; border-radius:14px; }
-      .card h3 { font-size:15px; margin-top:17px; }
-      .card p { font-size:11px; }
-      .feature-band { padding:22px; flex-wrap:wrap; }
-      .feature-band .feature-icon { font-size:34px; }
-      .feature-band a { width:100%; text-align:center; }
-      .footer-inner { flex-direction:column; align-items:flex-start; }
+      .hero { padding:50px 0 60px; }
     }
-    @media (max-width:390px) {
-      .cards { grid-template-columns:1fr; }
-      .card { min-height:190px; }
-      .count { font-size:10px; padding:7px 9px; }
+    @media (max-width:600px) {
+      .hero-actions { flex-direction:column; }
+      .btn-primary, .btn-secondary { width:100%; justify-content:center; }
+      .footer-inner { flex-direction:column; align-items:flex-start; gap:12px; }
     }
   </style>
 </head>
 <body>
   <div class="topbar">
     <div class="container topbar-inner">
-      <span>🇮🇶 <strong>دليني العراقية</strong> — وجهتك لكل الخدمات</span>
-      <span>منصة عراقية تجمع الخدمات والمعلومات بمكان واحد</span>
+      <span>🇮🇶 <strong>منصة دليني العراقية</strong> — منصتك الدراسية</span>
+      <span>كل ما يحتاجه الطالب العراقي بمكان واحد</span>
     </div>
   </div>
 
   <header>
     <div class="container nav">
-      <a class="brand" href="#" aria-label="الصفحة الرئيسية">
-        <span class="brand-mark">🇮🇶</span>
-        <span>دليني العراقية<small>كل ما تحتاجه بمكان واحد</small></span>
+      <a class="brand" href="/" aria-label="الصفحة الرئيسية">
+        <span class="brand-mark">🎓</span>
+        <span>منصة دليني العراقية<small>منصتك الدراسية الأولى</small></span>
       </a>
       <nav class="nav-links" aria-label="التنقل الرئيسي">
-        <a href="#sections">الأقسام</a>
-        <a href="#about">عن الموقع</a>
-        <a href="#contact">تواصل معنا</a>
+        <a href="#features">المميزات</a>
+        <a href="#about">عن المنصة</a>
+        <a href="study.html">ابدأ الدراسة</a>
       </nav>
-      <a class="nav-cta" href="#sections">استكشف الأقسام ←</a>
+      <a class="nav-cta" href="study.html">ادخل المنصة ←</a>
     </div>
   </header>
 
   <section class="hero">
     <div class="container hero-content">
-      <div class="eyebrow">✦ منصتك العراقية الشاملة</div>
-      <h1>كل العراق بين <span>إيديك</span></h1>
-      <p>من التعليم والوظائف إلى التسوق والعقارات والسياحة والصحة — اكتشف خدمات وأماكن وفرص من جميع أنحاء العراق، بسهولة ومن مكان واحد.</p>
-      <form class="search-wrap" id="searchForm" role="search">
-        <span class="search-icon">⌕</span>
-        <input id="searchInput" type="search" placeholder="شنو دا تدور؟ ابحث عن قسم..." aria-label="ابحث عن قسم">
-        <button type="submit">ابحث</button>
-      </form>
+      <div class="eyebrow">✦ منصة دراسية عراقية 100%</div>
+      <h1>تعلّم، راجع، ونجح مع <span>دليني</span></h1>
+      <p>
+        منصة دليني العراقية مخصصة بالكامل للطلاب. ملازم، ملخصات، امتحانات، ملاحظات، ومتابعة مستواك — كل شي تحتاجه عشان تنجح بمكان واحد.
+      </p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="study.html">ابدأ الدراسة الآن ←</a>
+        <a class="btn-secondary" href="#features">اعرف أكثر</a>
+      </div>
       <div class="hero-tags">
-        <span>🎓 التعليم</span><span>💼 الوظائف</span><span>🛍️ التسوق</span><span>🏡 العقارات</span><span>🩺 الصحة</span>
+        <span>🎓 الملازم</span>
+        <span>📝 الملخصات</span>
+        <span>📊 الامتحانات</span>
+        <span>📌 ملاحظاتي</span>
+        <span>📈 متابعة المستوى</span>
       </div>
     </div>
   </section>
 
   <main>
-    <section class="container" id="sections">
+    <section class="container" id="features">
       <div class="section-head">
         <div>
-          <div class="section-kicker">اكتشف خدماتنا</div>
-          <h2>أقسام دليني العراقية</h2>
-          <p>اختار القسم اللي تحتاجه، وخلي رحلتك أسهل وأسرع.</p>
+          <div class="section-kicker">ليش دليني؟</div>
+          <h2>كل اللي تحتاجه كطالب</h2>
+          <p>منصة مصممة خصيصاً للطلاب العراقيين — بسيطة، سريعة، ومفيدة.</p>
         </div>
-        <span class="count">7 أقسام رئيسية</span>
       </div>
 
-      <div class="cards" id="cards">
-        <a class="card" href="study.html" data-search="منصة دراسية التعليم الطلاب المدارس الجامعات امتحانات">
-          <div class="card-top"><span class="card-icon" style="--accent:#3978d4;--tint:#eaf2ff">🎓</span><span class="card-number">01 / 07</span></div>
-          <h3>منصة دراسية</h3>
-          <p>مصادر تعليمية، امتحانات، ملخصات، ومحتوى يساعد الطلاب على التفوق.</p>
-          <span class="card-link">استكشف المنصة <span>←</span></span>
-        </a>
-
-        <a class="card" href="section.html?s=jobs" data-search="وظائف العراق عمل توظيف فرص شغل">
-          <div class="card-top"><span class="card-icon" style="--accent:#9b5bd1;--tint:#f4eaff">💼</span><span class="card-number">02 / 07</span></div>
-          <h3>وظائف العراق</h3>
-          <p>اكتشف فرص العمل والتوظيف حسب المحافظة والتخصص والخبرة.</p>
-          <span class="card-link">شوف الوظائف <span>←</span></span>
-        </a>
-
-        <a class="card" href="section.html?s=shops" data-search="محلات إلكترونية تسوق متاجر منتجات شراء">
-          <div class="card-top"><span class="card-icon" style="--accent:#e18b2d;--tint:#fff3e4">🛍️</span><span class="card-number">03 / 07</span></div>
-          <h3>المحلات الإلكترونية</h3>
-          <p>تسوق من المتاجر العراقية واكتشف المنتجات والعروض المتنوعة.</p>
-          <span class="card-link">تصفح المحلات <span>←</span></span>
-        </a>
-
-        <a class="card" href="section.html?s=cars" data-search="بيع شراء سيارات مركبات سيارات مستعملة">
-          <div class="card-top"><span class="card-icon" style="--accent:#2996a5;--tint:#e5f8fa">🚘</span><span class="card-number">04 / 07</span></div>
-          <h3>بيع وشراء السيارات</h3>
-          <p>ابحث عن سيارة مناسبة أو اعرض سيارتك للبيع بسهولة.</p>
-          <span class="card-link">اكتشف السيارات <span>←</span></span>
-        </a>
-
-        <a class="card" href="section.html?s=realestate" data-search="بيع شراء عقارات بيوت شقق أراضي إيجار">
-          <div class="card-top"><span class="card-icon" style="--accent:#39865b;--tint:#e8f7ed">🏡</span><span class="card-number">05 / 07</span></div>
-          <h3>بيع وشراء العقارات</h3>
-          <p>بيوت، شقق، أراضٍ ومحلات — ابحث عن عقارك أو أضف إعلانك.</p>
-          <span class="card-link">تصفح العقارات <span>←</span></span>
-        </a>
-
-        <a class="card" href="section.html?s=tourism" data-search="أماكن سياحية العراق سياحة آثار سفر طبيعة">
-          <div class="card-top"><span class="card-icon" style="--accent:#d45c78;--tint:#fff0f4">🏛️</span><span class="card-number">06 / 07</span></div>
-          <h3>الأماكن السياحية في العراق</h3>
-          <p>اكتشف المعالم التاريخية والطبيعة والأماكن الجميلة في العراق.</p>
-          <span class="card-link">اكتشف الأماكن <span>←</span></span>
-        </a>
-
-        <a class="card" href="section.html?s=medical" data-search="مراكز أطباء عراقيين طبيب عيادات مراكز طبية صحة">
-          <div class="card-top"><span class="card-icon" style="--accent:#3982c8;--tint:#eaf4ff">🩺</span><span class="card-number">07 / 07</span></div>
-          <h3>مراكز الأطباء العراقيين</h3>
-          <p>دليل للأطباء والعيادات والمراكز الطبية حسب الاختصاص والمحافظة.</p>
-          <span class="card-link">ابحث عن طبيب <span>←</span></span>
-        </a>
-      </div>
-      <div class="empty" id="emptyState">ما لكينا قسم بهذا الاسم. جرّب كلمة ثانية.</div>
-
-      <div class="feature-band" id="about">
-        <div style="display:flex;align-items:center;gap:17px">
-          <div class="feature-icon">✨</div>
-          <div>
-            <h3>العراق أقرب إلك</h3>
-            <p>منصة واحدة تجمع أهم الأقسام والخدمات العراقية، ونسعى نضيف المزيد حتى تكون تجربتك أفضل.</p>
-          </div>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon" style="background:#eaf2ff;color:#3978d4">📚</div>
+          <h3>ملازم وملخصات</h3>
+          <p>ملازم منظمة حسب الصف والمادة، مع ملخصات واضحة تساعدك تراجع بسرعة قبل الامتحان.</p>
         </div>
-        <a href="#sections">ابدأ الاستكشاف</a>
+        <div class="feature">
+          <div class="feature-icon" style="background:#e8f7ed;color:#2e9e5b">📝</div>
+          <h3>امتحانات وتقييم</h3>
+          <p>اختبر نفسك بامتحانات تفاعلية، شوف نتيجتك فوراً، وعرف نقاط قوتك وضعفك.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon" style="background:#fff3e4;color:#e18b2d">📌</div>
+          <h3>ملاحظاتك الخاصة</h3>
+          <p>اكتب ملاحظاتك واحفظها داخل المنصة، وارجع لها بأي وقت من أي جهاز.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon" style="background:#f4eaff;color:#9b5bd1">📊</div>
+          <h3>متابعة مستواك</h3>
+          <p>شوف تقدمك وإحصائياتك الدراسية بسهولة، وخلّي الدراسة منظمة أكثر.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon" style="background:#e5f8fa;color:#2996a5">🎯</div>
+          <h3>حسب مرحلتك</h3>
+          <p>محتوى مخصص حسب الصف والمرحلة الدراسية، من المتوسط إلى الإعدادي والجامعي.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon" style="background:#fff0f4;color:#d45c78">🇮🇶</div>
+          <h3>محتوى عراقي</h3>
+          <p>مصممة للطلاب العراقيين، بمنهجية تناسب الواقع الدراسي عندنا.</p>
+        </div>
+      </div>
+
+      <div class="cta-band" id="about">
+        <h2>جاهز تبدأ؟</h2>
+        <p>ادخل منصة دليني العراقية الآن وابدأ رحلتك الدراسية. كل الأدوات اللي تحتاجها موجودة بمكان واحد.</p>
+        <a class="btn-primary" href="study.html">ادخل المنصة الدراسية ←</a>
       </div>
     </section>
   </main>
@@ -282,39 +235,16 @@
   <footer id="contact">
     <div class="container footer-inner">
       <div>
-        <div class="brand"><span class="brand-mark">🇮🇶</span><span>دليني العراقية</span></div>
-        <p>كل ما تحتاجه بمكان واحد.</p>
+        <div class="brand"><span class="brand-mark">🎓</span><span>منصة دليني العراقية</span></div>
+        <p>منصتك الدراسية الأولى في العراق.</p>
       </div>
-      <div class="footer-note">© <span id="year"></span> دليني العراقية — جميع الحقوق محفوظة</div>
+      <div class="footer-note">© <span id="year"></span> منصة دليني العراقية — جميع الحقوق محفوظة</div>
     </div>
   </footer>
 
   <script>
-    const searchForm = document.getElementById('searchForm');
-    const searchInput = document.getElementById('searchInput');
-    const cards = [...document.querySelectorAll('.card')];
-    const emptyState = document.getElementById('emptyState');
-
-    function filterSections() {
-      const query = searchInput.value.trim().toLowerCase();
-      let visible = 0;
-      cards.forEach(card => {
-        const text = (card.innerText + ' ' + card.dataset.search).toLowerCase();
-        const matches = text.includes(query);
-        card.style.display = matches ? 'flex' : 'none';
-        if (matches) visible++;
-      });
-      emptyState.style.display = visible ? 'none' : 'block';
-    }
-
-    searchForm.addEventListener('submit', event => {
-      event.preventDefault();
-      filterSections();
-      document.getElementById('sections').scrollIntoView({ behavior: 'smooth' });
-    });
-    searchInput.addEventListener('input', filterSections);
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
-<script src="/track.js" defer></script>
+  <script src="/track.js" defer></script>
 </body>
 </html>
