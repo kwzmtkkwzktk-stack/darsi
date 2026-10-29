@@ -58,15 +58,13 @@ app.get("/api/health", async (req, res) => {
 // الصفحة الرئيسية
 app.get("/", (req, res) => {
   res.sendFile(
-    path.join(__dirname, "public", "index.html")
+    path.join(__dirname, "public", "study.html")
   );
 });
 
 // لوحة المدير
 app.get("/admin", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "public", "admin.html")
-  );
+  res.redirect("/study-admin.html");
 });
 
 // جلب بيانات الطالب حسب الكود
@@ -451,11 +449,6 @@ app.get("/api/img/:id", async (req, res) => {
   }
 });
 
-// إحصائيات الزوار ومعلومات الموقع
-require("./analytics")(app, db);
-
-// نشر الزوار للمنشورات (مثلاً في قسم السيارات)
-require("./public-posts")(app, db);
 
 // المنصة الدراسية (الطلاب، الملازم، المحاضرات، الامتحانات)
 require("./study-api")(app, db, express);
