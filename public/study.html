@@ -72,6 +72,17 @@ a.btn.g{background:var(--pri2);color:var(--pri)}
 .news img{width:100%;border-radius:14px;margin-top:8px;display:block}
 .vid{cursor:pointer}.cover{width:100%;aspect-ratio:16/9;border-radius:14px;margin-bottom:10px;background:linear-gradient(135deg,#ebe5f7,#e1e9f6);display:grid;place-items:center;overflow:hidden;color:#7a4fd0}.cover img{width:100%;height:100%;object-fit:cover}.cover svg{width:44px;height:44px;fill:currentColor}
 .site{font-size:13px;color:var(--pri);font-weight:700;text-decoration:none}
+.lb{display:block;font-weight:700;font-size:14px;margin:12px 0 5px}
+.chk{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:14px;line-height:1.7}.chk input{width:20px;height:20px;accent-color:var(--pri);flex:0 0 auto}
+.tile.wide{grid-column:1/-1;display:flex;align-items:center;gap:14px;text-align:right;padding:16px 18px;background:linear-gradient(135deg,#2e6fc7,#1b4a8f);color:#fff;border:0}
+.tile.wide .ic{margin:0;flex:0 0 auto}.tile.wide b{display:block;font-size:18px}.tile.wide small{display:block;font-weight:500;font-size:13px;opacity:.92;margin-top:2px}
+.bub{display:flex;gap:10px;align-items:flex-start;background:var(--pri2);border-radius:18px;padding:14px;margin-bottom:12px;line-height:1.9}
+.bot{font-size:30px;flex:0 0 auto}.bot.say{animation:pl .8s infinite}
+.mic{width:84px;height:84px;border-radius:50%;font-size:34px;padding:0;background:var(--pri);color:#fff}.mic.on{background:#d64545;animation:pl 1s infinite}
+@keyframes pl{50%{transform:scale(1.1)}}
+.rs.ok{border-color:#2e9e5b;background:rgba(46,158,91,.12)}.rs.mid{border-color:#e8a31c;background:rgba(232,163,28,.14)}.rs.bad{border-color:#d64545;background:rgba(214,69,69,.1)}
+.ans{padding:8px 10px;border-radius:10px;background:var(--card);margin:4px 0 8px;line-height:1.9}
+mark{background:#ffe08a;color:#1c1c1c;border-radius:4px;padding:0 3px}
 </style>
 </head>
 <body>
@@ -125,9 +136,10 @@ function closeSheet(){$("#ov").classList.remove("on");$("#sheet").innerHTML=""}
 $("#ov").onclick=function(e){if(e.target===this)closeSheet()};
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeSheet()});
 
-var T=[["files","ملازمي","books","#fdf0cf","#e8a31c"],["videos","محاضراتي","video","#ebe5f7","#7a4fd0"],["quiz","امتحاناتي","pen","#fbe1ee","#d6338a"],["res","نتيجتي","chart","#dff2e4","#2e9e5b"],["notes","ملاحظاتي","note","#e1e9f6","#2459a8"],["timer","المؤقّت","timer","#ffe6d9","#e8641c"],["calc","حاسبة المعدل","calc","#dcf0f5","#1f9bb0"],["dates","مواعيد الامتحانات","cal","#e8e6fa","#5b4fd0"]];
-var TITLES={files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
-var R={home:rHome,files:rFiles,videos:rVideos,quiz:rQuiz,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
+IC.robot='<rect x="4" y="8" width="16" height="12" rx="4"/><rect x="11" y="4" width="2" height="4"/><circle cx="12" cy="3.4" r="1.7"/><g fill="#fff"><circle cx="9" cy="13.5" r="1.8"/><circle cx="15" cy="13.5" r="1.8"/></g><rect x="9" y="16.8" width="6" height="1.4" rx=".7" fill="#fff"/>';
+var T=[["ai","المساعد الذكي","robot","rgba(255,255,255,.18)","#fff"],["files","ملازمي","books","#fdf0cf","#e8a31c"],["videos","محاضراتي","video","#ebe5f7","#7a4fd0"],["quiz","امتحاناتي","pen","#fbe1ee","#d6338a"],["res","نتيجتي","chart","#dff2e4","#2e9e5b"],["notes","ملاحظاتي","note","#e1e9f6","#2459a8"],["timer","المؤقّت","timer","#ffe6d9","#e8641c"],["calc","حاسبة المعدل","calc","#dcf0f5","#1f9bb0"],["dates","مواعيد الامتحانات","cal","#e8e6fa","#5b4fd0"]];
+var TITLES={ai:"المساعد الذكي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
+var R={home:rHome,ai:rAI,files:rFiles,videos:rVideos,quiz:rQuiz,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
 
 function build(){
   var h='<section id="v-home" class="v"><div class="top"><div><a class="site" href="/">→ دليني العراقية</a><h1 id="hi" style="margin-top:4px">أهلاً بك 👋</h1></div><select id="grade" aria-label="الصف"></select></div><div id="news"></div><div class="grid" id="tiles"></div><h2>إحصائيات سريعة</h2><div class="stats"><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظاتي</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم متبقي</span></div><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div></div><div class="card" style="margin-top:14px"><b>💡 نصيحة اليوم</b><p id="tip" style="line-height:1.7;margin:6px 0 0"></p></div></section>';
@@ -137,7 +149,7 @@ function build(){
   $("#nav").classList.remove("hide");
 }
 function go(id){
-  closeSheet();
+  closeSheet();if(window.aiStop)aiStop();
   document.querySelectorAll(".v").forEach(function(v){v.classList.toggle("hide",v.id!=="v-"+id)});
   document.querySelectorAll("nav button").forEach(function(b){b.classList.toggle("on",b.dataset.go===id)});
   window.scrollTo(0,0);R[id]();
@@ -149,7 +161,7 @@ document.addEventListener("click",function(e){
 
 /* الرئيسية */
 function rHome(){
-  $("#tiles").innerHTML=T.map(function(t){return '<button class="tile" data-go="'+t[0]+'"><div class="ic" style="background:'+t[3]+';color:'+t[4]+'">'+ico(t[2])+'</div>'+t[1]+'</button>'}).join("");
+  $("#tiles").innerHTML=T.map(function(t){var w=t[0]==="ai";return '<button class="tile'+(w?" wide":"")+'" data-go="'+t[0]+'"><div class="ic" style="background:'+t[3]+';color:'+t[4]+'">'+ico(t[2])+'</div>'+(w?"<span><b>"+t[1]+"</b><small>اسأله وجاوبه بصوتك، وهو يصحّح لك</small></span>":t[1])+"</button>"}).join("");
   var g=$("#grade");g.innerHTML=Object.keys(INFO.grades).map(function(k){return "<option"+(k===S.grade?" selected":"")+">"+esc(k)+"</option>"}).join("");
   g.style.display=REC?"none":"";g.onchange=function(){S.grade=g.value;save();rHome()};
   $("#hi").textContent="أهلاً بك"+(REC?" يا "+REC.n.split(" ")[0]:"")+" 👋";
@@ -352,6 +364,136 @@ function rCalc(){
 function rDates(){
   var b=$("#b-dates"),l=INFO.exams;
   b.innerHTML='<div class="card">'+(l.length?l.map(function(e){var n=daysTo(e.d),t=n>0?"بعد "+ar(n)+" يوم":n===0?"اليوم":"انتهى";return '<div class="ln"><div><b>'+esc(e.n)+'</b><div class="sub">'+DAYS[new Date(e.d+"T00:00:00").getDay()]+" · "+ar(e.d.split("-").reverse().join("/"))+'</div></div><span class="badge">'+t+"</span></div>"}).join(""):"لم تُضف مواعيد بعد.")+"</div>";
+}
+
+/* المساعد الذكي: يسأل بالصوت، يسمع إجابتك، ويصحّحها */
+var AI={all:null,grade:"",qs:[],i:0,ok:0,mid:0,wrong:[],sound:true,auto:false,rec:null,ans:false,tok:0,view:"setup",err:""};
+var SRC=window.SpeechRecognition||window.webkitSpeechRecognition;
+var TTS={ok:"speechSynthesis" in window,voice:null};
+function pickVoice(){try{var v=speechSynthesis.getVoices();TTS.voice=v.filter(function(x){return /^ar([-_]|$)/i.test(x.lang)})[0]||null}catch(e){}}
+if(TTS.ok){pickVoice();try{speechSynthesis.onvoiceschanged=pickVoice}catch(e){}}
+
+function say(text,cb){
+  var tok=AI.tok;
+  if(!TTS.ok||!AI.sound){if(cb)cb();return}
+  try{speechSynthesis.cancel()}catch(e){}
+  var parts=(String(text).match(/[^.؟?!\n]+[.؟?!\n]*/g)||[String(text)]).map(function(s){return s.trim()}).filter(Boolean),i=0,bt=$("#bot");
+  if(bt)bt.classList.add("say");
+  function done(){var b=$("#bot");if(b)b.classList.remove("say");if(cb&&tok===AI.tok)cb()}
+  (function next(){
+    if(i>=parts.length||tok!==AI.tok){done();return}
+    var u=new SpeechSynthesisUtterance(parts[i++]);u.lang=TTS.voice?TTS.voice.lang:"ar-SA";if(TTS.voice)u.voice=TTS.voice;u.rate=.95;
+    u.onend=next;u.onerror=done;
+    try{speechSynthesis.speak(u)}catch(e){done()}
+  })();
+}
+function stopMic(){if(AI.rec){var r=AI.rec;AI.rec=null;try{r.abort()}catch(e){}}var m=$("#aMic");if(m)m.classList.remove("on")}
+function aiStop(){AI.tok++;try{speechSynthesis.cancel()}catch(e){}stopMic()}
+
+/* فهم الإجابة: مقارنة الكلمات المهمة مع الجواب الصحيح */
+var STOP={};"في من على الي عن هو هي ان التي الذي الذين ما هذا هذه ذلك تلك او ثم كل قد كان يكون تكون بين عند مع لا بعض اي كما حيث ذو هم هن لها له به بها فيها فيه منه منها ايضا اذا عندما".split(" ").forEach(function(w){STOP[w]=1});
+function norm(s){return String(s||"").replace(/[٠-٩]/g,function(d){return "٠١٢٣٤٥٦٧٨٩".indexOf(d)}).replace(/[\u064B-\u065F\u0670\u0640]/g,"").replace(/[أإآٱ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه").replace(/ؤ/g,"و").replace(/ئ/g,"ي").toLowerCase().replace(/[^\u0621-\u063A\u0641-\u064Aa-z0-9\s]/g," ").replace(/\s+/g," ").trim()}
+function stem(w){
+  w=w.replace(/^(وال|بال|كال|فال|لل|ال)/,"").replace(/^و(?=.{4,})/,"");
+  var r=w.replace(/(ها|هم|هن|كم|ات|ون|ين|ان)$/,"");
+  return r.length>=3?r:w;
+}
+function terms(s){var seen={},o=[];norm(s).split(" ").forEach(function(w){if(!w||STOP[w])return;w=stem(w);if(w.length>=2&&!seen[w]){seen[w]=1;o.push(w)}});return o}
+function lev(a,b){var m=[],i,j;for(i=0;i<=a.length;i++)m[i]=[i];for(j=1;j<=b.length;j++)m[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]}
+function same(a,b){
+  if(a===b)return true;if(a.length<3||b.length<3||a[0]!==b[0])return false;
+  if(a.length>=4&&b.length>=4&&(a.indexOf(b)===0||b.indexOf(a)===0))return true;
+  var mx=Math.max(a.length,b.length);return 1-lev(a,b)/mx>=(mx>=5?.75:.66);
+}
+var NEG={"غير":1,"ليس":1,"ليست":1,"لا":1,"ما":1,"بدون":1,"عدم":1,"لم":1,"لن":1,"دون":1};
+function hasNeg(s){return norm(s).split(" ").some(function(w){return NEG[w]})}
+function evaluate(ans,corr){
+  var kt=terms(corr),st=terms(ans),hit=[],miss=[];
+  kt.forEach(function(k){(st.some(function(s){return same(s,k)})?hit:miss).push(k)});
+  var sc=kt.length&&st.length?hit.length/kt.length:0;
+  if(sc>0&&hasNeg(corr)!==hasNeg(ans))sc*=.5; /* عكس المعنى (نفي/إثبات) */
+  return{score:sc,missing:miss};
+}
+function markMissing(corr,miss){
+  var words=[];
+  var html=String(corr).split(/(\s+)/).map(function(w){var s=stem(norm(w).replace(/\s/g,""));if(s&&miss.indexOf(s)>-1){words.push(w.replace(/[.,،؟?!]/g,""));return "<mark>"+esc(w)+"</mark>"}return esc(w)}).join("");
+  return{html:html,words:words};
+}
+
+/* الشاشة */
+async function rAI(){
+  var b=$("#b-ai");AI.view="setup";
+  if(!AI.all||AI.grade!==S.grade){loading(b);try{AI.all=await jget("questions?grade="+encodeURIComponent(S.grade));AI.grade=S.grade}catch(e){return errBox(b,rAI)}}
+  var subj=[];AI.all.forEach(function(q){if(subj.indexOf(q.subject)<0)subj.push(q.subject)});
+  var inapp=/FBAN|FBAV|Instagram|Line\/|MicroMessenger/i.test(navigator.userAgent),notes=[];
+  if(!TTS.ok)notes.push("متصفحك لا يدعم قراءة الأسئلة بالصوت.");
+  if(!SRC)notes.push("الإجابة بالصوت غير مدعومة في متصفحك، لكن تقدر تكتب إجابتك.");
+  if(inapp)notes.push("إذا لم يعمل المايك، افتح الرابط في متصفح Chrome بدل تطبيق فيسبوك.");
+  b.innerHTML='<div class="bub"><div class="bot">🤖</div><div>أهلاً! أنا مساعدك الذكي. أسألك بصوتي، وتجاوبني بصوتك أو بالكتابة، وإذا أخطأت أصحّح لك الإجابة.</div></div>'+
+    (AI.all.length?'<div class="card"><label class="lb">المادة</label><select id="aS"><option value="">كل المواد</option>'+subj.map(function(s){return "<option>"+esc(s)+"</option>"}).join("")+'</select><label class="lb">الفصل</label><select id="aC"></select><label class="lb">عدد الأسئلة</label><select id="aN"><option value="5">5 أسئلة</option><option value="10" selected>10 أسئلة</option><option value="0">كل الأسئلة</option></select>'+
+      '<label class="chk"><input type="checkbox" id="aV" checked> 🔊 قراءة الأسئلة بصوت عالٍ</label>'+(SRC?'<label class="chk"><input type="checkbox" id="aA"> 💬 وضع المحادثة: يفتح المايك تلقائياً بعد كل سؤال</label>':"")+
+      '<button id="aGo" style="width:100%;margin-top:14px">ابدأ الأسئلة 🎤</button>'+(notes.length?'<p class="sub" style="margin-top:10px;line-height:1.8">'+notes.map(esc).join("<br>")+"</p>":"")+"</div>":'<div class="card">لا توجد أسئلة لصفك بعد، تابعنا قريباً.</div>');
+  if(!AI.all.length)return;
+  function chap(){var s=$("#aS").value,c=[];AI.all.forEach(function(q){if((!s||q.subject===s)&&c.indexOf(q.chapter)<0)c.push(q.chapter)});$("#aC").innerHTML='<option value="">كل الفصول</option>'+c.map(function(x){return "<option>"+esc(x)+"</option>"}).join("")}
+  $("#aS").onchange=chap;chap();
+  $("#aGo").onclick=function(){
+    var s=$("#aS").value,c=$("#aC").value,n=+$("#aN").value;
+    var l=shuf(AI.all.filter(function(q){return (!s||q.subject===s)&&(!c||q.chapter===c)}));if(n)l=l.slice(0,n);
+    AI.sound=$("#aV").checked;AI.auto=!!($("#aA")&&$("#aA").checked&&SRC);AI.qs=l;AI.i=0;AI.ok=0;AI.mid=0;AI.wrong=[];drawQ();
+  };
+}
+function drawQ(){
+  AI.view="q";AI.ans=false;AI.tok++;stopMic();
+  var b=$("#b-ai"),q=AI.qs[AI.i],tot=AI.qs.length;
+  b.innerHTML='<div class="sub">السؤال '+(AI.i+1)+" من "+tot+'</div><div class="bar2"><i style="width:'+Math.round(AI.i/tot*100)+'%"></i></div>'+
+    '<div class="bub"><div class="bot" id="bot">🤖</div><div><b>'+esc(q.q)+'</b><div class="sub">'+esc(q.subject)+" · "+esc(q.chapter)+"</div></div></div>"+
+    '<div class="row" style="margin-bottom:10px"><button class="ghost" id="aRe">🔊 أعد السؤال</button><button class="ghost" id="aSk">تخطي ⏭</button></div>'+
+    '<div class="card" id="aIn" style="text-align:center">'+(SRC?'<button class="mic" id="aMic" aria-label="تحدث">🎤</button><div class="sub" id="aLive" style="margin-top:8px;min-height:1.6em">اضغط المايك وجاوب بصوتك</div>':"")+
+    '<textarea id="aTx" placeholder="أو اكتب إجابتك هنا..." style="min-height:80px;margin-top:10px"></textarea><button id="aSd" style="width:100%;margin-top:8px">إرسال الإجابة</button></div><div id="aRs"></div>';
+  $("#aRe").onclick=function(){AI.tok++;say(q.q)};
+  $("#aSk").onclick=function(){finish("",true)};
+  $("#aSd").onclick=function(){var v=$("#aTx").value.trim();if(v)finish(v)};
+  if($("#aMic"))$("#aMic").onclick=function(){if(AI.rec){var r=AI.rec;try{r.stop()}catch(e){}}else startMic()};
+  say("السؤال "+(AI.i+1)+". "+q.q,function(){if(AI.auto&&SRC&&AI.view==="q"&&!AI.ans)startMic()});
+}
+function startMic(){
+  if(!SRC||AI.rec||AI.ans)return;
+  try{speechSynthesis.cancel()}catch(e){}
+  var r=new SRC(),got="",tok=AI.tok;AI.err="";
+  r.lang="ar-IQ";r.interimResults=true;r.continuous=false;r.maxAlternatives=1;
+  r.onstart=function(){var m=$("#aMic");if(m)m.classList.add("on");var l=$("#aLive");if(l)l.textContent="🎙 أسمعك... تكلّم"};
+  r.onresult=function(e){var s="";for(var i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;got=s;var l=$("#aLive");if(l)l.textContent="«"+s+"»";var x=$("#aTx");if(x)x.value=s};
+  r.onerror=function(e){AI.err=e.error||"error"};
+  r.onend=function(){
+    if(AI.rec===r)AI.rec=null;var m=$("#aMic");if(m)m.classList.remove("on");
+    if(tok!==AI.tok||AI.ans)return;
+    if(got.trim()){finish(got.trim());return}
+    var l=$("#aLive");if(l)l.textContent=/not-allowed|service-not-allowed/.test(AI.err)?"اسمح للمتصفح باستخدام المايك من إعدادات الموقع":AI.err==="network"?"الإنترنت ضعيف، حاول مرة ثانية":"ما سمعتك، اضغط المايك وحاول مرة ثانية";
+  };
+  AI.rec=r;try{r.start()}catch(e){AI.rec=null}
+}
+var PRAISE=["أحسنت! إجابتك صحيحة.","ممتاز، إجابة صحيحة.","عفية عليك! صح."];
+function finish(text,skip){
+  if(AI.ans)return;AI.ans=true;stopMic();
+  var q=AI.qs[AI.i],ev=evaluate(text,q.a),v=skip?"bad":ev.score>=.65?"ok":ev.score>=.3?"mid":"bad";
+  if(v==="ok")AI.ok++;else{AI.wrong.push(q);if(v==="mid")AI.mid++}
+  var mk=markMissing(q.a,ev.missing),last=AI.i===AI.qs.length-1,h;
+  if(v==="ok")h='<div class="card rs ok"><b>✅ إجابة صحيحة 🎉</b>'+(text?'<div class="ans">'+esc(text)+"</div>":"")+"</div>";
+  else h='<div class="card rs '+v+'"><b>'+(skip?"⏭ تخطيت السؤال":v==="mid"?"⚠️ إجابتك قريبة لكنها ناقصة":"❌ إجابتك غير صحيحة")+"</b>"+(text?'<div class="sub" style="margin-top:8px">إجابتك:</div><div class="ans">'+esc(text)+"</div>":"")+'<div class="sub">الإجابة الصحيحة:</div><div class="ans">'+mk.html+"</div>"+(mk.words.length&&text?'<div class="sub">كلمات مهمة نقصت من إجابتك: <b>'+esc(mk.words.join("، "))+"</b></div>":"")+"</div>";
+  $("#aRs").innerHTML=h+'<button id="aNx" style="width:100%">'+(last?"عرض النتيجة":"السؤال التالي")+"</button>";
+  $("#aIn").classList.add("hide");$("#aRe").classList.add("hide");$("#aSk").classList.add("hide");
+  function nx(){AI.i++;if(AI.i>=AI.qs.length)endAI();else drawQ();window.scrollTo(0,0)}
+  $("#aNx").onclick=function(){AI.tok++;try{speechSynthesis.cancel()}catch(e){}nx()};
+  var spoken=v==="ok"?PRAISE[Math.floor(Math.random()*PRAISE.length)]:(skip?"":v==="mid"?"إجابتك قريبة لكنها ناقصة. ":"إجابتك غير صحيحة. ")+"الإجابة الصحيحة هي: "+q.a;
+  say(spoken,function(){if(AI.auto)setTimeout(function(){if(AI.view==="q"&&AI.qs[AI.i]===q)nx()},900)});
+}
+function endAI(){
+  AI.view="end";AI.tok++;var b=$("#b-ai"),n=AI.qs.length,pc=Math.round(AI.ok/n*100);
+  b.innerHTML='<div class="card" style="text-align:center"><div style="font-size:46px">'+(pc>=70?"🎉":pc>=50?"👍":"💪")+'</div><b style="font-size:22px">أجبت صح على '+AI.ok+" من "+n+'</b><div class="sub" style="margin:6px 0 14px">'+pc+"%"+(AI.mid?" · إجابات ناقصة: "+AI.mid:"")+'</div><div class="row">'+(AI.wrong.length?'<button id="aRt">أعد الأسئلة الخاطئة</button>':"")+'<button class="ghost" id="aNw">جلسة جديدة</button></div></div>'+
+    (AI.wrong.length?'<h2>للمراجعة</h2>'+AI.wrong.map(function(q){return '<div class="card"><b>'+esc(q.q)+'</b><div class="ans">'+esc(q.a)+"</div></div>"}).join(""):"");
+  if($("#aRt"))$("#aRt").onclick=function(){AI.qs=shuf(AI.wrong);AI.i=0;AI.ok=0;AI.mid=0;AI.wrong=[];drawQ()};
+  $("#aNw").onclick=rAI;
+  say("انتهت الجلسة. أجبت صح على "+AI.ok+" من "+n+(AI.wrong.length?". سأذكّرك بالأسئلة التي أخطأت بها لتراجعها.":". أحسنت!"));
 }
 
 /* التشغيل */
