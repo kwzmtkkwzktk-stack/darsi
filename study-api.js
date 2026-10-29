@@ -507,35 +507,43 @@ module.exports = function (app, db, express) {
       const qList = questions.map((q, i) => `${i + 1}. ${q}`).join("\n");
 
       const totalQ = questions.length;
-      const system = `أنت مصحح امتحانات عراقي دقيق ومنصف.
+      const system = `أنت مصحح امتحانات عراقي دقيق ومنصف جداً.
 ستصلك صورة لورقة إجابة طالب + قائمة الأسئلة.
-مهمتك:
-1. اقرأ إجابات الطالب من الصورة (حتى لو كانت خط اليد).
-2. صحّح كل سؤال.
-3. أعطِ درجة من ${totalQ} (درجة لكل سؤال صحيح).
-4. وضّح الأخطاء بشكل مختصر وواضح للطالب.
 
-أرجع JSON فقط بهذا الشكل:
+مهمتك:
+1. اقرأ إجابات الطالب من الصورة بعناية (حتى لو كانت بخط اليد).
+2. قيّم كل سؤال بدرجة جزئية حسب الدقة:
+   - 1    = صح كامل (الإجابة صحيحة تماماً أو بمعنى مطابق)
+   - 0.5  = نص صح (فهم الفكرة لكن ناقص أو فيه خطأ جزئي مهم)
+   - 0.25 = ربع صح (محاولة قريبة أو جزء صغير صحيح فقط)
+   - 0    = خطأ كامل (ما كتب شيئاً مفيداً أو إجابة خاطئة تماماً)
+3. كن منصفاً: إذا الإجابة قريبة بالمعنى اعتبرها صح أو نص صح، لا تتعنت.
+4. اكتب ملاحظة قصيرة وواضحة لكل سؤال.
+5. الدرجة النهائية = مجموع درجات الأسئلة (من ${totalQ}).
+
+أرجع JSON فقط بهذا الشكل بدون أي نص إضافي:
 {
-  "score": 7,
+  "score": 6.75,
   "total": ${totalQ},
-  "percent": 70,
+  "percent": 68,
   "summary": "ملخص قصير عن مستوى الطالب",
   "details": [
-    {"n":1,"ok":true,"note":"إجابة صحيحة"},
-    {"n":2,"ok":false,"note":"خطأ: ... الإجابة الصحيحة تقريباً هي ..."}
+    {"n":1,"mark":1,"label":"صح","note":"إجابة صحيحة كاملة"},
+    {"n":2,"mark":0.5,"label":"نص صح","note":"الفكرة صحيحة لكن ناقصة ..."},
+    {"n":3,"mark":0.25,"label":"ربع صح","note":"محاولة قريبة، الصحيح تقريباً ..."},
+    {"n":4,"mark":0,"label":"خطأ","note":"الإجابة غير صحيحة، الصحيح ..."}
   ]
 }`;
 
       const userContent = [
-        { type: "text", text: `الصف: ${grade}\nالمادة: ${subject}\n\nالأسئلة:\n${qList}\n\nصحّح إجابات الطالب من الصورة التالية وأرجع JSON فقط.` },
+        { type: "text", text: `الصف: ${grade}\nالمادة: ${subject}\n\nالأسئلة:\n${qList}\n\nصحّح إجابات الطالب من الصورة التالية بدقة مع الدرجات الجزئية (1 / 0.5 / 0.25 / 0) وأرجع JSON فقط.` },
         { type: "image_url", image_url: { url: image, detail: "high" } }
       ];
 
       const content = await callAI([
         { role: "system", content: system },
         { role: "user", content: userContent }
-      ], 2500);
+      ], 3000);
 
       let result;
       try {
@@ -546,20 +554,38 @@ module.exports = function (app, db, express) {
       }
 
       const total = totalQ;
-      const score = Math.max(0, Math.min(total, Number(result.score) || 0));
+      const allowed = [0, 0.25, 0.5, 1];
+      const labelOf = (m) => (m >= 1 ? "صح" : m >= 0.5 ? "نص صح" : m >= 0.25 ? "ربع صح" : "خطأ");
+      const details = (Array.isArray(result.details) ? result.details : []).slice(0, 20).map((d) => {
+        let mark = Number(d.mark);
+        if (!allowed.includes(mark)) {
+          // توافق مع الصيغة القديمة ok
+          if (d.ok === true) mark = 1;
+          else if (d.ok === false) mark = 0;
+          else mark = 0;
+        }
+        return {
+          n: Number(d.n) || 0,
+          mark,
+          label: labelOf(mark),
+          ok: mark >= 0.5,
+          note: String(d.note || "").slice(0, 300)
+        };
+      });
+
+      // احسب الدرجة من التفاصيل إن وُجدت، وإلا من score القادم من النموذج
+      let score = details.length
+        ? details.reduce((s, d) => s + (Number(d.mark) || 0), 0)
+        : Number(result.score) || 0;
+      score = Math.round(Math.max(0, Math.min(total, score)) * 100) / 100;
       const percent = total ? Math.round((score / total) * 100) : 0;
-      const details = Array.isArray(result.details) ? result.details.slice(0, 12) : [];
 
       res.json({
         score,
         total,
         percent,
         summary: String(result.summary || "").slice(0, 400),
-        details: details.map(d => ({
-          n: Number(d.n) || 0,
-          ok: !!d.ok,
-          note: String(d.note || "").slice(0, 300)
-        }))
+        details
       });
     } catch (e) { fail(res, e); }
   });
@@ -571,4 +597,5 @@ module.exports = function (app, db, express) {
     try { res.json(await h(req.body || {})); } catch (e) { fail(res, e); }
   });
 };
+ 
  
