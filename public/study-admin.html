@@ -99,7 +99,7 @@ button.del{background:#fde4e4;color:#b8323a}
 <script>
 var $=function(s){return document.querySelector(s)},esc=function(v){var d=document.createElement("div");d.textContent=v==null?"":v;return d.innerHTML};
 var PASS=sessionStorage.getItem("sp")||"",ST=null,TAB="students",tt=0;
-var TABS=[["students","👥 الطلاب"],["files","📚 الملازم"],["videos","🎬 المحاضرات"],["questions","✏️ الأسئلة"],["news","📢 الإعلانات"],["settings","⚙️ الإعدادات"]];
+var TABS=[["students","👥 الطلاب"],["files","📚 الملازم"],["videos","🎬 المحاضرات"],["questions","✏️ الأسئلة"],["paper","📝 امتحانات ورقية"],["news","📢 الإعلانات"],["settings","⚙️ الإعدادات"]];
 function toast(t,bad){var e=$("#toast");e.textContent=t;e.className=bad?"err":"";e.style.display="block";clearTimeout(tt);tt=setTimeout(function(){e.style.display="none"},4200)}
 async function api(action,body){
   var r=await fetch("/api/study/admin",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(Object.assign({pass:PASS,action:action},body||{}))});
@@ -123,7 +123,7 @@ function tabs(){
   $("#tabs").innerHTML=TABS.map(function(t){return '<button class="chip'+(t[0]===TAB?" on":"")+'" data-t="'+t[0]+'">'+t[1]+"</button>"}).join("");
   $("#tabs").querySelectorAll("button").forEach(function(b){b.onclick=function(){TAB=b.dataset.t;tabs();show(TAB)}});
 }
-function show(t){loading();({students:tStudents,files:tFiles,videos:tVideos,questions:tQuestions,news:tNews,settings:tSettings})[t]().catch(function(e){toast(e.message,1)})}
+function show(t){loading();({students:tStudents,files:tFiles,videos:tVideos,questions:tQuestions,paper:tPaper,news:tNews,settings:tSettings})[t]().catch(function(e){toast(e.message,1)})}
 
 /* ضغط الصور قبل الرفع */
 function shrink(file){
@@ -265,6 +265,70 @@ function qLists(){
   $("#qcl").innerHTML=chs.map(function(x){return '<option value="'+esc(x)+'">'}).join("");
 }
 function readQ(){QE.grade=$("#qg").value;QE.subject=$("#qs").value.trim();QE.chapter=$("#qc").value.trim();QE.q=$("#qq").value.trim();QE.a=$("#qa").value.trim();QE.o=[$("#o0").value.trim(),$("#o1").value.trim(),$("#o2").value.trim()]}
+
+/* ================= الامتحانات الورقية ================= */
+var PL=null,PE=null;
+async function tPaper(){
+  PL=await api("paper.list");
+  PE=PE||{id:"",grade:"",subject:"",questions:[]};
+  drawPaper();
+}
+function drawPaper(){
+  var gs=Object.keys(ST.grades),e=PE;
+  var qText=(e.questions||[]).join("\n");
+  var subs=e.grade?(ST.grades[e.grade]||[]):[];
+  $("#pane").innerHTML=
+    '<div class="card"><b>'+(e.id?"✏️ تعديل امتحان ورقي":"➕ إضافة امتحان ورقي")+'</b>'+
+    '<p class="small" style="margin:6px 0 12px;line-height:1.7">أنت تكتب الأسئلة، والطالب يحلّها على ورقة ويصوّرها، والذكاء الاصطناعي يصحّح فقط.</p>'+
+    '<div class="grid2"><div><label>الصف *</label><select id="pg">'+opts(gs,e.grade,"اختر الصف")+'</select></div>'+
+    '<div><label>المادة *</label><input type="text" id="ps" list="psl" value="'+esc(e.subject)+'"><datalist id="psl">'+subs.map(function(s){return '<option value="'+esc(s)+'">'}).join("")+'</datalist></div></div>'+
+    '<label>الأسئلة * (كل سؤال في سطر مستقل — من 3 إلى 20)</label>'+
+    '<textarea id="pq" style="min-height:200px;line-height:1.9" placeholder="س1: ...\nس2: ...\nس3: ...">'+esc(qText)+'</textarea>'+
+    '<div class="row" style="margin-top:12px"><button id="psv">'+(e.id?"حفظ التعديل":"حفظ الامتحان")+'</button>'+(e.id?'<button class="ghost" id="pcl">إلغاء</button>':"")+'</div></div>'+
+    '<div class="card"><b>الامتحانات الورقية ('+PL.length+')</b><div id="pll"></div></div>';
+
+  $("#pg").onchange=function(){
+    var g=$("#pg").value,a=g?(ST.grades[g]||[]):[];
+    $("#psl").innerHTML=a.map(function(s){return '<option value="'+esc(s)+'">'}).join("");
+  };
+
+  $("#pll").innerHTML=PL.length?"<table>"+PL.map(function(p){
+    return "<tr><td><b>"+esc(p.subject)+'</b><div class="small">'+esc(p.grade)+" · "+p.questions.length+" أسئلة</div></td>"+
+      '<td style="white-space:nowrap"><button class="sm ghost" data-e="'+p.id+'">تعديل</button> <button class="sm del" data-d="'+p.id+'">حذف</button></td></tr>';
+  }).join("")+"</table>":'<p class="sub">لا توجد امتحانات ورقية بعد. أضف امتحاناً من النموذج أعلاه.</p>';
+
+  $("#pll").querySelectorAll("[data-e]").forEach(function(b){
+    b.onclick=function(){
+      var p=PL.find(function(x){return x.id===b.dataset.e});
+      if(!p)return;
+      PE={id:p.id,grade:p.grade,subject:p.subject,questions:p.questions.slice()};
+      drawPaper();
+    };
+  });
+  $("#pll").querySelectorAll("[data-d]").forEach(function(b){
+    b.onclick=async function(){
+      if(!ask("حذف هذا الامتحان الورقي؟"))return;
+      try{await api("paper.delete",{id:b.dataset.d});toast("تم الحذف");PE=null;tPaper()}catch(er){toast(er.message,1)}
+    };
+  });
+
+  var c=$("#pcl");
+  if(c)c.onclick=function(){PE=null;tPaper()};
+
+  $("#psv").onclick=async function(){
+    var grade=$("#pg").value,subject=$("#ps").value.trim();
+    var questions=$("#pq").value.split(/\n+/).map(function(l){return l.replace(/^\s*\d+[\.\-\)\u060c]?\s*/,"").trim()}).filter(Boolean);
+    if(!grade){toast("اختر الصف",1);return}
+    if(!subject){toast("اكتب المادة",1);return}
+    if(questions.length<3){toast("أضف 3 أسئلة على الأقل (كل سؤال في سطر)",1);return}
+    try{
+      await api("paper.save",{id:PE.id,grade:grade,subject:subject,questions:questions});
+      toast("تم الحفظ ✅");
+      PE={id:"",grade:grade,subject:subject,questions:[]};
+      tPaper();
+    }catch(er){toast(er.message,1)}
+  };
+}
 
 /* ================= الإعلانات ================= */
 async function tNews(){
