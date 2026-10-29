@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>المنصة الدراسية | دليني العراقية</title>
+<title>منصة دليني العراقية | منصتك الدراسية</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
 
@@ -137,12 +137,12 @@ $("#ov").onclick=function(e){if(e.target===this)closeSheet()};
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeSheet()});
 
 IC.robot='<rect x="4" y="8" width="16" height="12" rx="4"/><rect x="11" y="4" width="2" height="4"/><circle cx="12" cy="3.4" r="1.7"/><g fill="#fff"><circle cx="9" cy="13.5" r="1.8"/><circle cx="15" cy="13.5" r="1.8"/></g><rect x="9" y="16.8" width="6" height="1.4" rx=".7" fill="#fff"/>';
-var T=[["ai","المساعد الذكي","robot","rgba(255,255,255,.18)","#fff"],["files","ملازمي","books","#fdf0cf","#e8a31c"],["videos","محاضراتي","video","#ebe5f7","#7a4fd0"],["quiz","امتحاناتي","pen","#fbe1ee","#d6338a"],["res","نتيجتي","chart","#dff2e4","#2e9e5b"],["notes","ملاحظاتي","note","#e1e9f6","#2459a8"],["timer","المؤقّت","timer","#ffe6d9","#e8641c"],["calc","حاسبة المعدل","calc","#dcf0f5","#1f9bb0"],["dates","مواعيد الامتحانات","cal","#e8e6fa","#5b4fd0"]];
-var TITLES={ai:"المساعد الذكي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
-var R={home:rHome,ai:rAI,files:rFiles,videos:rVideos,quiz:rQuiz,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
+var T=[["ai","المساعد الذكي","robot","rgba(255,255,255,.18)","#fff"],["files","ملازمي","books","#fdf0cf","#e8a31c"],["videos","محاضراتي","video","#ebe5f7","#7a4fd0"],["quiz","امتحاناتي","pen","#fbe1ee","#d6338a"],["paper","الامتحانات الورقية","pen","#e8f5e9","#2e7d32"],["res","نتيجتي","chart","#dff2e4","#2e9e5b"],["notes","ملاحظاتي","note","#e1e9f6","#2459a8"],["timer","المؤقّت","timer","#ffe6d9","#e8641c"],["calc","حاسبة المعدل","calc","#dcf0f5","#1f9bb0"],["dates","مواعيد الامتحانات","cal","#e8e6fa","#5b4fd0"]];
+var TITLES={ai:"المساعد الذكي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
+var R={home:rHome,ai:rAI,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
 
 function build(){
-  var h='<section id="v-home" class="v"><div class="top"><div><a class="site" href="/">→ دليني العراقية</a><h1 id="hi" style="margin-top:4px">أهلاً بك 👋</h1></div><select id="grade" aria-label="الصف"></select></div><div id="news"></div><div class="grid" id="tiles"></div><h2>إحصائيات سريعة</h2><div class="stats"><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظاتي</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم متبقي</span></div><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div></div><div class="card" style="margin-top:14px"><b>💡 نصيحة اليوم</b><p id="tip" style="line-height:1.7;margin:6px 0 0"></p></div></section>';
+  var h='<section id="v-home" class="v"><div class="top"><div><a class="site" href="/">→ منصة دليني العراقية</a><h1 id="hi" style="margin-top:4px">أهلاً بك 👋</h1></div><select id="grade" aria-label="الصف"></select></div><div id="news"></div><div class="grid" id="tiles"></div><h2>إحصائيات سريعة</h2><div class="stats"><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظاتي</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم متبقي</span></div><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div></div><div class="card" style="margin-top:14px"><b>💡 نصيحة اليوم</b><p id="tip" style="line-height:1.7;margin:6px 0 0"></p></div></section>';
   Object.keys(TITLES).forEach(function(k){h+='<section id="v-'+k+'" class="v hide"><div class="bar"><button class="back" data-bk="'+k+'" aria-label="رجوع">→</button><h1 id="t-'+k+'">'+TITLES[k]+'</h1></div><div id="b-'+k+'"></div></section>'});
   $("#app").innerHTML=h;
   document.querySelectorAll("[data-ic]").forEach(function(e){e.innerHTML=ico(e.dataset.ic)});
@@ -271,6 +271,177 @@ function loginCard(b,after){
   }
   $("#lg").onclick=ok;$("#lc").onkeydown=function(e){if(e.key==="Enter")ok()};
 }
+
+/* الامتحانات الورقية — توليد أسئلة + تصحيح بالصورة */
+var PAPER = { step: "pick", subject: "", questions: [], result: null, busy: false };
+
+async function rPaper() {
+  var b = $("#b-paper");
+  PAPER.busy = false;
+  if (PAPER.step === "pick" || !PAPER.subject) {
+    drawPaperPick();
+  } else if (PAPER.step === "exam") {
+    drawPaperExam();
+  } else if (PAPER.step === "result") {
+    drawPaperResult();
+  }
+}
+
+function drawPaperPick() {
+  var b = $("#b-paper");
+  var list = subs();
+  var h = '<div class="card" style="margin-bottom:14px"><b>📝 الامتحانات الورقية</b><p class="sub" style="line-height:1.8;margin:8px 0 0">اختر المادة، يولّد لك الذكاء الاصطناعي 10 أسئلة. حلّها على ورقة، صوّر الورقة، وارفع الصورة ليصحّحها لك ويعطيك الدرجة والأخطاء.</p></div>';
+  if (!list.length) {
+    h += '<div class="card">اختر صفّك أولاً من الصفحة الرئيسية.</div>';
+  } else {
+    h += list.map(function(s, i) {
+      return '<button class="opt" data-s="' + i + '"><span>' + esc(s) + '</span><span class="sub">‹</span></button>';
+    }).join("");
+  }
+  b.innerHTML = h;
+  b.querySelectorAll("[data-s]").forEach(function(btn) {
+    btn.onclick = async function() {
+      if (PAPER.busy) return;
+      PAPER.busy = true;
+      PAPER.subject = list[+btn.dataset.s];
+      PAPER.questions = [];
+      PAPER.result = null;
+      loading(b);
+      try {
+        var r = await jpost("paper/generate", { grade: S.grade, subject: PAPER.subject });
+        PAPER.questions = r.questions || [];
+        PAPER.step = "exam";
+        drawPaperExam();
+      } catch (e) {
+        PAPER.busy = false;
+        PAPER.step = "pick";
+        b.innerHTML = '<div class="card" style="text-align:center">تعذر توليد الأسئلة حالياً.<br><span class="sub">تأكد من الإنترنت وأن خدمة الذكاء الاصطناعي مفعّلة على السيرفر.</span><br><button id="rt" style="margin-top:12px">حاول مرة ثانية</button></div>';
+        $("#rt").onclick = function() { PAPER.step = "pick"; rPaper(); };
+      }
+    };
+  });
+}
+
+function drawPaperExam() {
+  PAPER.busy = false;
+  var b = $("#b-paper");
+  var qs = PAPER.questions;
+  var h = '<div class="card" style="margin-bottom:12px"><div class="sub">المادة</div><b style="font-size:18px">' + esc(PAPER.subject) + '</b><div class="sub" style="margin-top:6px">' + ar(qs.length) + ' أسئلة · حلّها على ورقة ثم صوّر إجابتك</div></div>';
+
+  h += '<div class="card" style="margin-bottom:14px"><b>الأسئلة</b><ol style="padding-right:20px;line-height:2;margin:10px 0 0">';
+  qs.forEach(function(q, i) {
+    h += '<li style="margin-bottom:10px">' + esc(q) + '</li>';
+  });
+  h += '</ol></div>';
+
+  h += '<div class="card"><b>📤 رفع صورة الإجابة</b><p class="sub" style="line-height:1.8;margin:8px 0 12px">صوّر الورقة كاملة وبوضوح، وتأكد أن الخط مقروء والضوء كويس.</p>';
+  h += '<input type="file" id="pImg" accept="image/*" capture="environment" style="margin-bottom:12px">';
+  h += '<div id="pPrev" class="hide" style="margin-bottom:12px"></div>';
+  h += '<button id="pGrade" style="width:100%" disabled>صحّح الامتحان بالذكاء الاصطناعي</button>';
+  h += '<button class="ghost" id="pBack" style="width:100%;margin-top:8px">رجوع واختيار مادة ثانية</button>';
+  h += '</div>';
+
+  b.innerHTML = h;
+
+  var fileInput = $("#pImg");
+  var gradeBtn = $("#pGrade");
+  var preview = $("#pPrev");
+  var selectedDataUrl = null;
+
+  fileInput.onchange = function() {
+    var f = fileInput.files && fileInput.files[0];
+    if (!f) {
+      selectedDataUrl = null;
+      gradeBtn.disabled = true;
+      preview.classList.add("hide");
+      preview.innerHTML = "";
+      return;
+    }
+    if (f.size > 6 * 1024 * 1024) {
+      alert("الصورة كبيرة جداً. صوّر بجودة أقل أو قصّ الورقة.");
+      fileInput.value = "";
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function() {
+      selectedDataUrl = reader.result;
+      preview.classList.remove("hide");
+      preview.innerHTML = '<img src="' + selectedDataUrl + '" alt="معاينة" style="width:100%;border-radius:14px;max-height:280px;object-fit:contain;background:#f0f0f0">';
+      gradeBtn.disabled = false;
+    };
+    reader.readAsDataURL(f);
+  };
+
+  gradeBtn.onclick = async function() {
+    if (!selectedDataUrl || PAPER.busy) return;
+    PAPER.busy = true;
+    gradeBtn.disabled = true;
+    gradeBtn.textContent = "جاري التصحيح... قد يستغرق نصف دقيقة ⏳";
+    try {
+      var r = await jpost("paper/grade", {
+        grade: S.grade,
+        subject: PAPER.subject,
+        questions: PAPER.questions,
+        image: selectedDataUrl
+      });
+      PAPER.result = r;
+      PAPER.step = "result";
+      drawPaperResult();
+    } catch (e) {
+      PAPER.busy = false;
+      gradeBtn.disabled = false;
+      gradeBtn.textContent = "صحّح الامتحان بالذكاء الاصطناعي";
+      alert("تعذر التصحيح. تأكد أن الصورة واضحة وأن الخدمة مفعّلة، ثم حاول مرة ثانية.");
+    }
+  };
+
+  $("#pBack").onclick = function() {
+    PAPER.step = "pick";
+    PAPER.subject = "";
+    PAPER.questions = [];
+    PAPER.result = null;
+    rPaper();
+  };
+}
+
+function drawPaperResult() {
+  var b = $("#b-paper");
+  var r = PAPER.result || {};
+  var pc = r.percent || 0;
+  var emoji = pc >= 80 ? "🎉" : pc >= 50 ? "👍" : "💪";
+  var h = '<div class="card" style="text-align:center;margin-bottom:14px">';
+  h += '<div style="font-size:48px">' + emoji + '</div>';
+  h += '<b style="font-size:24px">درجتك: ' + ar(r.score || 0) + ' من ' + ar(r.total || 10) + '</b>';
+  h += '<div class="sub" style="margin:6px 0 0">' + ar(pc) + '%</div>';
+  if (r.summary) h += '<p style="line-height:1.8;margin:14px 0 0">' + esc(r.summary) + '</p>';
+  h += '</div>';
+
+  if (r.details && r.details.length) {
+    h += '<h2 style="margin:18px 0 10px">تفاصيل التصحيح</h2>';
+    r.details.forEach(function(d) {
+      var cls = d.ok ? "rs ok" : "rs bad";
+      h += '<div class="card ' + cls + '" style="margin-bottom:10px">';
+      h += '<b>السؤال ' + ar(d.n) + ' — ' + (d.ok ? "✅ صحيح" : "❌ خطأ") + '</b>';
+      if (d.note) h += '<div class="sub" style="margin-top:6px;line-height:1.8">' + esc(d.note) + '</div>';
+      h += '</div>';
+    });
+  }
+
+  h += '<div class="row" style="margin-top:16px"><button id="pAgain">امتحان جديد</button><button class="ghost" id="pHome">الرئيسية</button></div>';
+  b.innerHTML = h;
+  PAPER.busy = false;
+
+  $("#pAgain").onclick = function() {
+    PAPER.step = "pick";
+    PAPER.subject = "";
+    PAPER.questions = [];
+    PAPER.result = null;
+    rPaper();
+  };
+  $("#pHome").onclick = function() { go("home"); };
+}
+
+
 async function rRes(){
   var b=$("#b-res");
   if(S.me){try{REC=await jpost("result",{code:S.me});S.grade=REC.g;save()}catch(e){if(e===404){S.me="";REC=null;save()}}}
@@ -508,3 +679,4 @@ boot();
 
 </body>
 </html>
+ 
