@@ -317,7 +317,31 @@ module.exports = function (app, db, express) {
       need(title, "عنوان الإعلان مطلوب");
       return upsert("st_news", b.id, { title, text: S(b.text, 2000), image: b.image && oid(b.image) ? String(b.image) : "" });
     },
-    "news.delete": async (b) => remove("st_news", b.id)
+    "news.delete": async (b) => remove("st_news", b.id),
+
+    // امتحانات ورقية (يضيفها الأدمن يدوياً — الذكاء الاصطناعي يصحّح فقط)
+    "paper.list": async () =>
+      (await (await col("st_paper")).find({}).sort({ date: -1 }).limit(200).toArray()).map((p) => ({
+        id: String(p._id),
+        grade: p.grade || "",
+        subject: p.subject || "",
+        questions: Array.isArray(p.questions) ? p.questions : [],
+        date: p.date
+      })),
+    "paper.save": async (b) => {
+      const grade = await validGrade(S(b.grade, 80));
+      const subject = S(b.subject, 80);
+      need(grade, "اختر الصف");
+      need(subject, "المادة مطلوبة");
+      const questions = (Array.isArray(b.questions) ? b.questions : [])
+        .map((q) => S(q, 800))
+        .filter(Boolean)
+        .slice(0, 20);
+      need(questions.length >= 3, "أضف 3 أسئلة على الأقل");
+      need(questions.length <= 20, "الحد الأقصى 20 سؤالاً");
+      return upsert("st_paper", b.id, { grade, subject, questions });
+    },
+    "paper.delete": async (b) => remove("st_paper", b.id)
   };
 
 
@@ -444,41 +468,19 @@ module.exports = function (app, db, express) {
     return (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "";
   }
 
-  // توليد 10 أسئلة لمادة معينة
+  // جلب أسئلة الامتحان الورقي من قاعدة البيانات (يضيفها الأدمن)
   app.post("/api/study/paper/generate", async (req, res) => {
-    if (tooMany("pg" + (req.ip || "x"), 8, 600000)) return res.sendStatus(429);
+    if (tooMany("pg" + (req.ip || "x"), 20, 600000)) return res.sendStatus(429);
     try {
       const grade = S(req.body && req.body.grade, 80);
       const subject = S(req.body && req.body.subject, 80);
       need(grade && subject, "الصف والمادة مطلوبان");
 
-      const prompt = `أنت معلم عراقي خبير في المنهج العراقي.
-أنشئ امتحان ورقي من 10 أسئلة فقط لمادة "${subject}" لمرحلة "${grade}".
+      const doc = await (await col("st_paper")).findOne({ grade, subject });
+      need(doc && Array.isArray(doc.questions) && doc.questions.length >= 3,
+        "لا يوجد امتحان ورقي لهذه المادة بعد. أضفه من صفحة الإدارة.");
 
-القواعد:
-- الأسئلة يجب أن تكون مناسبة للمنهج العراقي لهذه المرحلة.
-- نوّع الأسئلة: تعريف، شرح، حل، مقارنة، تطبيق.
-- اجعل الأسئلة واضحة ومباشرة.
-- لا تكتب الإجابات.
-- أعد النتيجة بصيغة JSON فقط بهذا الشكل بدون أي نص إضافي:
-{"questions":["السؤال 1","السؤال 2",...,"السؤال 10"]}`;
-
-      const content = await callAI([
-        { role: "system", content: "أنت مساعد تعليمي يُرجع JSON فقط." },
-        { role: "user", content: prompt }
-      ], 1500);
-
-      let questions = [];
-      try {
-        const cleaned = content.replace(/```json|```/g, "").trim();
-        const parsed = JSON.parse(cleaned);
-        questions = Array.isArray(parsed.questions) ? parsed.questions.map(q => String(q).trim()).filter(Boolean) : [];
-      } catch (e) {
-        // fallback: split lines
-        questions = content.split(/\n+/).map(l => l.replace(/^\d+[\.\-\)]\s*/, "").trim()).filter(l => l.length > 8);
-      }
-      questions = questions.slice(0, 10);
-      need(questions.length >= 5, "تعذر توليد أسئلة كافية، حاول مرة أخرى");
+      const questions = doc.questions.map((q) => String(q).trim()).filter(Boolean).slice(0, 20);
 
       res.json({
         grade,
@@ -504,18 +506,19 @@ module.exports = function (app, db, express) {
 
       const qList = questions.map((q, i) => `${i + 1}. ${q}`).join("\n");
 
+      const totalQ = questions.length;
       const system = `أنت مصحح امتحانات عراقي دقيق ومنصف.
 ستصلك صورة لورقة إجابة طالب + قائمة الأسئلة.
 مهمتك:
 1. اقرأ إجابات الطالب من الصورة (حتى لو كانت خط اليد).
 2. صحّح كل سؤال.
-3. أعطِ درجة من 10.
+3. أعطِ درجة من ${totalQ} (درجة لكل سؤال صحيح).
 4. وضّح الأخطاء بشكل مختصر وواضح للطالب.
 
 أرجع JSON فقط بهذا الشكل:
 {
   "score": 7,
-  "total": 10,
+  "total": ${totalQ},
   "percent": 70,
   "summary": "ملخص قصير عن مستوى الطالب",
   "details": [
@@ -542,9 +545,9 @@ module.exports = function (app, db, express) {
         throw bad("تعذر قراءة نتيجة التصحيح، حاول بصورة أوضح.");
       }
 
-      const score = Math.max(0, Math.min(10, Number(result.score) || 0));
-      const total = 10;
-      const percent = Math.round((score / total) * 100);
+      const total = totalQ;
+      const score = Math.max(0, Math.min(total, Number(result.score) || 0));
+      const percent = total ? Math.round((score / total) * 100) : 0;
       const details = Array.isArray(result.details) ? result.details.slice(0, 12) : [];
 
       res.json({
@@ -568,5 +571,4 @@ module.exports = function (app, db, express) {
     try { res.json(await h(req.body || {})); } catch (e) { fail(res, e); }
   });
 };
- 
  
