@@ -320,6 +320,215 @@ module.exports = function (app, db, express) {
     "news.delete": async (b) => remove("st_news", b.id)
   };
 
+
+  // ===================== الامتحانات الورقية (AI) =====================
+  // يدعم Gemini (مجاني) و OpenAI. يفضّل Gemini إذا وُجد المفتاح.
+  async function callAI(messages, maxTokens = 2000) {
+    const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
+
+    if (geminiKey) {
+      return callGemini(messages, maxTokens, geminiKey);
+    }
+    if (openaiKey) {
+      return callOpenAI(messages, maxTokens, openaiKey);
+    }
+    throw bad("خدمة الذكاء الاصطناعي غير مفعّلة. أضف GEMINI_API_KEY (مجاني) أو OPENAI_API_KEY في إعدادات السيرفر.", 503);
+  }
+
+  async function callGemini(messages, maxTokens, key) {
+    // تحويل صيغة OpenAI إلى صيغة Gemini
+    const systemParts = [];
+    const contents = [];
+    for (const m of messages) {
+      if (m.role === "system") {
+        systemParts.push(typeof m.content === "string" ? m.content : "");
+        continue;
+      }
+      const role = m.role === "assistant" ? "model" : "user";
+      const parts = [];
+      if (typeof m.content === "string") {
+        parts.push({ text: m.content });
+      } else if (Array.isArray(m.content)) {
+        for (const p of m.content) {
+          if (p.type === "text") parts.push({ text: p.text });
+          else if (p.type === "image_url" && p.image_url && p.image_url.url) {
+            const url = p.image_url.url;
+            const m2 = /^data:(image\/(?:jpeg|jpg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(url);
+            if (m2) {
+              parts.push({ inline_data: { mime_type: m2[1] === "image/jpg" ? "image/jpeg" : m2[1], data: m2[2] } });
+            }
+          }
+        }
+      }
+      if (parts.length) contents.push({ role, parts });
+    }
+
+    const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+    const body = {
+      contents,
+      generationConfig: { temperature: 0.4, maxOutputTokens: maxTokens }
+    };
+    if (systemParts.length) {
+      body.systemInstruction = { parts: [{ text: systemParts.join("\n") }] };
+    }
+
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) {
+      const t = await r.text().catch(() => "");
+      console.error("Gemini error:", r.status, t.slice(0, 400));
+      throw bad("تعذر الاتصال بخدمة الذكاء الاصطناعي حالياً، حاول لاحقاً.", 502);
+    }
+    const j = await r.json();
+    const parts = j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts;
+    return (parts && parts.map(p => p.text || "").join("")) || "";
+  }
+
+  async function callOpenAI(messages, maxTokens, key) {
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + key,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_MODEL || "gpt-4o",
+        messages,
+        max_tokens: maxTokens,
+        temperature: 0.4
+      })
+    });
+    if (!r.ok) {
+      const t = await r.text().catch(() => "");
+      console.error("OpenAI error:", r.status, t.slice(0, 300));
+      throw bad("تعذر الاتصال بخدمة الذكاء الاصطناعي حالياً، حاول لاحقاً.", 502);
+    }
+    const j = await r.json();
+    return (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "";
+  }
+
+  // توليد 10 أسئلة لمادة معينة
+  app.post("/api/study/paper/generate", async (req, res) => {
+    if (tooMany("pg" + (req.ip || "x"), 8, 600000)) return res.sendStatus(429);
+    try {
+      const grade = S(req.body && req.body.grade, 80);
+      const subject = S(req.body && req.body.subject, 80);
+      need(grade && subject, "الصف والمادة مطلوبان");
+
+      const prompt = `أنت معلم عراقي خبير في المنهج العراقي.
+أنشئ امتحان ورقي من 10 أسئلة فقط لمادة "${subject}" لمرحلة "${grade}".
+
+القواعد:
+- الأسئلة يجب أن تكون مناسبة للمنهج العراقي لهذه المرحلة.
+- نوّع الأسئلة: تعريف، شرح، حل، مقارنة، تطبيق.
+- اجعل الأسئلة واضحة ومباشرة.
+- لا تكتب الإجابات.
+- أعد النتيجة بصيغة JSON فقط بهذا الشكل بدون أي نص إضافي:
+{"questions":["السؤال 1","السؤال 2",...,"السؤال 10"]}`;
+
+      const content = await callAI([
+        { role: "system", content: "أنت مساعد تعليمي يُرجع JSON فقط." },
+        { role: "user", content: prompt }
+      ], 1500);
+
+      let questions = [];
+      try {
+        const cleaned = content.replace(/```json|```/g, "").trim();
+        const parsed = JSON.parse(cleaned);
+        questions = Array.isArray(parsed.questions) ? parsed.questions.map(q => String(q).trim()).filter(Boolean) : [];
+      } catch (e) {
+        // fallback: split lines
+        questions = content.split(/\n+/).map(l => l.replace(/^\d+[\.\-\)]\s*/, "").trim()).filter(l => l.length > 8);
+      }
+      questions = questions.slice(0, 10);
+      need(questions.length >= 5, "تعذر توليد أسئلة كافية، حاول مرة أخرى");
+
+      res.json({
+        grade,
+        subject,
+        questions,
+        createdAt: Date.now()
+      });
+    } catch (e) { fail(res, e); }
+  });
+
+  // تصحيح الامتحان الورقي من صورة
+  app.post("/api/study/paper/grade", async (req, res) => {
+    if (tooMany("pr" + (req.ip || "x"), 6, 600000)) return res.sendStatus(429);
+    try {
+      const grade = S(req.body && req.body.grade, 80);
+      const subject = S(req.body && req.body.subject, 80);
+      const questions = Array.isArray(req.body && req.body.questions) ? req.body.questions.map(q => String(q).trim()).filter(Boolean) : [];
+      const image = String(req.body && req.body.image || "");
+
+      need(grade && subject, "الصف والمادة مطلوبان");
+      need(questions.length >= 3, "الأسئلة ناقصة");
+      need(/^data:image\/(jpeg|jpg|png|webp);base64,/.test(image), "صورة غير صالحة");
+
+      const qList = questions.map((q, i) => `${i + 1}. ${q}`).join("\n");
+
+      const system = `أنت مصحح امتحانات عراقي دقيق ومنصف.
+ستصلك صورة لورقة إجابة طالب + قائمة الأسئلة.
+مهمتك:
+1. اقرأ إجابات الطالب من الصورة (حتى لو كانت خط اليد).
+2. صحّح كل سؤال.
+3. أعطِ درجة من 10.
+4. وضّح الأخطاء بشكل مختصر وواضح للطالب.
+
+أرجع JSON فقط بهذا الشكل:
+{
+  "score": 7,
+  "total": 10,
+  "percent": 70,
+  "summary": "ملخص قصير عن مستوى الطالب",
+  "details": [
+    {"n":1,"ok":true,"note":"إجابة صحيحة"},
+    {"n":2,"ok":false,"note":"خطأ: ... الإجابة الصحيحة تقريباً هي ..."}
+  ]
+}`;
+
+      const userContent = [
+        { type: "text", text: `الصف: ${grade}\nالمادة: ${subject}\n\nالأسئلة:\n${qList}\n\nصحّح إجابات الطالب من الصورة التالية وأرجع JSON فقط.` },
+        { type: "image_url", image_url: { url: image, detail: "high" } }
+      ];
+
+      const content = await callAI([
+        { role: "system", content: system },
+        { role: "user", content: userContent }
+      ], 2500);
+
+      let result;
+      try {
+        const cleaned = content.replace(/```json|```/g, "").trim();
+        result = JSON.parse(cleaned);
+      } catch (e) {
+        throw bad("تعذر قراءة نتيجة التصحيح، حاول بصورة أوضح.");
+      }
+
+      const score = Math.max(0, Math.min(10, Number(result.score) || 0));
+      const total = 10;
+      const percent = Math.round((score / total) * 100);
+      const details = Array.isArray(result.details) ? result.details.slice(0, 12) : [];
+
+      res.json({
+        score,
+        total,
+        percent,
+        summary: String(result.summary || "").slice(0, 400),
+        details: details.map(d => ({
+          n: Number(d.n) || 0,
+          ok: !!d.ok,
+          note: String(d.note || "").slice(0, 300)
+        }))
+      });
+    } catch (e) { fail(res, e); }
+  });
+
   app.post("/api/study/admin", async (req, res) => {
     if (!adminOK(req, res)) return;
     const h = Object.prototype.hasOwnProperty.call(A, req.body && req.body.action) ? A[req.body.action] : null;
