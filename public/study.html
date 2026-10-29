@@ -273,11 +273,44 @@ function loginCard(b,after){
 }
 
 /* الامتحانات الورقية — أسئلة من الأدمن + تصحيح بالصورة */
-var PAPER = { step: "pick", subject: "", questions: [], result: null, busy: false };
+var PAPER = { step: "pick", subject: "", questions: [], result: null, busy: false, lastKey: "" };
+function paperKey(){return "paperRes:"+(S.grade||"")+"|"+(PAPER.subject||"")}
+function savePaperRes(){
+  try{
+    if(PAPER.result){
+      localStorage.setItem(paperKey(), JSON.stringify({
+        subject: PAPER.subject,
+        questions: PAPER.questions,
+        result: PAPER.result,
+        at: Date.now()
+      }));
+      // آخر نتيجة عامة للرجوع لها
+      localStorage.setItem("paperLast", JSON.stringify({
+        grade: S.grade,
+        subject: PAPER.subject,
+        questions: PAPER.questions,
+        result: PAPER.result,
+        at: Date.now()
+      }));
+    }
+  }catch(e){}
+}
+function loadPaperRes(subject){
+  try{
+    var raw=localStorage.getItem("paperRes:"+(S.grade||"")+"|"+(subject||""));
+    if(!raw)return null;
+    return JSON.parse(raw);
+  }catch(e){return null}
+}
 
 async function rPaper() {
   var b = $("#b-paper");
   PAPER.busy = false;
+  // إذا رجع من الرئيسية وفيه نتيجة محفوظة لنفس الجلسة
+  if (PAPER.step === "result" && PAPER.result) {
+    drawPaperResult();
+    return;
+  }
   if (PAPER.step === "pick" || !PAPER.subject) {
     drawPaperPick();
   } else if (PAPER.step === "exam") {
@@ -290,15 +323,35 @@ async function rPaper() {
 function drawPaperPick() {
   var b = $("#b-paper");
   var list = subs();
-  var h = '<div class="card" style="margin-bottom:14px"><b>📝 الامتحانات الورقية</b><p class="sub" style="line-height:1.8;margin:8px 0 0">اختر المادة، تظهر لك الأسئلة اللي حضّرها المعلم. حلّها على ورقة، صوّر الورقة، وارفع الصورة ليصحّحها الذكاء الاصطناعي ويعطيك الدرجة والأخطاء.</p></div>';
+  var h = '<div class="card" style="margin-bottom:14px"><b>📝 الامتحانات الورقية</b><p class="sub" style="line-height:1.8;margin:8px 0 0">اختر المادة، تظهر لك الأسئلة اللي حضّرها المعلم. حلّها على ورقة، صوّر الورقة، وارفع الصورة ليصحّحها الذكاء الاصطناعي (يحلل الورقة سؤالاً بسؤال).</p></div>';
+  try{
+    var last=JSON.parse(localStorage.getItem("paperLast")||"null");
+    if(last&&last.result&&last.grade===S.grade){
+      h += '<div class="card" style="margin-bottom:12px"><b>آخر نتيجة محفوظة</b><div class="sub" style="margin:6px 0 10px">'+esc(last.subject||"")+' · '+ar(last.result.score||0)+' من '+ar(last.result.total||0)+' ('+ar(last.result.percent||0)+'%)</div><button id="pLast" style="width:100%">عرض النتيجة السابقة</button></div>';
+    }
+  }catch(e){}
   if (!list.length) {
     h += '<div class="card">اختر صفّك أولاً من الصفحة الرئيسية.</div>';
   } else {
     h += list.map(function(s, i) {
-      return '<button class="opt" data-s="' + i + '"><span>' + esc(s) + '</span><span class="sub">‹</span></button>';
+      var prev=loadPaperRes(s);
+      var tag=prev&&prev.result?(' · آخر درجة '+ar(prev.result.score)+'/'+ar(prev.result.total)):"";
+      return '<button class="opt" data-s="' + i + '"><span>' + esc(s) + tag + '</span><span class="sub">‹</span></button>';
     }).join("");
   }
   b.innerHTML = h;
+  var pl=$("#pLast");
+  if(pl)pl.onclick=function(){
+    try{
+      var last=JSON.parse(localStorage.getItem("paperLast")||"null");
+      if(!last||!last.result)return;
+      PAPER.subject=last.subject||"";
+      PAPER.questions=last.questions||[];
+      PAPER.result=last.result;
+      PAPER.step="result";
+      drawPaperResult();
+    }catch(e){}
+  };
   b.querySelectorAll("[data-s]").forEach(function(btn) {
     btn.onclick = async function() {
       if (PAPER.busy) return;
@@ -386,6 +439,7 @@ function drawPaperExam() {
       });
       PAPER.result = r;
       PAPER.step = "result";
+      savePaperRes();
       drawPaperResult();
     } catch (e) {
       PAPER.busy = false;
@@ -422,6 +476,7 @@ function drawPaperResult() {
       var cls = d.ok ? "rs ok" : "rs bad";
       h += '<div class="card ' + cls + '" style="margin-bottom:10px">';
       h += '<b>السؤال ' + ar(d.n) + ' — ' + (d.ok ? "✅ صح" : "❌ خطأ") + '</b>';
+      if (d.student) h += '<div class="sub" style="margin-top:8px"><b>قراءة من ورقتك:</b> ' + esc(d.student) + '</div>';
       if (d.note) h += '<div class="sub" style="margin-top:6px;line-height:1.8">' + esc(d.note) + '</div>';
       h += '</div>';
     });
@@ -430,11 +485,13 @@ function drawPaperResult() {
   h += '<div class="row" style="margin-top:16px"><button id="pAgain">امتحان جديد</button><button class="ghost" id="pHome">الرئيسية</button></div>';
   b.innerHTML = h;
   PAPER.busy = false;
+  savePaperRes();
 
   $("#pAgain").onclick = function() {
     PAPER.step = "pick";
     PAPER.subject = "";
     PAPER.questions = [];
+    // لا نمسح النتيجة المحفوظة — تبقى في آخر نتيجة
     PAPER.result = null;
     rPaper();
   };
