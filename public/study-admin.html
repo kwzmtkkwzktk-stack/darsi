@@ -268,22 +268,38 @@ function readQ(){QE.grade=$("#qg").value;QE.subject=$("#qs").value.trim();QE.cha
 
 /* ================= الامتحانات الورقية ================= */
 var PL=null,PE=null;
+function normPaperQ(list){
+  return (list||[]).map(function(item){
+    if(item&&typeof item==="object")return{q:String(item.q||"").trim(),a:String(item.a||"").trim()};
+    return{q:String(item||"").trim(),a:""};
+  }).filter(function(x){return x.q});
+}
 async function tPaper(){
   PL=await api("paper.list");
-  PE=PE||{id:"",grade:"",subject:"",questions:[]};
+  PE=PE||{id:"",grade:"",subject:"",questions:[{q:"",a:""},{q:"",a:""},{q:"",a:""}]};
+  if(!PE.questions||!PE.questions.length)PE.questions=[{q:"",a:""},{q:"",a:""},{q:"",a:""}];
+  PE.questions=normPaperQ(PE.questions);
   drawPaper();
 }
 function drawPaper(){
   var gs=Object.keys(ST.grades),e=PE;
-  var qText=(e.questions||[]).join("\n");
   var subs=e.grade?(ST.grades[e.grade]||[]):[];
+  var rows=(e.questions&&e.questions.length?e.questions:[{q:"",a:""},{q:"",a:""},{q:"",a:""}]).map(function(item,i){
+    return '<div class="card" style="margin:0 0 10px;padding:12px;background:var(--bg)" data-qi="'+i+'">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b class="small">السؤال '+(i+1)+'</b>'+
+      (e.questions.length>3?'<button type="button" class="sm del" data-rm="'+i+'">حذف</button>':"")+'</div>'+
+      '<label>نص السؤال *</label><textarea class="pq-q" style="min-height:60px;margin-bottom:8px">'+esc(item.q||"")+'</textarea>'+
+      '<label>الجواب الصحيح *</label><textarea class="pq-a" style="min-height:50px" placeholder="يُستخدم للتصحيح: يقبل القريب والمرادف، ويذكر النقص">'+esc(item.a||"")+'</textarea>'+
+      '</div>';
+  }).join("");
+
   $("#pane").innerHTML=
     '<div class="card"><b>'+(e.id?"✏️ تعديل امتحان ورقي":"➕ إضافة امتحان ورقي")+'</b>'+
-    '<p class="small" style="margin:6px 0 12px;line-height:1.7">أنت تكتب الأسئلة، والطالب يحلّها على ورقة ويصوّرها، والذكاء الاصطناعي يصحّح فقط.</p>'+
+    '<p class="small" style="margin:6px 0 12px;line-height:1.7">اكتب السؤال والجواب النموذجي. الطالب يشوف الأسئلة فقط، والذكاء الاصطناعي يصحّح حسب جوابك (يقبل القريب/المرادف، ويذكر الكلمات الناقصة).</p>'+
     '<div class="grid2"><div><label>الصف *</label><select id="pg">'+opts(gs,e.grade,"اختر الصف")+'</select></div>'+
     '<div><label>المادة *</label><input type="text" id="ps" list="psl" value="'+esc(e.subject)+'"><datalist id="psl">'+subs.map(function(s){return '<option value="'+esc(s)+'">'}).join("")+'</datalist></div></div>'+
-    '<label>الأسئلة * (كل سؤال في سطر مستقل — من 3 إلى 20)</label>'+
-    '<textarea id="pq" style="min-height:200px;line-height:1.9" placeholder="س1: ...\nس2: ...\nس3: ...">'+esc(qText)+'</textarea>'+
+    '<div id="pqs" style="margin-top:12px">'+rows+'</div>'+
+    '<div class="row" style="margin-top:8px"><button type="button" class="ghost" id="padd">+ سؤال إضافي</button></div>'+
     '<div class="row" style="margin-top:12px"><button id="psv">'+(e.id?"حفظ التعديل":"حفظ الامتحان")+'</button>'+(e.id?'<button class="ghost" id="pcl">إلغاء</button>':"")+'</div></div>'+
     '<div class="card"><b>الامتحانات الورقية ('+PL.length+')</b><div id="pll"></div></div>';
 
@@ -291,6 +307,36 @@ function drawPaper(){
     var g=$("#pg").value,a=g?(ST.grades[g]||[]):[];
     $("#psl").innerHTML=a.map(function(s){return '<option value="'+esc(s)+'">'}).join("");
   };
+
+  function readRows(){
+    var list=[];
+    $("#pqs").querySelectorAll("[data-qi]").forEach(function(box){
+      var q=box.querySelector(".pq-q").value.trim();
+      var a=box.querySelector(".pq-a").value.trim();
+      if(q||a)list.push({q:q,a:a});
+    });
+    return list;
+  }
+  function redrawKeep(){
+    PE.grade=$("#pg").value;PE.subject=$("#ps").value.trim();PE.questions=readRows();
+    if(PE.questions.length<3)while(PE.questions.length<3)PE.questions.push({q:"",a:""});
+    drawPaper();
+  }
+  $("#padd").onclick=function(){
+    if(readRows().length>=20){toast("الحد الأقصى 20 سؤالاً",1);return}
+    PE.questions=readRows();PE.questions.push({q:"",a:""});
+    PE.grade=$("#pg").value;PE.subject=$("#ps").value.trim();
+    drawPaper();
+  };
+  $("#pqs").querySelectorAll("[data-rm]").forEach(function(b){
+    b.onclick=function(){
+      PE.questions=readRows();
+      PE.questions.splice(+b.dataset.rm,1);
+      if(PE.questions.length<3)while(PE.questions.length<3)PE.questions.push({q:"",a:""});
+      PE.grade=$("#pg").value;PE.subject=$("#ps").value.trim();
+      drawPaper();
+    };
+  });
 
   $("#pll").innerHTML=PL.length?"<table>"+PL.map(function(p){
     return "<tr><td><b>"+esc(p.subject)+'</b><div class="small">'+esc(p.grade)+" · "+p.questions.length+" أسئلة</div></td>"+
@@ -301,7 +347,7 @@ function drawPaper(){
     b.onclick=function(){
       var p=PL.find(function(x){return x.id===b.dataset.e});
       if(!p)return;
-      PE={id:p.id,grade:p.grade,subject:p.subject,questions:p.questions.slice()};
+      PE={id:p.id,grade:p.grade,subject:p.subject,questions:normPaperQ(p.questions)};
       drawPaper();
     };
   });
@@ -317,14 +363,15 @@ function drawPaper(){
 
   $("#psv").onclick=async function(){
     var grade=$("#pg").value,subject=$("#ps").value.trim();
-    var questions=$("#pq").value.split(/\n+/).map(function(l){return l.replace(/^\s*\d+[\.\-\)\u060c]?\s*/,"").trim()}).filter(Boolean);
+    var questions=readRows().filter(function(x){return x.q});
     if(!grade){toast("اختر الصف",1);return}
     if(!subject){toast("اكتب المادة",1);return}
-    if(questions.length<3){toast("أضف 3 أسئلة على الأقل (كل سؤال في سطر)",1);return}
+    if(questions.length<3){toast("أضف 3 أسئلة على الأقل",1);return}
+    if(questions.some(function(x){return !x.a})){toast("اكتب الجواب الصحيح لكل سؤال",1);return}
     try{
       await api("paper.save",{id:PE.id,grade:grade,subject:subject,questions:questions});
       toast("تم الحفظ ✅");
-      PE={id:"",grade:grade,subject:subject,questions:[]};
+      PE={id:"",grade:grade,subject:subject,questions:[{q:"",a:""},{q:"",a:""},{q:"",a:""}]};
       tPaper();
     }catch(er){toast(er.message,1)}
   };
@@ -366,4 +413,5 @@ if(PASS)enter();
 </script>
 </body>
 </html>
+ 
  
