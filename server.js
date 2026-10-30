@@ -453,9 +453,13 @@ app.get("/api/img/:id", async (req, res) => {
 // المنصة الدراسية (الطلاب، الملازم، المحاضرات، الامتحانات)
 require("./study-api")(app, db, express);
 
+// إحصائيات الزوار والمشاهدات
+require("./analytics")(app, db);
+
 // تشغيل الخادم
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
+ 
