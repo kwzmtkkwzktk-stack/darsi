@@ -125,7 +125,30 @@ S.notes=S.notes||[];S.log=S.log||{};S.me=S.me||"";S.grade=S.grade||"";
 function save(){try{localStorage.setItem("st2",JSON.stringify(S))}catch(e){}}
 var INFO=null,REC=null;
 async function jget(u){var r=await fetch("/api/study/"+u,{cache:"no-store"});if(!r.ok)throw r.status;return r.json()}
-async function jpost(u,b){var r=await fetch("/api/study/"+u,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(b)});if(!r.ok)throw r.status;return r.json()}
+async function jpost(u,b){var r=await fetch("/api/study/"+u,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(b)});var j={};try{j=await r.json()}catch(e){}if(!r.ok){var err=new Error(j.error||("خطأ "+r.status));err.status=r.status;err.body=j;throw err}return j}
+function compressImage(file,maxSide,maxBytes){
+  maxSide=maxSide||1600;maxBytes=maxBytes||900000;
+  return new Promise(function(ok,fail){
+    var reader=new FileReader();
+    reader.onerror=function(){fail(new Error("تعذر قراءة الصورة"))};
+    reader.onload=function(){
+      var im=new Image();
+      im.onerror=function(){fail(new Error("صورة غير صالحة"))};
+      im.onload=function(){
+        var s=Math.min(1,maxSide/Math.max(im.width,im.height));
+        var c=document.createElement("canvas");
+        c.width=Math.max(1,Math.round(im.width*s));
+        c.height=Math.max(1,Math.round(im.height*s));
+        var x=c.getContext("2d");x.drawImage(im,0,0,c.width,c.height);
+        var q=.82,d=c.toDataURL("image/jpeg",q);
+        while(d.length>maxBytes&&q>0.35){q-=0.08;d=c.toDataURL("image/jpeg",q)}
+        ok(d);
+      };
+      im.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 function subs(){return INFO.grades[S.grade]||[]}
 function daysTo(d){return Math.ceil((new Date(d+"T00:00:00")-new Date())/864e5)}
 function sz(n){return n>1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/1024))+" KB"}
@@ -401,7 +424,7 @@ function drawPaperExam() {
   var preview = $("#pPrev");
   var selectedDataUrl = null;
 
-  fileInput.onchange = function() {
+  fileInput.onchange = async function() {
     var f = fileInput.files && fileInput.files[0];
     if (!f) {
       selectedDataUrl = null;
@@ -410,19 +433,26 @@ function drawPaperExam() {
       preview.innerHTML = "";
       return;
     }
-    if (f.size > 6 * 1024 * 1024) {
-      alert("الصورة كبيرة جداً. صوّر بجودة أقل أو قصّ الورقة.");
+    if (!/^image\//.test(f.type || "")) {
+      alert("اختر صورة فقط");
       fileInput.value = "";
       return;
     }
-    var reader = new FileReader();
-    reader.onload = function() {
-      selectedDataUrl = reader.result;
+    gradeBtn.disabled = true;
+    gradeBtn.textContent = "جاري تجهيز الصورة...";
+    try {
+      selectedDataUrl = await compressImage(f, 1600, 900000);
       preview.classList.remove("hide");
       preview.innerHTML = '<img src="' + selectedDataUrl + '" alt="معاينة" style="width:100%;border-radius:14px;max-height:280px;object-fit:contain;background:#f0f0f0">';
       gradeBtn.disabled = false;
-    };
-    reader.readAsDataURL(f);
+      gradeBtn.textContent = "صحّح الامتحان بالذكاء الاصطناعي";
+    } catch (e) {
+      selectedDataUrl = null;
+      preview.classList.add("hide");
+      gradeBtn.disabled = true;
+      gradeBtn.textContent = "صحّح الامتحان بالذكاء الاصطناعي";
+      alert("تعذر تجهيز الصورة، جرّب صورة أوضح أو أصغر");
+    }
   };
 
   gradeBtn.onclick = async function() {
@@ -434,7 +464,6 @@ function drawPaperExam() {
       var r = await jpost("paper/grade", {
         grade: S.grade,
         subject: PAPER.subject,
-        questions: PAPER.questions,
         image: selectedDataUrl
       });
       PAPER.result = r;
@@ -445,7 +474,8 @@ function drawPaperExam() {
       PAPER.busy = false;
       gradeBtn.disabled = false;
       gradeBtn.textContent = "صحّح الامتحان بالذكاء الاصطناعي";
-      alert("تعذر التصحيح. تأكد أن الصورة واضحة وأن الخدمة مفعّلة، ثم حاول مرة ثانية.");
+      var msg = (e && e.message) ? e.message : "تعذر التصحيح";
+      alert(msg + "\nتأكد أن الصورة واضحة، وأن الأجوبة مضافة في الإدارة، والموديل يدعم الصور.");
     }
   };
 
@@ -736,5 +766,4 @@ boot();
 
 </body>
 </html>
- 
  
