@@ -152,7 +152,8 @@ module.exports = function (app, db) {
           files: await count("st_files"),
           videos: await count("st_videos"),
           questions: await count("st_questions"),
-          news: await count("st_news")
+          news: await count("st_news"),
+          paper: await count("st_paper")
         },
         latest
       });
