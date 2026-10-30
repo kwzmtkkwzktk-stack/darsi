@@ -512,10 +512,18 @@ module.exports = function (app, db, express) {
     try {
       const grade = S(req.body && req.body.grade, 80);
       const subject = S(req.body && req.body.subject, 80);
-      const image = String(req.body && req.body.image || "");
+      const imgRe = /^data:image\/(jpeg|jpg|png|webp);base64,/;
+      let images = [];
+      if (Array.isArray(req.body && req.body.images)) {
+        images = req.body.images.map((x) => String(x || "")).filter((x) => imgRe.test(x)).slice(0, 5);
+      }
+      if (!images.length && req.body && req.body.image) {
+        const one = String(req.body.image || "");
+        if (imgRe.test(one)) images = [one];
+      }
 
       need(grade && subject, "الصف والمادة مطلوبان");
-      need(/^data:image\/(jpeg|jpg|png|webp);base64,/.test(image), "صورة غير صالحة");
+      need(images.length, "أضف صورة واحدة على الأقل");
 
       const doc = await (await col("st_paper")).findOne({ grade, subject });
       need(doc && Array.isArray(doc.questions) && doc.questions.length >= 3, "لا يوجد امتحان ورقي لهذه المادة");
@@ -533,40 +541,51 @@ module.exports = function (app, db, express) {
       const qList = items.map((x, i) => `${i + 1}. السؤال: ${x.q}\n   الجواب النموذجي: ${x.a}`).join("\n");
       const totalQ = items.length;
 
-      const system = `أنت مصحح امتحانات عراقي دقيق ومنصف.
-ستصلك صورة لورقة إجابة طالب + قائمة الأسئلة مع الجواب النموذجي الذي كتبه المعلم.
+      const system = `أنت مصحح امتحانات عراقي متساهل ودقيق.
+مهمتك تحليل صورة ورقة إجابة الطالب سؤالاً بسؤال.
 
-قواعد التصحيح:
-1. اقرأ إجابة الطالب من الصورة لكل سؤال (حتى لو بخط اليد).
-2. قارن إجابة الطالب مع الجواب النموذجي.
-3. إذا كانت إجابة الطالب صحيحة أو قريبة بالمعنى أو مرادف لنفس المعنى → ok=true (درجة كاملة).
-4. لا تتعنت على الصياغة أو ترتيب الكلمات؛ المهم المعنى.
-5. إذا المعنى صحيح لكن ناقص أجزاء/كلمات مهمة موجودة في الجواب النموذجي → ok=true مع ذكر الكلمات/الأجزاء الناقصة في الملاحظة بوضوح.
-6. ok=false فقط إذا الإجابة فارغة أو بعيدة عن المعنى أو غلط جوهري. عند الخطأ اذكر الجواب الصحيح باختصار.
-7. الدرجة من ${totalQ} (درجة لكل سؤال صحيح).
+طريقة العمل لكل سؤال:
+أ) اقرأ من الصورة ما كتبه الطالب لهذا السؤال (حتى لو خط اليد ضعيف).
+ب) قارنه مع الجواب النموذجي للمعلم.
+ج) الحكم:
+   - ok=true إذا المعنى صحيح أو قريب أو مرادف، حتى لو الجواب قصير جداً.
+   - مثال مهم: إذا الجواب النموذجي "وظيفة الرايبوسومات هي صنع البروتين" والطالب كتب فقط "صنع البروتين" → ok=true (المعنى الأساسي موجود).
+   - مثال: إذا الجواب النموذجي تعريف طويل والطالب كتب الفكرة الأساسية بكلمات أقل → ok=true.
+   - إذا المعنى صحيح لكن ناقص تفصيل إضافي غير جوهري → ok=true، واذكر الناقص في note إن أحببت.
+   - ok=false فقط إذا: فارغ، أو غلط جوهري، أو معنى مختلف تماماً عن المطلوب.
+د) لا ترفض الجواب لمجرد أنه أقصر من النموذج.
 
-أرجع JSON فقط بهذا الشكل:
+قواعد صارمة لصالح الطالب:
+- الجواب القصير الصحيح = صح كامل.
+- لا تطلب من الطالب أن ينسخ الجملة كاملة حرفياً.
+- المرادفات والصياغات المختلفة المقبولة علمياً = صح.
+- الدرجة من ${totalQ} (درجة لكل ok=true).
+- details عنصر واحد لكل سؤال من 1 إلى ${totalQ}.
+
+أرجع JSON فقط:
 {
   "score": 8,
   "total": ${totalQ},
   "percent": 80,
   "summary": "ملخص قصير",
   "details": [
-    {"n":1,"ok":true,"note":"إجابة صحيحة"},
-    {"n":2,"ok":true,"note":"إجابتك صحيحة بالمعنى، لكن ناقصك: ..."},
-    {"n":3,"ok":false,"note":"الإجابة غير صحيحة. الصحيح: ..."}
+    {"n":1,"ok":true,"student":"ما قرأته من الورقة","note":"إجابة صحيحة"},
+    {"n":2,"ok":true,"student":"صنع البروتين","note":"إجابة صحيحة (مختصرة ومقبولة)"},
+    {"n":3,"ok":false,"student":"...","note":"غير صحيحة. الصحيح: ..."}
   ]
 }`;
 
       const userContent = [
-        { type: "text", text: `الصف: ${grade}\nالمادة: ${subject}\n\nالأسئلة مع الأجوبة النموذجية:\n${qList}\n\nصحّح ورقة الطالب من الصورة اعتماداً على الأجوبة النموذجية. القريب/المرادف = صح. النقص = صح مع ذكر الناقص. أرجع JSON فقط.` },
-        { type: "image_url", image_url: { url: image, detail: "high" } }
+        { type: "text", text: `الصف: ${grade}\nالمادة: ${subject}\nعدد الأسئلة: ${totalQ}\nعدد صور ورقة الإجابة: ${images.length}\n\nالأسئلة مع الأجوبة النموذجية:\n${qList}\n\nأمامك ${images.length > 1 ? images.length + " صور" : "صورة"} لورقة/أوراق إجابة الطالب. اقرأ كل الصور معاً لأنها قد تكمل بعضها. أي جواب قصير فيه المعنى الأساسي الصحيح اعتبره صح. لا ترفض الاختصار. أرجع JSON لكل الأسئلة 1..${totalQ}.` }
       ];
+      for (const img of images) {
+        userContent.push({ type: "image_url", image_url: { url: img, detail: "high" } });
+      }
 
       const content = await callAI([
         { role: "system", content: system },
         { role: "user", content: userContent }
-      ], 3000);
+      ], 5000);
 
       let result;
       try {
@@ -580,8 +599,18 @@ module.exports = function (app, db, express) {
       const details = (Array.isArray(result.details) ? result.details : []).slice(0, 20).map((d) => ({
         n: Number(d.n) || 0,
         ok: !!d.ok,
+        student: String(d.student || "").slice(0, 400),
         note: String(d.note || "").slice(0, 300)
       }));
+      // تأكد من وجود تفصيل لكل سؤال
+      if (details.length < total) {
+        for (let i = 1; i <= total; i++) {
+          if (!details.some((d) => d.n === i)) {
+            details.push({ n: i, ok: false, student: "", note: "تعذر قراءة إجابة هذا السؤال من الورقة" });
+          }
+        }
+        details.sort((a, b) => a.n - b.n);
+      }
 
       let score = details.length
         ? details.filter((d) => d.ok).length
