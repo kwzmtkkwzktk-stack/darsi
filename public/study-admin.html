@@ -77,7 +77,21 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:8px 6px;b
 .small{font-size:12px;color:var(--mut)}
 .prog{height:8px;background:var(--pri2);border-radius:8px;overflow:hidden;margin-top:8px}.prog i{display:block;height:100%;background:var(--pri);width:0}
 button.del{background:#fde4e4;color:#b8323a}
-#sl,#bo,#fl,#vl,#ql,#nl{overflow-x:auto}
+#sl,#bo,#fl,#vl,#ql,#nl,#pll{overflow-x:auto}
+.st-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+@media(min-width:560px){.st-cards{grid-template-columns:repeat(3,1fr)}}
+.st-card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px;text-align:center}
+.st-card b{display:block;font-size:22px;color:var(--pri);margin-top:4px}
+.st-card span{font-size:12px;color:var(--mut);font-weight:700}
+.st-chart{display:flex;align-items:flex-end;gap:4px;height:120px;margin-top:10px}
+.st-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:10px;color:var(--mut)}
+.st-col i{display:block;width:100%;background:var(--pri);border-radius:6px 6px 0 0;min-height:2px}
+.st-bar{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13px}
+.st-bar em{flex:0 0 90px;font-style:normal;font-weight:700}
+.st-bar i{display:block;height:10px;background:var(--pri);border-radius:6px;min-width:2px}
+.st-bar b{flex:0 0 auto;font-size:12px;color:var(--mut)}
+.st-hours{display:flex;align-items:flex-end;gap:2px;height:70px;margin-top:8px}
+.st-hours i{flex:1;background:var(--pri);border-radius:3px 3px 0 0;min-height:2px;opacity:.85}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:520px){.grid2{grid-template-columns:1fr}}
 </style>
@@ -99,7 +113,7 @@ button.del{background:#fde4e4;color:#b8323a}
 <script>
 var $=function(s){return document.querySelector(s)},esc=function(v){var d=document.createElement("div");d.textContent=v==null?"":v;return d.innerHTML};
 var PASS=sessionStorage.getItem("sp")||"",ST=null,TAB="students",tt=0;
-var TABS=[["students","👥 الطلاب"],["files","📚 الملازم"],["videos","🎬 المحاضرات"],["questions","✏️ الأسئلة"],["paper","📝 امتحانات ورقية"],["news","📢 الإعلانات"],["settings","⚙️ الإعدادات"]];
+var TABS=[["students","👥 الطلاب"],["files","📚 الملازم"],["videos","🎬 المحاضرات"],["questions","✏️ الأسئلة"],["paper","📝 امتحانات ورقية"],["stats","📊 التحليلات"],["news","📢 الإعلانات"],["settings","⚙️ الإعدادات"]];
 function toast(t,bad){var e=$("#toast");e.textContent=t;e.className=bad?"err":"";e.style.display="block";clearTimeout(tt);tt=setTimeout(function(){e.style.display="none"},4200)}
 async function api(action,body){
   var r=await fetch("/api/study/admin",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(Object.assign({pass:PASS,action:action},body||{}))});
@@ -123,7 +137,7 @@ function tabs(){
   $("#tabs").innerHTML=TABS.map(function(t){return '<button class="chip'+(t[0]===TAB?" on":"")+'" data-t="'+t[0]+'">'+t[1]+"</button>"}).join("");
   $("#tabs").querySelectorAll("button").forEach(function(b){b.onclick=function(){TAB=b.dataset.t;tabs();show(TAB)}});
 }
-function show(t){loading();({students:tStudents,files:tFiles,videos:tVideos,questions:tQuestions,paper:tPaper,news:tNews,settings:tSettings})[t]().catch(function(e){toast(e.message,1)})}
+function show(t){loading();({students:tStudents,files:tFiles,videos:tVideos,questions:tQuestions,paper:tPaper,stats:tStats,news:tNews,settings:tSettings})[t]().catch(function(e){toast(e.message,1)})}
 
 /* ضغط الصور قبل الرفع */
 function shrink(file){
@@ -377,6 +391,57 @@ function drawPaper(){
   };
 }
 
+/* ================= التحليلات ================= */
+async function tStats(){
+  var r=await fetch("/api/stats",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pass:PASS})});
+  var d={};try{d=await r.json()}catch(e){}
+  if(!r.ok)throw Error(r.status===401?"رمز الإدارة غير صحيح":d.error||"تعذر تحميل الإحصائيات");
+  var PN={home:"الرئيسية",section:"الأقسام",study:"المنصة الدراسية"};
+  var DN={mobile:"📱 جوال",desktop:"💻 كمبيوتر",tablet:"📲 تابلت"};
+  var RN={direct:"دخول مباشر",facebook:"فيسبوك",whatsapp:"واتساب",google:"جوجل",telegram:"تيليغرام",instagram:"إنستغرام",tiktok:"تيك توك",youtube:"يوتيوب",other:"أخرى"};
+  function num(v){return (v==null?0:v).toLocaleString("ar-IQ")}
+  function card(t,u,v){return '<div class="st-card"><span>'+t+'</span><b>'+num(u)+'</b>'+(v!=null?'<span style="display:block;margin-top:4px">'+num(v)+' مشاهدة</span>':"")+'</div>'}
+  function bars(obj,labels){
+    var arr=Object.keys(obj||{}).map(function(k){return{k:k,v:obj[k]||0}}).sort(function(a,b){return b.v-a.v});
+    if(!arr.length)return '<p class="sub">لا توجد بيانات بعد.</p>';
+    var mx=Math.max(1,arr[0].v);
+    return arr.map(function(x){return '<div class="st-bar"><em>'+esc(labels[x.k]||x.k)+'</em><i style="width:'+Math.round(x.v/mx*100)+'%"></i><b>'+num(x.v)+'</b></div>'}).join("");
+  }
+  var daily=d.daily||[];
+  var mx=Math.max(1,Math.max.apply(null,daily.map(function(x){return x.u||0})));
+  var hours=d.hours||{};
+  var hmax=Math.max(1,Math.max.apply(null,Object.keys(hours).map(function(k){return hours[k]||0}).concat([0])));
+  var peak=0;Object.keys(hours).forEach(function(k){if((hours[k]||0)>(hours[peak]||0))peak=+k});
+  function hr(i){return (i<10?"0":"")+i+":00"}
+  var c=d.content||{};
+  $("#pane").innerHTML=
+    '<div class="card"><div class="row" style="justify-content:space-between;align-items:center"><b>📊 تحليلات المنصة</b><button class="ghost" id="stR">تحديث</button></div>'+
+    '<p class="small" style="margin:8px 0 0;line-height:1.7">الزوار = أشخاص مختلفون في اليوم · المشاهدات = مرات فتح الصفحات. لا تُحفظ عناوين IP.</p></div>'+
+    '<div class="st-cards">'+
+      card("🟢 متصلون الآن",d.online)+
+      card("زوار اليوم",(d.today||{}).u,(d.today||{}).v)+
+      card("زوار أمس",(d.yesterday||{}).u,(d.yesterday||{}).v)+
+      card("آخر 7 أيام",(d.week||{}).u,(d.week||{}).v)+
+      card("آخر 30 يوماً",(d.month||{}).u,(d.month||{}).v)+
+      card("المجموع",(d.total||{}).u,(d.total||{}).v)+
+    '</div>'+
+    '<div class="card"><b>الزوار في آخر 14 يوماً</b><div class="st-chart">'+daily.map(function(x){return '<div class="st-col"><span>'+(x.u||"")+'</span><i style="height:'+Math.round((x.u||0)/mx*100)+'%"></i><span>'+String(x.d||"").slice(8)+'</span></div>'}).join("")+'</div></div>'+
+    '<div class="card"><b>الصفحات الأكثر زيارة (30 يوماً)</b>'+bars(d.pages,PN)+'</div>'+
+    '<div class="card"><b>الأجهزة</b>'+bars(d.devices,DN)+'</div>'+
+    '<div class="card"><b>مصدر الزيارات</b>'+bars(d.refs,RN)+'</div>'+
+    '<div class="card"><b>أوقات الزيارة (بغداد)</b><div class="st-hours">'+Array.from({length:24},function(_,i){return '<i title="'+hr(i)+': '+(hours[i]||0)+'" style="height:'+Math.round((hours[i]||0)/hmax*100)+'%"></i>'}).join("")+'</div><p class="small" style="margin-top:8px">'+((hours[peak]||0)?"أكثر وقت: <b>"+hr(peak)+"</b>":"لا توجد بيانات بعد.")+'</p></div>'+
+    '<div class="st-cards">'+
+      card("الطلاب",c.students)+
+      card("الملازم",c.files)+
+      card("المحاضرات",c.videos)+
+      card("أسئلة الاختبار",c.questions)+
+      card("امتحانات ورقية",c.paper)+
+      card("الإعلانات",c.news)+
+    '</div>'+
+    '<div class="card"><p class="small" style="line-height:1.8;margin:0">العدّ يبدأ من '+(d.since||"اليوم")+' · لا تُحتسب زيارات الروبوتات ولا لوحة الإدارة.</p></div>';
+  $("#stR").onclick=function(){tStats().catch(function(e){toast(e.message,1)})};
+}
+
 /* ================= الإعلانات ================= */
 async function tNews(){
   var l=await api("news.list");
@@ -413,5 +478,4 @@ if(PASS)enter();
 </script>
 </body>
 </html>
- 
  
