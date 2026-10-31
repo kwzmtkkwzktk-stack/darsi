@@ -140,7 +140,7 @@ var ar=function(n){return String(n).replace(/\d/g,function(d){return "٠١٢٣٤
 var DAYS=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 var TIPS=["ادرس أصعب مادة وقت ما يكون ذهنك صافي، غالباً الصبح.","قسّم الدرس إلى أجزاء صغيرة وخلّص جزء كل جلسة.","جرّب تشرح الدرس بصوت عالي كأنك تعلّم أحد، هذا يثبّت المعلومة.","سوّ أسئلة وزارية سنوات سابقة، هي أفضل تدريب للامتحان.","نام كافي، الدماغ يرتب المعلومات وانت نايم.","ابتعد عن الموبايل أثناء الجلسة، خلّه بغرفة ثانية.","راجع كل درس بعد يوم، وبعد أسبوع، وبعد شهر."];
 var S;try{S=JSON.parse(localStorage.getItem("st2"))||{}}catch(e){S={}}
-S.notes=S.notes||[];S.log=S.log||{};S.me=S.me||"";S.grade=S.grade||"";
+S.notes=S.notes||[];S.log=S.log||{};S.me=S.me||"";S.grade=S.grade||"";S.name=S.name||"";S.province=S.province||"";S.vid=S.vid||"";
 function save(){try{localStorage.setItem("st2",JSON.stringify(S))}catch(e){}}
 function dayStart(ts){var d=new Date(ts||Date.now());d.setHours(0,0,0,0);return d.getTime()}
 function ensureStudyData(){
@@ -148,17 +148,39 @@ function ensureStudyData(){
   if(!Array.isArray(S.review))S.review=[];
 }
 function rid(q,a,subject){return String(subject||"")+"|"+String(q||"").slice(0,120)+"|"+String(a||"").slice(0,80)}
-function logActivity(type,subject,score,total,extra){
+function logActivity(type,subject,score,total,extra,details){
   ensureStudyData();
   var totalN=+total||0,scoreN=+score||0;
-  S.act.push({
+  var row={
     t:Date.now(),type:type||"study",subject:subject||"",
     score:scoreN,total:totalN,
     percent:totalN?Math.round(scoreN/totalN*100):0,
-    extra:extra||""
-  });
+    extra:extra||"",
+    details:Array.isArray(details)?details:[]
+  };
+  S.act.push(row);
   if(S.act.length>200)S.act=S.act.slice(-200);
   save();
+  syncActivityToServer([row]);
+}
+function syncActivityToServer(sessions){
+  try{
+    if(!S.name||!S.province||!S.grade)return;
+    var body={
+      vid:S.vid||"",
+      name:S.name,
+      province:S.province,
+      grade:S.grade,
+      sessions:sessions||[]
+    };
+    fetch("/api/study/activity/sync",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body),keepalive:true})
+      .then(function(r){return r.json()})
+      .then(function(j){if(j&&j.vid&&j.vid!==S.vid){S.vid=j.vid;save()}})
+      .catch(function(){});
+  }catch(e){}
+}
+function syncProfileNow(){
+  syncActivityToServer([]);
 }
 function addReviewItems(items,source){
   ensureStudyData();
@@ -298,12 +320,28 @@ function rHome(){
   $("#tiles").innerHTML=T.map(function(t){var w=t[0]==="ai";return '<button class="tile'+(w?" wide":"")+'" data-go="'+t[0]+'"><div class="ic" style="background:'+t[3]+';color:'+t[4]+'">'+ico(t[2])+'</div>'+(w?"<span><b>"+t[1]+"</b><small>اسأله وجاوبه بصوتك، وهو يصحّح لك</small></span>":t[1])+"</button>"}).join("");
   var g=$("#grade");g.innerHTML=Object.keys(INFO.grades).map(function(k){return "<option"+(k===S.grade?" selected":"")+">"+esc(k)+"</option>"}).join("");
   g.style.display=REC?"none":"";g.onchange=function(){S.grade=g.value;save();rHome()};
-  $("#hi").textContent="أهلاً بك"+(REC?" يا "+REC.n.split(" ")[0]:"")+" 👋";
+  $("#hi").textContent=(S.name?("مرحباً، "+S.name.split(" ")[0]):(REC?("أهلاً يا "+REC.n.split(" ")[0]):"خطتك الذكية"))+" ✨";
   $("#news").innerHTML=INFO.news.map(function(n){return '<div class="card news"><b>📢 '+esc(n.title)+'</b>'+(n.text?'<p class="sub" style="line-height:1.8;white-space:pre-wrap">'+esc(n.text)+"</p>":"")+(n.image?'<img src="'+esc(n.image)+'" alt="" loading="lazy">':"")+"</div>"}).join("");
   var m=null;INFO.exams.forEach(function(e){var n=daysTo(e.d);if(n>=0&&(m===null||n<m))m=n});
   $("#s1").textContent=subs().length;$("#s2").textContent=m===null?"—":m;$("#s3").textContent=S.notes.length;
   $("#e1").innerHTML=ico("doc");$("#e2").innerHTML=ico("cal");$("#e3").innerHTML=ico("note");
   $("#tip").textContent=TIPS[new Date().getDate()%TIPS.length];
+  var pf=$("#pfLine");
+  if(!pf){
+    var tipCard=$("#tip")&&$("#tip").parentNode;
+    if(tipCard){
+      var d=document.createElement("div");
+      d.className="card";
+      d.style.marginTop="12px";
+      d.id="pfLine";
+      tipCard.parentNode.insertBefore(d, tipCard.nextSibling);
+      pf=d;
+    }
+  }
+  if(pf){
+    pf.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>الملف الشخصي</b><div class="sub">'+(S.name?esc(S.name):"—")+(S.province?" · "+esc(S.province):"")+(S.grade?" · "+esc(S.grade):"")+'</div></div><button class="ghost sm" id="pfEdit" style="flex:0 0 auto">تعديل</button></div>';
+    $("#pfEdit").onclick=function(){showProfileGate(true)};
+  }
 }
 
 /* قائمة مع فلتر المادة */
@@ -653,7 +691,12 @@ function drawPaperExam() {
       PAPER.step = "result";
       savePaperRes();
       try{
-        logActivity("paper",PAPER.subject,r.score||0,r.total||0,"");
+        var det=(r.details||[]).map(function(d){
+          var qi=(d.n||1)-1;
+          var qq=PAPER.questions&&PAPER.questions[qi]?PAPER.questions[qi]:("سؤال "+(d.n||""));
+          return {n:d.n||0,ok:!!d.ok,q:String(qq).slice(0,200),note:String(d.note||"").slice(0,200)};
+        });
+        logActivity("paper",PAPER.subject,r.score||0,r.total||0,"",det);
         var wrong=[];
         (r.details||[]).forEach(function(d){
           if(d&&d.ok===false){
@@ -1060,12 +1103,52 @@ function endAI(){
   say("انتهت الجلسة. أجبت صح على "+AI.ok+" من "+n+(AI.wrong.length?". سأذكّرك بالأسئلة التي أخطأت بها لتراجعها.":". أحسنت!"));
 }
 
+/* الملف الشخصي عند أول دخول */
+var PROVINCES=["بغداد","البصرة","نينوى","أربيل","النجف","كربلاء","بابل","الأنبار","ديالى","ذي قار","القادسية","ميسان","واسط","صلاح الدين","المثنى","دهوك","السليمانية","كركوك"];
+function needProfile(){return !(S.name&&S.name.trim()&&S.province&&S.grade)}
+function showProfileGate(force){
+  if(!force&&!needProfile())return false;
+  var grades=Object.keys((INFO&&INFO.grades)||{});
+  var ov=document.createElement("div");
+  ov.id="profileGate";
+  ov.style.cssText="position:fixed;inset:0;background:rgba(18,15,28,.55);z-index:80;display:flex;align-items:flex-end;justify-content:center;padding:16px;backdrop-filter:blur(6px)";
+  ov.innerHTML='<div style="width:100%;max-width:480px;background:var(--card);border-radius:24px 24px 16px 16px;padding:20px 18px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -12px 40px rgba(124,58,237,.2)">'+
+    '<div style="text-align:center;margin-bottom:8px;font-size:34px">👋</div>'+
+    '<b style="display:block;text-align:center;font-size:20px;margin-bottom:4px">مرحباً بك في المنصة</b>'+
+    '<p class="sub" style="text-align:center;line-height:1.7;margin:0 0 14px">كتب معلوماتك حتى نخصص لك المحتوى حسب صفّك</p>'+
+    '<label class="lb">اسمك</label>'+
+    '<input id="pfName" maxlength="40" placeholder="مثال: أحمد" value="'+esc(S.name||'')+'" style="width:100%">'+
+    '<label class="lb">المحافظة</label>'+
+    '<select id="pfProv" style="width:100%">'+PROVINCES.map(function(p){return '<option value="'+esc(p)+'"'+(p===S.province?' selected':'')+'>'+esc(p)+'</option>'}).join('')+'</select>'+
+    '<label class="lb">الصف</label>'+
+    '<select id="pfGrade" style="width:100%">'+grades.map(function(g){return '<option value="'+esc(g)+'"'+(g===S.grade?' selected':'')+'>'+esc(g)+'</option>'}).join('')+'</select>'+
+    '<button id="pfSave" style="width:100%;margin-top:16px">دخول المنصة</button>'+
+    (force?'<button class="ghost" id="pfCancel" style="width:100%;margin-top:8px">إلغاء</button>':'')+
+  '</div>';
+  document.body.appendChild(ov);
+  $("#pfSave").onclick=function(){
+    var n=($("#pfName").value||"").trim();
+    var p=$("#pfProv").value;
+    var g=$("#pfGrade").value;
+    if(!n||n.length<2){alert("اكتب اسمك");return}
+    if(!p){alert("اختر المحافظة");return}
+    if(!g){alert("اختر الصف");return}
+    S.name=n;S.province=p;S.grade=g;save();
+    syncProfileNow();
+    ov.remove();
+    if(typeof rHome==="function"&&$("#hi"))rHome();
+  };
+  if($("#pfCancel"))$("#pfCancel").onclick=function(){ov.remove()};
+  return true;
+}
+
 /* التشغيل */
 async function boot(){
   try{INFO=await jget("info")}catch(e){$("#boot").innerHTML='تعذر الاتصال بالخادم.<br><button id="rb" style="margin-top:10px">إعادة المحاولة</button>';$("#rb").onclick=function(){location.reload()};return}
   if(S.me){try{REC=await jpost("result",{code:S.me});S.grade=REC.g}catch(e){if(e===404){S.me="";save()}}}
   var gs=Object.keys(INFO.grades);if(!INFO.grades[S.grade])S.grade=gs[0]||"";
   $("#boot").classList.add("hide");build();go("home");
+  showProfileGate(false);
 }
 boot();
 </script>
