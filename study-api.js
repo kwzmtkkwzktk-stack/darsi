@@ -351,7 +351,35 @@ module.exports = function (app, db, express) {
       need(questions.every((item) => item.a), "اكتب الجواب الصحيح لكل سؤال");
       return upsert("st_paper", b.id, { grade, subject, questions });
     },
-    "paper.delete": async (b) => remove("st_paper", b.id)
+    "paper.delete": async (b) => remove("st_paper", b.id),
+
+    // نشاط الطلاب على المنصة (اسم، محافظة، صف، نتائج)
+    "activity.list": async () => {
+      const rows = await (await col("st_activity")).find({}).sort({ updatedAt: -1 }).limit(500).toArray();
+      return rows.map((r) => ({
+        id: String(r._id),
+        name: r.name || "",
+        province: r.province || "",
+        grade: r.grade || "",
+        sessions: Array.isArray(r.sessions) ? r.sessions.slice(-40) : [],
+        sessionCount: Array.isArray(r.sessions) ? r.sessions.length : 0,
+        lastScore: r.lastScore || null,
+        lastSubject: r.lastSubject || "",
+        lastType: r.lastType || "",
+        updatedAt: r.updatedAt || null,
+        createdAt: r.createdAt || null
+      }));
+    },
+    "activity.delete": async (b) => {
+      const id = S(b.id, 80);
+      need(id, "معرّف مطلوب");
+      await (await col("st_activity")).deleteOne({ _id: id });
+      return { ok: true };
+    },
+    "activity.clear": async () => {
+      await (await col("st_activity")).deleteMany({});
+      return { ok: true };
+    }
   };
 
 
@@ -621,6 +649,71 @@ module.exports = function (app, db, express) {
         summary: String(result.summary || "").slice(0, 400),
         details
       });
+    } catch (e) { fail(res, e); }
+  });
+
+  // مزامنة ملف الطالب ونشاطه من المنصة الدراسية
+  app.post("/api/study/activity/sync", async (req, res) => {
+    if (tooMany("act" + (req.ip || "x"), 40, 600000)) return res.sendStatus(429);
+    try {
+      const b = req.body || {};
+      let vid = S(b.vid, 64);
+      if (!vid || vid.length < 8) {
+        vid = require("crypto").randomBytes(12).toString("hex");
+      }
+      const name = S(b.name, 40);
+      const province = S(b.province, 40);
+      const grade = S(b.grade, 80);
+      need(name, "الاسم مطلوب");
+      need(province, "المحافظة مطلوبة");
+      need(grade, "الصف مطلوب");
+
+      const sessionsIn = Array.isArray(b.sessions) ? b.sessions : [];
+      const mapped = sessionsIn.slice(0, 20).map((s) => ({
+        t: Number(s.t) || Date.now(),
+        type: S(s.type, 20) || "study",
+        subject: S(s.subject, 80),
+        score: Math.max(0, Math.min(100, Number(s.score) || 0)),
+        total: Math.max(0, Math.min(100, Number(s.total) || 0)),
+        percent: Math.max(0, Math.min(100, Number(s.percent) || 0)),
+        extra: S(s.extra, 120),
+        details: Array.isArray(s.details) ? s.details.slice(0, 20).map((d) => ({
+          n: Number(d.n) || 0,
+          ok: !!d.ok,
+          q: S(d.q, 200),
+          note: S(d.note, 200)
+        })) : []
+      }));
+
+      const c = await col("st_activity");
+      const prev = await c.findOne({ _id: vid });
+      let sessions = Array.isArray(prev && prev.sessions) ? prev.sessions.slice() : [];
+      // دمج الجلسات الجديدة بدون تكرار تقريبي (نفس الوقت تقريباً)
+      mapped.forEach((s) => {
+        const dup = sessions.some((x) => Math.abs((x.t || 0) - s.t) < 5000 && x.type === s.type && x.subject === s.subject);
+        if (!dup) sessions.push(s);
+      });
+      sessions = sessions.sort((a, b) => (a.t || 0) - (b.t || 0)).slice(-80);
+      const last = sessions.length ? sessions[sessions.length - 1] : null;
+
+      await c.updateOne(
+        { _id: vid },
+        {
+          $set: {
+            name,
+            province,
+            grade,
+            sessions,
+            lastScore: last ? last.percent : null,
+            lastSubject: last ? last.subject : "",
+            lastType: last ? last.type : "",
+            updatedAt: Date.now()
+          },
+          $setOnInsert: { createdAt: Date.now() }
+        },
+        { upsert: true }
+      );
+      res.json({ ok: true, vid });
     } catch (e) { fail(res, e); }
   });
 
