@@ -123,6 +123,98 @@ var TIPS=["ادرس أصعب مادة وقت ما يكون ذهنك صافي، �
 var S;try{S=JSON.parse(localStorage.getItem("st2"))||{}}catch(e){S={}}
 S.notes=S.notes||[];S.log=S.log||{};S.me=S.me||"";S.grade=S.grade||"";
 function save(){try{localStorage.setItem("st2",JSON.stringify(S))}catch(e){}}
+function dayStart(ts){var d=new Date(ts||Date.now());d.setHours(0,0,0,0);return d.getTime()}
+function ensureStudyData(){
+  if(!Array.isArray(S.act))S.act=[];
+  if(!Array.isArray(S.review))S.review=[];
+}
+function rid(q,a,subject){return String(subject||"")+"|"+String(q||"").slice(0,120)+"|"+String(a||"").slice(0,80)}
+function logActivity(type,subject,score,total,extra){
+  ensureStudyData();
+  var totalN=+total||0,scoreN=+score||0;
+  S.act.push({
+    t:Date.now(),type:type||"study",subject:subject||"",
+    score:scoreN,total:totalN,
+    percent:totalN?Math.round(scoreN/totalN*100):0,
+    extra:extra||""
+  });
+  if(S.act.length>200)S.act=S.act.slice(-200);
+  save();
+}
+function addReviewItems(items,source){
+  ensureStudyData();
+  var now=Date.now();
+  (items||[]).forEach(function(it){
+    if(!it||!it.q)return;
+    var id=rid(it.q,it.a,it.subject);
+    var found=null;
+    for(var i=0;i<S.review.length;i++){if(S.review[i].id===id){found=S.review[i];break}}
+    if(found){
+      found.wrongAt=now;found.nextAt=now;found.level=0;found.source=source||found.source;
+      if(it.a)found.a=it.a;
+    }else{
+      S.review.push({
+        id:id,q:String(it.q).slice(0,500),a:String(it.a||"").slice(0,400),
+        subject:String(it.subject||""),chapter:String(it.chapter||""),
+        source:source||"quiz",wrongAt:now,nextAt:now,level:0,times:0
+      });
+    }
+  });
+  if(S.review.length>300)S.review=S.review.slice(-300);
+  save();
+}
+function markReviewResult(id,ok){
+  ensureStudyData();
+  var it=null;
+  for(var i=0;i<S.review.length;i++){if(S.review[i].id===id){it=S.review[i];break}}
+  if(!it)return;
+  var now=Date.now();
+  it.times=(it.times||0)+1;
+  if(ok){
+    it.level=Math.min(4,(it.level||0)+1);
+    var days=[1,3,7,14,30][it.level]||30;
+    it.nextAt=now+days*864e5;
+  }else{
+    it.level=0;it.nextAt=now;it.wrongAt=now;
+  }
+  save();
+}
+function dueReviews(){
+  ensureStudyData();
+  var now=Date.now();
+  return S.review.filter(function(x){return (x.nextAt||0)<=now}).sort(function(a,b){return (a.nextAt||0)-(b.nextAt||0)});
+}
+function weekStats(){
+  ensureStudyData();
+  var from=Date.now()-7*864e5;
+  var list=S.act.filter(function(x){return (x.t||0)>=from});
+  var bySub={},sessions=list.length,sumPct=0,pctN=0,best=null,worst=null;
+  list.forEach(function(x){
+    var s=x.subject||"بدون مادة";
+    if(!bySub[s])bySub[s]={n:0,sum:0,c:0};
+    bySub[s].n++;
+    if(x.total){bySub[s].sum+=x.percent||0;bySub[s].c++;sumPct+=x.percent||0;pctN++}
+  });
+  var subs=Object.keys(bySub).map(function(k){
+    var o=bySub[k];return{subject:k,n:o.n,avg:o.c?Math.round(o.sum/o.c):null};
+  }).sort(function(a,b){return b.n-a.n});
+  subs.forEach(function(s){
+    if(s.avg==null)return;
+    if(!best||s.avg>best.avg)best=s;
+    if(!worst||s.avg<worst.avg)worst=s;
+  });
+  var due=dueReviews().length;
+  var wrongWeek=S.review.filter(function(x){return (x.wrongAt||0)>=from}).length;
+  return{
+    sessions:sessions,
+    avg:pctN?Math.round(sumPct/pctN):null,
+    subs:subs,best:best,worst:worst,
+    due:due,wrongWeek:wrongWeek,
+    quiz:list.filter(function(x){return x.type==="quiz"}).length,
+    paper:list.filter(function(x){return x.type==="paper"}).length,
+    ai:list.filter(function(x){return x.type==="ai"}).length
+  };
+}
 var INFO=null,REC=null;
 async function jget(u){var r=await fetch("/api/study/"+u,{cache:"no-store"});if(!r.ok)throw r.status;return r.json()}
 async function jpost(u,b){var r=await fetch("/api/study/"+u,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(b)});var j={};try{j=await r.json()}catch(e){}if(!r.ok){var err=new Error(j.error||("خطأ "+r.status));err.status=r.status;err.body=j;throw err}return j}
@@ -160,9 +252,9 @@ $("#ov").onclick=function(e){if(e.target===this)closeSheet()};
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeSheet()});
 
 IC.robot='<rect x="4" y="8" width="16" height="12" rx="4"/><rect x="11" y="4" width="2" height="4"/><circle cx="12" cy="3.4" r="1.7"/><g fill="#fff"><circle cx="9" cy="13.5" r="1.8"/><circle cx="15" cy="13.5" r="1.8"/></g><rect x="9" y="16.8" width="6" height="1.4" rx=".7" fill="#fff"/>';
-var T=[["ai","المساعد الذكي","robot","rgba(255,255,255,.18)","#fff"],["files","ملازمي","books","#fdf0cf","#e8a31c"],["videos","محاضراتي","video","#ebe5f7","#7a4fd0"],["quiz","امتحاناتي","pen","#fbe1ee","#d6338a"],["paper","الامتحانات الورقية","pen","#e8f5e9","#2e7d32"],["res","نتيجتي","chart","#dff2e4","#2e9e5b"],["notes","ملاحظاتي","note","#e1e9f6","#2459a8"],["timer","المؤقّت","timer","#ffe6d9","#e8641c"],["calc","حاسبة المعدل","calc","#dcf0f5","#1f9bb0"],["dates","مواعيد الامتحانات","cal","#e8e6fa","#5b4fd0"]];
-var TITLES={ai:"المساعد الذكي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
-var R={home:rHome,ai:rAI,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
+var T=[["ai","المساعد الذكي","robot","rgba(255,255,255,.18)","#fff"],["path","مسار المراجعة الذكي","pen","#e8f0ff","#3b6fd8"],["report","التقرير الأسبوعي","chart","#fff3e0","#e67e22"],["files","ملازمي","books","#fdf0cf","#e8a31c"],["videos","محاضراتي","video","#ebe5f7","#7a4fd0"],["quiz","امتحاناتي","pen","#fbe1ee","#d6338a"],["paper","الامتحانات الورقية","pen","#e8f5e9","#2e7d32"],["res","نتيجتي","chart","#dff2e4","#2e9e5b"],["notes","ملاحظاتي","note","#e1e9f6","#2459a8"],["timer","المؤقّت","timer","#ffe6d9","#e8641c"],["calc","حاسبة المعدل","calc","#dcf0f5","#1f9bb0"],["dates","مواعيد الامتحانات","cal","#e8e6fa","#5b4fd0"]];
+var TITLES={ai:"المساعد الذكي",path:"مسار المراجعة الذكي",report:"التقرير الأسبوعي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
+var R={home:rHome,ai:rAI,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
 
 function build(){
   var h='<section id="v-home" class="v"><div class="top"><div><a class="site" href="/">→ منصة دليني العراقية</a><h1 id="hi" style="margin-top:4px">أهلاً بك 👋</h1></div><select id="grade" aria-label="الصف"></select></div><div id="news"></div><div class="grid" id="tiles"></div><h2>إحصائيات سريعة</h2><div class="stats"><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظاتي</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم متبقي</span></div><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div></div><div class="card" style="margin-top:14px"><b>💡 نصيحة اليوم</b><p id="tip" style="line-height:1.7;margin:6px 0 0"></p></div></section>';
@@ -240,7 +332,7 @@ async function rVideos(){
 }
 
 /* امتحاناتي: المواد ← الفصول ← سؤال واحد كل مرة */
-var QZ={qs:null,sub:null,ch:null,i:0,sc:0};
+var QZ={qs:null,sub:null,ch:null,i:0,sc:0,wrong:[],_logged:false};
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 async function rQuiz(){
   var b=$("#b-quiz");
@@ -259,6 +351,11 @@ function drawQuiz(){
     var l=qs.filter(function(q){return q.subject===QZ.sub&&q.chapter===QZ.ch});
     if(QZ.i>=l.length){
       var pc=Math.round(QZ.sc/l.length*100);
+      if(!QZ._logged){
+        QZ._logged=true;
+        logActivity("quiz",QZ.sub,QZ.sc,l.length,QZ.ch||"");
+        if(QZ.wrong&&QZ.wrong.length)addReviewItems(QZ.wrong,"quiz");
+      }
       h='<div class="card" style="text-align:center"><div style="font-size:44px">'+(pc>=50?"🎉":"💪")+'</div><b style="font-size:22px">نتيجتك: '+QZ.sc+" من "+l.length+'</b><div class="sub" style="margin:6px 0 16px">'+pc+'%</div><div class="row"><button id="again">إعادة الأسئلة</button><button class="ghost" id="toCh">الفصول</button></div></div>';
     }else{
       var x=l[QZ.i];
@@ -267,18 +364,23 @@ function drawQuiz(){
   }
   b.innerHTML=h;
   b.querySelectorAll("[data-s]").forEach(function(e){e.onclick=function(){QZ.sub=subs()[+e.dataset.s];QZ.ch=null;drawQuiz();window.scrollTo(0,0)}});
-  b.querySelectorAll("[data-c]").forEach(function(e){e.onclick=function(){QZ.ch=QZ.chs[+e.dataset.c];QZ.i=0;QZ.sc=0;drawQuiz();window.scrollTo(0,0)}});
+  b.querySelectorAll("[data-c]").forEach(function(e){e.onclick=function(){QZ.ch=QZ.chs[+e.dataset.c];QZ.i=0;QZ.sc=0;QZ.wrong=[];drawQuiz();window.scrollTo(0,0)}});
   var q=b.querySelector(".q");
   if(q)q.querySelectorAll(".ch").forEach(function(c){c.onclick=function(){
     if(q.classList.contains("done"))return;q.classList.add("done");
     var ok=c.dataset.ok==="1";if(ok)QZ.sc++;
+    if(!ok){
+      if(!QZ.wrong)QZ.wrong=[];
+      var cur=l[QZ.i];
+      if(cur)QZ.wrong.push({q:cur.q,a:cur.a,subject:cur.subject||QZ.sub,chapter:cur.chapter||QZ.ch});
+    }
     q.querySelectorAll(".ch").forEach(function(d){if(d.dataset.ok==="1")d.classList.add("good")});
     if(!ok)c.classList.add("bad");
     q.querySelector(".msg").textContent=ok?"✅ إجابة صحيحة":"❌ إجابة خاطئة، والجواب الصحيح مظلّل بالأخضر";
     $("#nx").classList.remove("hide");
   }});
   var nx=$("#nx");if(nx)nx.onclick=function(){QZ.i++;QZ.keep=true;drawQuiz();window.scrollTo(0,0)};
-  var ag=$("#again");if(ag)ag.onclick=function(){QZ.i=0;QZ.sc=0;drawQuiz()};
+  var ag=$("#again");if(ag)ag.onclick=function(){QZ.i=0;QZ.sc=0;QZ.wrong=[];QZ._logged=false;drawQuiz()};
   var tc=$("#toCh");if(tc)tc.onclick=function(){QZ.ch=null;drawQuiz()};
 }
 function quizBack(){if(QZ.ch){QZ.ch=null;drawQuiz();return true}if(QZ.sub){QZ.sub=null;drawQuiz();return true}return false}
@@ -531,6 +633,18 @@ function drawPaperExam() {
       PAPER.result = r;
       PAPER.step = "result";
       savePaperRes();
+      try{
+        logActivity("paper",PAPER.subject,r.score||0,r.total||0,"");
+        var wrong=[];
+        (r.details||[]).forEach(function(d){
+          if(d&&d.ok===false){
+            var qi=(d.n||1)-1;
+            var qq=PAPER.questions&&PAPER.questions[qi]?PAPER.questions[qi]:("سؤال "+(d.n||""));
+            wrong.push({q:qq,a:(d.note||"").replace(/^.*?الصحيح[:：]?\s*/,"")||"",subject:PAPER.subject,chapter:""});
+          }
+        });
+        if(wrong.length)addReviewItems(wrong,"paper");
+      }catch(e){}
       drawPaperResult();
     } catch (e) {
       PAPER.busy = false;
@@ -589,6 +703,113 @@ function drawPaperResult() {
   $("#pHome").onclick = function() { go("home"); };
 }
 
+
+
+/* ================= مسار المراجعة الذكي ================= */
+var PATH={list:[],i:0,ok:0,done:false};
+function rPath(){
+  ensureStudyData();
+  var b=$("#b-path");
+  var due=dueReviews();
+  var later=S.review.filter(function(x){return (x.nextAt||0)>Date.now()});
+  if(PATH.done){
+    var n=PATH.list.length,pc=n?Math.round(PATH.ok/n*100):0;
+    b.innerHTML='<div class="card" style="text-align:center"><div style="font-size:44px">'+(pc>=70?"🎉":"💪")+'</div><b style="font-size:20px">خلصت جلسة المراجعة</b><div class="sub" style="margin:8px 0 14px">صححت '+ar(PATH.ok)+" من "+ar(n)+" · "+ar(pc)+'%</div><div class="row"><button id="pMore">مراجعة المزيد</button><button class="ghost" id="pHome2">الرئيسية</button></div></div>';
+    $("#pMore").onclick=function(){PATH.done=false;rPath()};
+    $("#pHome2").onclick=function(){go("home")};
+    return;
+  }
+  if(PATH.list.length && PATH.i<PATH.list.length){
+    drawPathQ();
+    return;
+  }
+  var h='<div class="card" style="margin-bottom:12px"><b>🧠 مسار المراجعة الذكي</b><p class="sub" style="line-height:1.8;margin:8px 0 0">يجمع الأسئلة اللي أخطأت بها (اختبارات، مساعد ذكي، امتحان ورقي) ويعيدها لك بتوقيت ذكي: بعد يوم، 3 أيام، أسبوع...</p></div>';
+  h+='<div class="stats" style="margin-bottom:12px"><div class="st"><b>'+ar(due.length)+'</b><span>مستحق اليوم</span></div><div class="st"><b>'+ar(later.length)+'</b><span>مجدول لاحقاً</span></div><div class="st"><b>'+ar(S.review.length)+'</b><span>كل الأخطاء</span></div></div>';
+  if(!S.review.length){
+    h+='<div class="card">ماكو أخطاء محفوظة بعد. حل اختبار أو امتحان ورقي أو جلسة مع المساعد الذكي، والأخطاء تنضاف هنا تلقائياً.</div>';
+    b.innerHTML=h;return;
+  }
+  if(due.length){
+    h+='<div class="card"><b>جاهز للمراجعة الآن</b><p class="sub" style="margin:8px 0 12px">'+ar(due.length)+' سؤال بانتظارك</p><button id="pStart" style="width:100%">ابدأ المراجعة ('+Math.min(10,due.length)+' أسئلة)</button></div>';
+  }else{
+    h+='<div class="card"><b>أحسنت 👍</b><p class="sub" style="line-height:1.8;margin:8px 0 0">ماكو أسئلة مستحقة اليوم. راجع لاحقاً حسب الجدول، أو أعد تدريب كل الأخطاء.</p><button id="pAll" style="width:100%;margin-top:12px">تدريب على كل الأخطاء</button></div>';
+  }
+  if(later.length){
+    h+='<h2 style="margin:16px 0 8px">القادم في الجدول</h2>';
+    h+=later.slice(0,8).map(function(x){
+      var days=Math.max(1,Math.ceil(((x.nextAt||0)-Date.now())/864e5));
+      return '<div class="card" style="margin-bottom:8px"><b>'+esc((x.q||"").slice(0,80))+(x.q&&x.q.length>80?"…":"")+'</b><div class="sub">'+esc(x.subject||"")+' · بعد '+ar(days)+' يوم</div></div>';
+    }).join("");
+  }
+  b.innerHTML=h;
+  if($("#pStart"))$("#pStart").onclick=function(){
+    PATH.list=shuf(due).slice(0,10);PATH.i=0;PATH.ok=0;PATH.done=false;drawPathQ();
+  };
+  if($("#pAll"))$("#pAll").onclick=function(){
+    PATH.list=shuf(S.review.slice()).slice(0,15);PATH.i=0;PATH.ok=0;PATH.done=false;drawPathQ();
+  };
+}
+function drawPathQ(){
+  var b=$("#b-path");
+  if(PATH.i>=PATH.list.length){PATH.done=true;rPath();return}
+  var it=PATH.list[PATH.i],tot=PATH.list.length;
+  b.innerHTML='<div class="sub">مراجعة '+(PATH.i+1)+" من "+tot+'</div><div class="bar2"><i style="width:'+Math.round(PATH.i/tot*100)+'%"></i></div>'+
+    '<div class="card q"><div class="sub" style="margin-bottom:6px">'+esc(it.subject||"")+(it.chapter?" · "+esc(it.chapter):"")+'</div><b style="line-height:1.7">'+esc(it.q)+'</b>'+
+    '<textarea id="pAns" placeholder="اكتب إجابتك هنا..." style="margin-top:12px;min-height:80px"></textarea>'+
+    '<button id="pChk" style="width:100%;margin-top:10px">تحقق</button><div id="pFb"></div></div>';
+  $("#pChk").onclick=function(){
+    var ans=($("#pAns").value||"").trim();
+    var ok=false;
+    if(it.a&&ans){
+      var na=ans.replace(/\s+/g," ").toLowerCase();
+      var ma=String(it.a).replace(/\s+/g," ").toLowerCase();
+      ok=na===ma||ma.indexOf(na)>=0||na.indexOf(ma)>=0||(na.length>6&&ma.split(" ").filter(function(w){return w.length>2&&na.indexOf(w)>=0}).length>=2);
+    }
+    markReviewResult(it.id,ok);
+    if(ok)PATH.ok++;
+    $("#pChk").classList.add("hide");
+    $("#pAns").disabled=true;
+    $("#pFb").innerHTML='<div class="card rs '+(ok?"ok":"bad")+'" style="margin-top:10px"><b>'+(ok?"✅ أحسنت":"❌ راجع الجواب")+'</b>'+(it.a?'<div class="ans" style="margin-top:8px">'+esc(it.a)+"</div>":"")+'</div><button id="pNx" style="width:100%;margin-top:10px">'+(PATH.i>=tot-1?"إنهاء":"التالي")+"</button>";
+    $("#pNx").onclick=function(){PATH.i++;drawPathQ();window.scrollTo(0,0)};
+  };
+}
+
+/* ================= التقرير الأسبوعي ================= */
+function rReport(){
+  ensureStudyData();
+  var b=$("#b-report");
+  var w=weekStats();
+  var h='<div class="card" style="margin-bottom:12px"><b>📊 تقريرك الأسبوعي</b><p class="sub" style="line-height:1.8;margin:8px 0 0">ملخص آخر 7 أيام من الاختبارات والمساعد الذكي والامتحانات الورقية.</p></div>';
+  h+='<div class="stats" style="margin-bottom:12px">'+
+    '<div class="st"><b>'+ar(w.sessions)+'</b><span>جلسة دراسة</span></div>'+
+    '<div class="st"><b>'+(w.avg!=null?ar(w.avg)+"%":"—")+'</b><span>متوسط النجاح</span></div>'+
+    '<div class="st"><b>'+ar(w.due)+'</b><span>مراجعة مستحقة</span></div></div>';
+  h+='<div class="card" style="margin-bottom:12px"><b>توزيع النشاط</b>'+
+    '<div class="sub" style="margin-top:10px;line-height:2">اختبارات: <b>'+ar(w.quiz)+'</b><br>امتحانات ورقية: <b>'+ar(w.paper)+'</b><br>المساعد الذكي: <b>'+ar(w.ai)+'</b><br>أخطاء جديدة هذا الأسبوع: <b>'+ar(w.wrongWeek)+'</b></div></div>';
+  if(w.best||w.worst){
+    h+='<div class="card" style="margin-bottom:12px"><b>المواد</b><div class="sub" style="margin-top:8px;line-height:1.9">';
+    if(w.best)h+='أقوى مادة: <b>'+esc(w.best.subject)+'</b> ('+ar(w.best.avg)+'%)<br>';
+    if(w.worst&&(!w.best||w.worst.subject!==w.best.subject))h+='تحتاج تركيز: <b>'+esc(w.worst.subject)+'</b> ('+ar(w.worst.avg)+'%)<br>';
+    h+='</div></div>';
+  }
+  if(w.subs.length){
+    h+='<div class="card" style="margin-bottom:12px"><b>تفصيل المواد</b>';
+    w.subs.forEach(function(s){
+      h+='<div style="display:flex;justify-content:space-between;margin-top:8px;font-size:14px"><span>'+esc(s.subject)+'</span><span class="sub">'+ar(s.n)+' جلسة'+(s.avg!=null?" · "+ar(s.avg)+"%":"")+"</span></div>";
+    });
+    h+='</div>';
+  }else{
+    h+='<div class="card">بعد ما تحل اختبارات أو امتحانات هذا الأسبوع، يظهر ملخص أدائك هنا.</div>';
+  }
+  h+='<div class="card"><b>💡 توصية</b><p style="line-height:1.8;margin:8px 0 0">';
+  if(w.due>0)h+='عندك <b>'+ar(w.due)+'</b> سؤال بم<fim-middle>سار المراجعة الذكي — ابدأ فيهم اليوم لتشبّت المعلومات.';
+  else if(w.sessions==0)h+='ابدأ بجلسة قصيرة من «امتحاناتي» أو «المساعد الذكي» حتى نبني لك تقريراً واضحاً.';
+  else if(w.worst&&w.worst.avg!=null&&w.worst.avg<60)h+='ركز هالأسبوع على مادة <b>'+esc(w.worst.subject)+'</b> وحل عليها مسار مراجعة.';
+  else h+='مستواك مستقر. حافظ على جلسة يومية قصيرة ومراجعة الأخطاء.';
+  h+='</p><button id="goPath" style="width:100%;margin-top:12px">فتح مسار المراجعة الذكي</button></div>';
+  b.innerHTML=h;
+  $("#goPath").onclick=function(){go("path")};
+}
 
 async function rRes(){
   var b=$("#b-res");
@@ -808,6 +1029,11 @@ function finish(text,skip){
 }
 function endAI(){
   AI.view="end";AI.tok++;var b=$("#b-ai"),n=AI.qs.length,pc=Math.round(AI.ok/n*100);
+  try{
+    var subj=(AI.qs[0]&&AI.qs[0].subject)||"";
+    logActivity("ai",subj,AI.ok,n,"");
+    if(AI.wrong&&AI.wrong.length)addReviewItems(AI.wrong.map(function(q){return{q:q.q,a:q.a,subject:q.subject,chapter:q.chapter}}),"ai");
+  }catch(e){}
   b.innerHTML='<div class="card" style="text-align:center"><div style="font-size:46px">'+(pc>=70?"🎉":pc>=50?"👍":"💪")+'</div><b style="font-size:22px">أجبت صح على '+AI.ok+" من "+n+'</b><div class="sub" style="margin:6px 0 14px">'+pc+"%"+(AI.mid?" · إجابات ناقصة: "+AI.mid:"")+'</div><div class="row">'+(AI.wrong.length?'<button id="aRt">أعد الأسئلة الخاطئة</button>':"")+'<button class="ghost" id="aNw">جلسة جديدة</button></div></div>'+
     (AI.wrong.length?'<h2>للمراجعة</h2>'+AI.wrong.map(function(q){return '<div class="card"><b>'+esc(q.q)+'</b><div class="ans">'+esc(q.a)+"</div></div>"}).join(""):"");
   if($("#aRt"))$("#aRt").onclick=function(){AI.qs=shuf(AI.wrong);AI.i=0;AI.ok=0;AI.mid=0;AI.wrong=[];drawQ()};
