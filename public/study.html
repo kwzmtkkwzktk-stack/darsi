@@ -811,6 +811,49 @@ function rPath(){
     PATH.list=shuf(S.review.slice()).slice(0,15);PATH.i=0;PATH.ok=0;PATH.done=false;drawPathQ();
   };
 }
+function normAr(s){
+  return String(s||"")
+    .replace(/[ًٌٍَُِّْـ]/g,"")
+    .replace(/[أإآٱ]/g,"ا")
+    .replace(/ة/g,"ه")
+    .replace(/ى/g,"ي")
+    .replace(/ؤ/g,"و")
+    .replace(/ئ/g,"ي")
+    .replace(/ء/g,"")
+    .replace(/[^\u0600-\u06FFa-zA-Z0-9\s]/g," ")
+    .replace(/\s+/g," ")
+    .trim()
+    .toLowerCase();
+}
+function tokensAr(s){
+  return normAr(s).split(" ").filter(function(w){
+    return w.length>1 && "من في على الى الي عن مع هذا هذه ذلك تلك التي الذي لان لانه لانها و أو او ما لا لم لن قد كل بعض".split(" ").indexOf(w)<0;
+  });
+}
+function closeAnswer(student, model){
+  if(!student||!model)return false;
+  var a=normAr(student), b=normAr(model);
+  if(!a||!b)return false;
+  if(a===b)return true;
+  if(a.length>=3 && (b.indexOf(a)>=0 || a.indexOf(b)>=0))return true;
+  var ta=tokensAr(student), tb=tokensAr(model);
+  if(!ta.length||!tb.length)return false;
+  // تطابق كلمات مهمة
+  var hit=0;
+  ta.forEach(function(w){if(tb.indexOf(w)>=0)hit++});
+  var ratio=hit/Math.min(ta.length,tb.length);
+  if(ratio>=0.45)return true;
+  // جذور قصيرة مشتركة (3 أحرف+)
+  var rootHit=0;
+  ta.forEach(function(w){
+    if(w.length<3)return;
+    for(var i=0;i<tb.length;i++){
+      if(tb[i].length<3)continue;
+      if(w.indexOf(tb[i].slice(0,3))>=0||tb[i].indexOf(w.slice(0,3))>=0){rootHit++;break}
+    }
+  });
+  return rootHit>=2 || (rootHit>=1 && Math.min(ta.length,tb.length)<=2);
+}
 function drawPathQ(){
   var b=$("#b-path");
   if(PATH.i>=PATH.list.length){PATH.done=true;rPath();return}
@@ -821,17 +864,12 @@ function drawPathQ(){
     '<button id="pChk" style="width:100%;margin-top:10px">تحقق</button><div id="pFb"></div></div>';
   $("#pChk").onclick=function(){
     var ans=($("#pAns").value||"").trim();
-    var ok=false;
-    if(it.a&&ans){
-      var na=ans.replace(/\s+/g," ").toLowerCase();
-      var ma=String(it.a).replace(/\s+/g," ").toLowerCase();
-      ok=na===ma||ma.indexOf(na)>=0||na.indexOf(ma)>=0||(na.length>6&&ma.split(" ").filter(function(w){return w.length>2&&na.indexOf(w)>=0}).length>=2);
-    }
+    var ok=!!(ans && it.a && closeAnswer(ans, it.a));
     markReviewResult(it.id,ok);
     if(ok)PATH.ok++;
     $("#pChk").classList.add("hide");
     $("#pAns").disabled=true;
-    $("#pFb").innerHTML='<div class="card rs '+(ok?"ok":"bad")+'" style="margin-top:10px"><b>'+(ok?"✅ أحسنت":"❌ راجع الجواب")+'</b>'+(it.a?'<div class="ans" style="margin-top:8px">'+esc(it.a)+"</div>":"")+'</div><button id="pNx" style="width:100%;margin-top:10px">'+(PATH.i>=tot-1?"إنهاء":"التالي")+"</button>";
+    $("#pFb").innerHTML='<div class="card rs '+(ok?"ok":"bad")+'" style="margin-top:10px"><b>'+(ok?"✅ أحسنت (مقبول)":"❌ راجع الجواب")+'</b>'+(it.a?'<div class="ans" style="margin-top:8px">'+esc(it.a)+"</div>":"")+'</div><button id="pNx" style="width:100%;margin-top:10px">'+(PATH.i>=tot-1?"إنهاء":"التالي")+"</button>";
     $("#pNx").onclick=function(){PATH.i++;drawPathQ();window.scrollTo(0,0)};
   };
 }
@@ -1156,5 +1194,4 @@ boot();
 <script src="/track.js" defer></script>
 </body>
 </html>
- 
  
