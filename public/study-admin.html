@@ -113,7 +113,7 @@ button.del{background:#fde4e4;color:#b8323a}
 <script>
 var $=function(s){return document.querySelector(s)},esc=function(v){var d=document.createElement("div");d.textContent=v==null?"":v;return d.innerHTML};
 var PASS=sessionStorage.getItem("sp")||"",ST=null,TAB="students",tt=0;
-var TABS=[["students","👥 الطلاب"],["files","📚 الملازم"],["videos","🎬 المحاضرات"],["questions","✏️ الأسئلة"],["paper","📝 امتحانات ورقية"],["stats","📊 التحليلات"],["news","📢 الإعلانات"],["settings","⚙️ الإعدادات"]];
+var TABS=[["students","👥 الطلاب"],["activity","📋 نشاط المنصة"],["files","📚 الملازم"],["videos","🎬 المحاضرات"],["questions","✏️ الأسئلة"],["paper","📝 امتحانات ورقية"],["stats","📊 التحليلات"],["news","📢 الإعلانات"],["settings","⚙️ الإعدادات"]];
 function toast(t,bad){var e=$("#toast");e.textContent=t;e.className=bad?"err":"";e.style.display="block";clearTimeout(tt);tt=setTimeout(function(){e.style.display="none"},4200)}
 async function api(action,body){
   var r=await fetch("/api/study/admin",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(Object.assign({pass:PASS,action:action},body||{}))});
@@ -137,7 +137,7 @@ function tabs(){
   $("#tabs").innerHTML=TABS.map(function(t){return '<button class="chip'+(t[0]===TAB?" on":"")+'" data-t="'+t[0]+'">'+t[1]+"</button>"}).join("");
   $("#tabs").querySelectorAll("button").forEach(function(b){b.onclick=function(){TAB=b.dataset.t;tabs();show(TAB)}});
 }
-function show(t){loading();({students:tStudents,files:tFiles,videos:tVideos,questions:tQuestions,paper:tPaper,stats:tStats,news:tNews,settings:tSettings})[t]().catch(function(e){toast(e.message,1)})}
+function show(t){loading();({students:tStudents,activity:tActivity,files:tFiles,videos:tVideos,questions:tQuestions,paper:tPaper,stats:tStats,news:tNews,settings:tSettings})[t]().catch(function(e){toast(e.message,1)})}
 
 /* ضغط الصور قبل الرفع */
 function shrink(file){
@@ -391,6 +391,81 @@ function drawPaper(){
   };
 }
 
+/* ================= نشاط المنصة ================= */
+var ACTL=[];
+function typeAr(t){return ({quiz:"اختبار",paper:"امتحان ورقي",ai:"مساعد ذكي",study:"دراسة"})[t]||t||"—"}
+function agoAr(ts){
+  if(!ts)return "—";
+  var s=Math.floor((Date.now()-ts)/1000);
+  if(s<60)return "الآن";
+  if(s<3600)return Math.floor(s/60)+" د";
+  if(s<86400)return Math.floor(s/3600)+" س";
+  return Math.floor(s/86400)+" يوم";
+}
+async function tActivity(){
+  ACTL=await api("activity.list");
+  drawActivity();
+}
+function drawActivity(){
+  var h='<div class="card"><b>📋 نشاط الطلاب على المنصة</b><p class="small" style="line-height:1.7;margin:8px 0 0">يظهر اسم الطالب والمحافظة والصف ونتائج الاختبارات والامتحانات التي حلّها.</p>'+
+    '<div class="row" style="margin-top:10px"><button class="ghost" id="actRef">تحديث</button><button class="ghost" id="actClr" style="color:var(--red)">مسح الكل</button></div></div>';
+  if(!ACTL.length){
+    h+='<div class="card">لا يوجد نشاط بعد. يظهر هنا بعد ما الطلاب يملون ملفهم ويحلون اختبارات أو امتحانات ورقية.</div>';
+    $("#pane").innerHTML=h;
+    $("#actRef").onclick=function(){tActivity().catch(function(e){toast(e.message,1)})};
+    $("#actClr").onclick=function(){};
+    return;
+  }
+  h+=ACTL.map(function(r,i){
+    var last=r.sessions&&r.sessions.length?r.sessions[r.sessions.length-1]:null;
+    return '<div class="card" style="margin-bottom:10px">'+
+      '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">'+
+        '<div><b>'+esc(r.name||"بدون اسم")+'</b>'+
+        '<div class="sub">'+esc(r.grade||"—")+' · '+esc(r.province||"—")+'</div>'+
+        '<div class="sub">جلسات: '+ar(r.sessionCount||0)+(last?' · آخر: '+typeAr(last.type)+' '+(last.subject||'')+' '+(last.percent!=null?last.percent+"%":""):"")+' · '+agoAr(r.updatedAt)+'</div></div>'+
+        '<div class="row" style="flex:0 0 auto"><button class="ghost sm" data-open="'+i+'">التفاصيل</button><button class="ghost sm" data-del="'+esc(r.id)+'">حذف</button></div>'+
+      '</div><div id="actD'+i+'" class="hide" style="margin-top:12px;border-top:1px solid var(--bd);padding-top:10px"></div></div>';
+  }).join("");
+  $("#pane").innerHTML=h;
+  $("#actRef").onclick=function(){tActivity().catch(function(e){toast(e.message,1)})};
+  $("#actClr").onclick=async function(){
+    if(!confirm("مسح كل سجلات النشاط؟"))return;
+    await api("activity.clear");toast("تم المسح");tActivity();
+  };
+  document.querySelectorAll("[data-del]").forEach(function(btn){
+    btn.onclick=async function(){
+      if(!confirm("حذف سجل هذا الطالب؟"))return;
+      await api("activity.delete",{id:btn.dataset.del});toast("تم الحذف");tActivity();
+    };
+  });
+  document.querySelectorAll("[data-open]").forEach(function(btn){
+    btn.onclick=function(){
+      var i=+btn.dataset.open,r=ACTL[i],box=$("#actD"+i);
+      if(!box)return;
+      if(!box.classList.contains("hide")){box.classList.add("hide");btn.textContent="التفاصيل";return}
+      var sessions=(r.sessions||[]).slice().reverse();
+      var html='<b>سجل الجلسات</b>';
+      if(!sessions.length)html+='<p class="sub">لا توجد جلسات بعد.</p>';
+      sessions.forEach(function(s){
+        html+='<div style="margin-top:10px;padding:10px;border-radius:12px;background:rgba(0,0,0,.03)">'+
+          '<b>'+typeAr(s.type)+'</b> · '+esc(s.subject||"—")+
+          '<div class="sub">'+ar(s.score||0)+' من '+ar(s.total||0)+' ('+ar(s.percent||0)+'%) · '+agoAr(s.t)+(s.extra?" · "+esc(s.extra):"")+'</div>';
+        if(s.details&&s.details.length){
+          html+='<div class="sub" style="margin-top:6px;line-height:1.8">';
+          s.details.forEach(function(d){
+            html+=(d.ok?"✅":"❌")+' س'+ar(d.n||0)+': '+esc((d.q||"").slice(0,80))+(d.note?" — "+esc(d.note.slice(0,80)):"")+"<br>";
+          });
+          html+='</div>';
+        }
+        html+='</div>';
+      });
+      box.innerHTML=html;
+      box.classList.remove("hide");
+      btn.textContent="إخفاء";
+    };
+  });
+}
+
 /* ================= التحليلات ================= */
 async function tStats(){
   var r=await fetch("/api/stats",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({pass:PASS})});
@@ -478,4 +553,5 @@ if(PASS)enter();
 </script>
 </body>
 </html>
+ 
  
