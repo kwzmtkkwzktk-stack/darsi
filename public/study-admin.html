@@ -112,6 +112,7 @@ button.del{background:#fde4e4;color:#b8323a}
 
 <script>
 var $=function(s){return document.querySelector(s)},esc=function(v){var d=document.createElement("div");d.textContent=v==null?"":v;return d.innerHTML};
+function ar(n){return String(n==null?"":n).replace(/\d/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[d]})}
 var PASS=sessionStorage.getItem("sp")||"",ST=null,TAB="students",tt=0;
 var TABS=[["students","👥 الطلاب"],["activity","📋 نشاط المنصة"],["files","📚 الملازم"],["videos","🎬 المحاضرات"],["questions","✏️ الأسئلة"],["paper","📝 امتحانات ورقية"],["stats","📊 التحليلات"],["news","📢 الإعلانات"],["settings","⚙️ الإعدادات"]];
 function toast(t,bad){var e=$("#toast");e.textContent=t;e.className=bad?"err":"";e.style.display="block";clearTimeout(tt);tt=setTimeout(function(){e.style.display="none"},4200)}
