@@ -379,6 +379,20 @@ module.exports = function (app, db, express) {
     "activity.clear": async () => {
       await (await col("st_activity")).deleteMany({});
       return { ok: true };
+    },
+    "chat.users": async () =>
+      (await (await col("st_chat_users")).find({}).sort({ createdAt: -1 }).limit(500).toArray()).map((u) => ({
+        username: u.username,
+        display: u.display || u.username,
+        grade: u.grade || "",
+        province: u.province || "",
+        createdAt: u.createdAt || null
+      })),
+    "chat.deleteUser": async (b) => {
+      const username = String(b.username || "").trim().toLowerCase();
+      need(username, "يوزر مطلوب");
+      await (await col("st_chat_users")).deleteOne({ username });
+      return { ok: true };
     }
   };
 
@@ -649,6 +663,118 @@ module.exports = function (app, db, express) {
         summary: String(result.summary || "").slice(0, 400),
         details
       });
+    } catch (e) { fail(res, e); }
+  });
+
+  // ===================== كروب الطلاب =====================
+  function cleanUser(u) {
+    return String(u || "").trim().toLowerCase().replace(/\s+/g, "_").slice(0, 20);
+  }
+  function validUser(u) {
+    return /^[a-z0-9_\u0600-\u06ff]{3,20}$/i.test(u);
+  }
+
+  // تسجيل يوزر فريد لكروب الصف
+  app.post("/api/study/chat/register", async (req, res) => {
+    if (tooMany("chu" + (req.ip || "x"), 20, 600000)) return res.sendStatus(429);
+    try {
+      const b = req.body || {};
+      const username = cleanUser(b.username);
+      const display = S(b.name || b.display, 40) || username;
+      const grade = S(b.grade, 80);
+      const province = S(b.province, 40);
+      const vid = S(b.vid, 64);
+      need(validUser(username), "اليوزر 3–20 حرف/رقم بدون مسافات");
+      need(grade, "اختر الصف");
+
+      const c = await col("st_chat_users");
+      const exists = await c.findOne({ username });
+      if (exists) throw bad("هذا اليوزر مستخدم، اختر يوزر ثاني");
+
+      await c.insertOne({
+        _id: username,
+        username,
+        display,
+        grade,
+        province,
+        vid,
+        createdAt: Date.now()
+      });
+      res.json({ ok: true, username, display, grade });
+    } catch (e) { fail(res, e); }
+  });
+
+  // التحقق من توفر اليوزر
+  app.post("/api/study/chat/check", async (req, res) => {
+    if (tooMany("chk" + (req.ip || "x"), 60, 600000)) return res.sendStatus(429);
+    try {
+      const username = cleanUser(req.body && req.body.username);
+      if (!validUser(username)) return res.json({ ok: false, available: false, error: "يوزر غير صالح" });
+      const exists = await (await col("st_chat_users")).findOne({ username });
+      res.json({ ok: true, available: !exists });
+    } catch (e) { fail(res, e); }
+  });
+
+  // جلب رسائل كروب الصف
+  app.post("/api/study/chat/messages", async (req, res) => {
+    if (tooMany("chm" + (req.ip || "x"), 120, 600000)) return res.sendStatus(429);
+    try {
+      const grade = S(req.body && req.body.grade, 80);
+      const after = Number(req.body && req.body.after) || 0;
+      need(grade, "الصف مطلوب");
+      const q = { grade };
+      if (after) q.t = { $gt: after };
+      const list = await (await col("st_chat_msgs")).find(q).sort({ t: -1 }).limit(80).toArray();
+      list.reverse();
+      res.json({
+        messages: list.map((m) => ({
+          id: String(m._id),
+          user: m.user,
+          display: m.display || m.user,
+          text: m.text,
+          t: m.t
+        }))
+      });
+    } catch (e) { fail(res, e); }
+  });
+
+  // إرسال رسالة لكروب الصف
+  app.post("/api/study/chat/send", async (req, res) => {
+    if (tooMany("chs" + (req.ip || "x"), 40, 600000)) return res.sendStatus(429);
+    try {
+      const b = req.body || {};
+      const username = cleanUser(b.username);
+      const text = S(b.text, 400);
+      need(validUser(username), "يوزر غير صالح");
+      need(text, "اكتب رسالة");
+
+      const user = await (await col("st_chat_users")).findOne({ username });
+      need(user, "سجّل يوزر أولاً");
+      const grade = user.grade;
+
+      const doc = {
+        grade,
+        user: username,
+        display: user.display || username,
+        text,
+        t: Date.now()
+      };
+      const r = await (await col("st_chat_msgs")).insertOne(doc);
+      res.json({
+        ok: true,
+        message: { id: String(r.insertedId), user: doc.user, display: doc.display, text: doc.text, t: doc.t }
+      });
+    } catch (e) { fail(res, e); }
+  });
+
+  // عدد الأعضاء في الصف
+  app.post("/api/study/chat/info", async (req, res) => {
+    if (tooMany("chi" + (req.ip || "x"), 60, 600000)) return res.sendStatus(429);
+    try {
+      const grade = S(req.body && req.body.grade, 80);
+      need(grade, "الصف مطلوب");
+      const members = await (await col("st_chat_users")).countDocuments({ grade });
+      res.json({ grade, members });
     } catch (e) { fail(res, e); }
   });
 
