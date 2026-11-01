@@ -386,6 +386,7 @@ module.exports = function (app, db, express) {
         display: u.display || u.username,
         grade: u.grade || "",
         province: u.province || "",
+        verified: !!u.verified,
         createdAt: u.createdAt || null
       })),
     "chat.deleteUser": async (b) => {
@@ -393,6 +394,13 @@ module.exports = function (app, db, express) {
       need(username, "يوزر مطلوب");
       await (await col("st_chat_users")).deleteOne({ username });
       return { ok: true };
+    },
+    "chat.verify": async (b) => {
+      const username = String(b.username || "").trim().toLowerCase();
+      need(username, "يوزر مطلوب");
+      const verified = b.verified !== false;
+      await (await col("st_chat_users")).updateOne({ username }, { $set: { verified } });
+      return { ok: true, username, verified };
     }
   };
 
@@ -691,6 +699,13 @@ module.exports = function (app, db, express) {
       const exists = await c.findOne({ username });
       if (exists) throw bad("هذا اليوزر مستخدم، اختر يوزر ثاني");
 
+      const verifiedUsers = new Set(
+        String(process.env.CHAT_VERIFIED || "aaa")
+          .split(",")
+          .map((x) => x.trim().toLowerCase())
+          .filter(Boolean)
+      );
+      const verified = verifiedUsers.has(username);
       await c.insertOne({
         _id: username,
         username,
@@ -698,9 +713,10 @@ module.exports = function (app, db, express) {
         grade,
         province,
         vid,
+        verified,
         createdAt: Date.now()
       });
-      res.json({ ok: true, username, display, grade });
+      res.json({ ok: true, username, display, grade, verified });
     } catch (e) { fail(res, e); }
   });
 
@@ -726,13 +742,26 @@ module.exports = function (app, db, express) {
       if (after) q.t = { $gt: after };
       const list = await (await col("st_chat_msgs")).find(q).sort({ t: -1 }).limit(80).toArray();
       list.reverse();
+      const users = await (await col("st_chat_users")).find({
+        username: { $in: [...new Set(list.map((m) => m.user))] }
+      }).toArray();
+      const vmap = {};
+      users.forEach((u) => { vmap[u.username] = !!u.verified; });
+      // حسابات موثّقة من الإعدادات حتى لو السجل قديم
+      const verifiedUsers = new Set(
+        String(process.env.CHAT_VERIFIED || "aaa")
+          .split(",")
+          .map((x) => x.trim().toLowerCase())
+          .filter(Boolean)
+      );
       res.json({
         messages: list.map((m) => ({
           id: String(m._id),
           user: m.user,
           display: m.display || m.user,
           text: m.text,
-          t: m.t
+          t: m.t,
+          verified: !!(vmap[m.user] || verifiedUsers.has(String(m.user || "").toLowerCase()))
         }))
       });
     } catch (e) { fail(res, e); }
@@ -759,11 +788,42 @@ module.exports = function (app, db, express) {
         text,
         t: Date.now()
       };
+      const verifiedUsers = new Set(
+        String(process.env.CHAT_VERIFIED || "aaa")
+          .split(",")
+          .map((x) => x.trim().toLowerCase())
+          .filter(Boolean)
+      );
+      const verified = !!(user.verified || verifiedUsers.has(username));
+      // تحديث توثيق الحساب القديم إن لزم
+      if (verified && !user.verified) {
+        await (await col("st_chat_users")).updateOne({ username }, { $set: { verified: true } });
+      }
       const r = await (await col("st_chat_msgs")).insertOne(doc);
       res.json({
         ok: true,
-        message: { id: String(r.insertedId), user: doc.user, display: doc.display, text: doc.text, t: doc.t }
+        message: { id: String(r.insertedId), user: doc.user, display: doc.display, text: doc.text, t: doc.t, verified }
       });
+    } catch (e) { fail(res, e); }
+  });
+
+  // حذف رسالة (صاحب الرسالة فقط)
+  app.post("/api/study/chat/delete", async (req, res) => {
+    if (tooMany("chd" + (req.ip || "x"), 40, 600000)) return res.sendStatus(429);
+    try {
+      const b = req.body || {};
+      const username = cleanUser(b.username);
+      const id = S(b.id, 40);
+      need(validUser(username), "يوزر غير صالح");
+      need(id, "معرّف الرسالة مطلوب");
+      const { ObjectId } = require("mongodb");
+      if (!ObjectId.isValid(id)) throw bad("معرّف غير صالح");
+      const c = await col("st_chat_msgs");
+      const msg = await c.findOne({ _id: new ObjectId(id) });
+      need(msg, "الرسالة غير موجودة");
+      need(msg.user === username, "تقدر تحذف رسائلك فقط");
+      await c.deleteOne({ _id: new ObjectId(id) });
+      res.json({ ok: true });
     } catch (e) { fail(res, e); }
   });
 
@@ -850,5 +910,4 @@ module.exports = function (app, db, express) {
     try { res.json(await h(req.body || {})); } catch (e) { fail(res, e); }
   });
 };
- 
  
