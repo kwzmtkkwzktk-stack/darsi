@@ -140,7 +140,7 @@ var ar=function(n){return String(n).replace(/\d/g,function(d){return "٠١٢٣٤
 var DAYS=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 var TIPS=["ادرس أصعب مادة وقت ما يكون ذهنك صافي، غالباً الصبح.","قسّم الدرس إلى أجزاء صغيرة وخلّص جزء كل جلسة.","جرّب تشرح الدرس بصوت عالي كأنك تعلّم أحد، هذا يثبّت المعلومة.","سوّ أسئلة وزارية سنوات سابقة، هي أفضل تدريب للامتحان.","نام كافي، الدماغ يرتب المعلومات وانت نايم.","ابتعد عن الموبايل أثناء الجلسة، خلّه بغرفة ثانية.","راجع كل درس بعد يوم، وبعد أسبوع، وبعد شهر."];
 var S;try{S=JSON.parse(localStorage.getItem("st2"))||{}}catch(e){S={}}
-S.notes=S.notes||[];S.log=S.log||{};S.me=S.me||"";S.grade=S.grade||"";S.name=S.name||"";S.province=S.province||"";S.vid=S.vid||"";
+S.notes=S.notes||[];S.log=S.log||{};S.me=S.me||"";S.grade=S.grade||"";S.name=S.name||"";S.province=S.province||"";S.vid=S.vid||"";S.username=S.username||"";S.chatDisplay=S.chatDisplay||"";
 function save(){try{localStorage.setItem("st2",JSON.stringify(S))}catch(e){}}
 function dayStart(ts){var d=new Date(ts||Date.now());d.setHours(0,0,0,0);return d.getTime()}
 function ensureStudyData(){
@@ -293,9 +293,9 @@ $("#ov").onclick=function(e){if(e.target===this)closeSheet()};
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeSheet()});
 
 IC.robot='<rect x="4" y="8" width="16" height="12" rx="4"/><rect x="11" y="4" width="2" height="4"/><circle cx="12" cy="3.4" r="1.7"/><g fill="#fff"><circle cx="9" cy="13.5" r="1.8"/><circle cx="15" cy="13.5" r="1.8"/></g><rect x="9" y="16.8" width="6" height="1.4" rx=".7" fill="#fff"/>';
-var T=[["ai","المساعد الذكي","robot","rgba(255,255,255,.18)","#fff"],["path","مسار المراجعة الذكي","pen","#f3e8ff","#7c3aed"],["report","التقرير الأسبوعي","chart","#fce7f3","#db2777"],["files","ملازمي","books","#fdf0cf","#e8a31c"],["videos","محاضراتي","video","#ebe5f7","#7a4fd0"],["quiz","امتحاناتي","pen","#fbe1ee","#d6338a"],["paper","الامتحانات الورقية","pen","#e8f5e9","#2e7d32"],["res","نتيجتي","chart","#dff2e4","#2e9e5b"],["notes","ملاحظاتي","note","#e1e9f6","#7c3aed"],["timer","المؤقّت","timer","#ffe6d9","#e8641c"],["calc","حاسبة المعدل","calc","#dcf0f5","#1f9bb0"],["dates","مواعيد الامتحانات","cal","#e8e6fa","#5b4fd0"]];
-var TITLES={ai:"المساعد الذكي",path:"مسار المراجعة الذكي",report:"التقرير الأسبوعي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
-var R={home:rHome,ai:rAI,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
+var T=[["ai","المساعد الذكي","robot","rgba(255,255,255,.18)","#fff"],["group","كروب الطلاب","note","#ede9fe","#6d28d9"],["path","مسار المراجعة الذكي","pen","#f3e8ff","#7c3aed"],["report","التقرير الأسبوعي","chart","#fce7f3","#db2777"],["files","ملازمي","books","#fdf0cf","#e8a31c"],["videos","محاضراتي","video","#ebe5f7","#7a4fd0"],["quiz","امتحاناتي","pen","#fbe1ee","#d6338a"],["paper","الامتحانات الورقية","pen","#e8f5e9","#2e7d32"],["res","نتيجتي","chart","#dff2e4","#2e9e5b"],["notes","ملاحظاتي","note","#e1e9f6","#7c3aed"],["timer","المؤقّت","timer","#ffe6d9","#e8641c"],["calc","حاسبة المعدل","calc","#dcf0f5","#1f9bb0"],["dates","مواعيد الامتحانات","cal","#e8e6fa","#5b4fd0"]];
+var TITLES={ai:"المساعد الذكي",group:"كروب الطلاب",path:"مسار المراجعة الذكي",report:"التقرير الأسبوعي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
+var R={home:rHome,ai:rAI,group:rGroup,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
 
 function build(){
   var h='<section id="v-home" class="v"><div class="hero-banner"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><a class="site" href="/" style="color:rgba(255,255,255,.9)">→ منصة دليني العراقية</a><h1 id="hi" style="margin-top:6px;font-size:22px">خطتك الذكية ✨</h1><p class="sub" style="margin-top:4px">تعلّم بذكاء وتقدّم بثقة</p></div><select id="grade" aria-label="الصف" style="background:#fff;color:#2a2140;border:0;max-width:48%;border-radius:12px;font-weight:700"></select></div></div><div id="news"></div><div class="grid" id="tiles"></div><h2>إحصائيات سريعة</h2><div class="stats"><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظاتي</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم متبقي</span></div><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div></div><div class="card" style="margin-top:14px"><b>💡 نصيحة اليوم</b><p id="tip" style="line-height:1.7;margin:6px 0 0"></p></div></section>';
@@ -305,7 +305,7 @@ function build(){
   $("#nav").classList.remove("hide");
 }
 function go(id){
-  closeSheet();if(window.aiStop)aiStop();
+  closeSheet();if(window.aiStop)aiStop();if(window.stopGroupPoll)stopGroupPoll();
   document.querySelectorAll(".v").forEach(function(v){v.classList.toggle("hide",v.id!=="v-"+id)});
   document.querySelectorAll("nav button").forEach(function(b){b.classList.toggle("on",b.dataset.go===id)});
   window.scrollTo(0,0);R[id]();
@@ -766,6 +766,102 @@ function drawPaperResult() {
 }
 
 
+
+/* ================= كروب الطلاب ================= */
+var GRP={msgs:[],poll:null,busy:false,lastT:0};
+function stopGroupPoll(){if(GRP.poll){clearInterval(GRP.poll);GRP.poll=null}}
+async function rGroup(){
+  stopGroupPoll();
+  var b=$("#b-group");
+  if(needProfile()){showProfileGate(false);b.innerHTML='<div class="card">أكمل اسمك ومحافظتك وصفك أولاً ثم ارجع لكروب الطلاب.</div>';return}
+  if(!S.username){drawGroupRegister();return}
+  drawGroupChat();
+}
+function drawGroupRegister(){
+  var b=$("#b-group");
+  var grades=Object.keys((INFO&&INFO.grades)||{});
+  b.innerHTML='<div class="card"><b>💬 كروب الطلاب</b><p class="sub" style="line-height:1.8;margin:8px 0 0">كل صف له كروب خاص. اختر يوزر خاص فيك (ما يتكرر) وادخل كروب صفّك.</p></div>'+
+    '<div class="card"><label class="lb">اليوزر (خاص فيك)</label>'+
+    '<input id="gu" maxlength="20" placeholder="مثال: ahmed_m أو احمد123" style="width:100%">'+
+    '<p class="sub" style="margin-top:6px">3–20 حرف/رقم، بدون مسافات. لازم يكون مختلف عن باقي الطلاب.</p>'+
+    '<label class="lb">الاسم الظاهر بالكروب</label>'+
+    '<input id="gd" maxlength="30" value="'+esc(S.name||'')+'" style="width:100%">'+
+    '<label class="lb">صف الكروب</label>'+
+    '<select id="gg" style="width:100%">'+grades.map(function(g){return '<option value="'+esc(g)+'"'+(g===S.grade?' selected':'')+'>'+esc(g)+'</option>'}).join('')+'</select>'+
+    '<button id="gReg" style="width:100%;margin-top:14px">إنشاء اليوزر ودخول الكروب</button>'+
+    '<p id="gErr" class="sub" style="color:var(--red);margin-top:8px"></p></div>';
+  $("#gReg").onclick=async function(){
+    var u=($("#gu").value||"").trim().toLowerCase().replace(/\s+/g,"_");
+    var d=($("#gd").value||"").trim()||u;
+    var g=$("#gg").value;
+    $("#gErr").textContent="";
+    if(u.length<3){$("#gErr").textContent="اليوزر قصير";return}
+    $("#gReg").disabled=true;$("#gReg").textContent="جاري التسجيل...";
+    try{
+      var r=await jpost("chat/register",{username:u,name:d,grade:g,province:S.province||"",vid:S.vid||""});
+      S.username=r.username;S.chatDisplay=r.display||d;S.grade=r.grade||g;save();
+      drawGroupChat();
+    }catch(e){
+      $("#gReg").disabled=false;$("#gReg").textContent="إنشاء اليوزر ودخول الكروب";
+      $("#gErr").textContent=(e&&e.message)||"تعذر التسجيل، جرب يوزر ثاني";
+    }
+  };
+}
+async function loadGroupMsgs(){
+  try{
+    var r=await jpost("chat/messages",{grade:S.grade,after:GRP.lastT||0});
+    var list=r.messages||[];
+    if(list.length){
+      if(!GRP.lastT)GRP.msgs=list;
+      else{
+        list.forEach(function(m){
+          if(!GRP.msgs.some(function(x){return x.id===m.id}))GRP.msgs.push(m);
+        });
+      }
+      GRP.lastT=Math.max.apply(null,GRP.msgs.map(function(m){return m.t||0}).concat([GRP.lastT||0]));
+      if(GRP.msgs.length>120)GRP.msgs=GRP.msgs.slice(-120);
+      renderGroupMsgs();
+    }
+  }catch(e){}
+}
+function renderGroupMsgs(){
+  var box=$("#gMsgs");if(!box)return;
+  if(!GRP.msgs.length){box.innerHTML='<div class="sub" style="text-align:center;padding:20px">ماكو رسائل بعد. اكتب أول رسالة 👋</div>';return}
+  box.innerHTML=GRP.msgs.map(function(m){
+    var mine=m.user===S.username;
+    return '<div style="margin-bottom:10px;display:flex;flex-direction:column;align-items:'+(mine?'flex-start':'flex-end')+'">'+
+      '<div style="max-width:85%;background:'+(mine?'var(--grad2)':'var(--card)')+';color:'+(mine?'#fff':'var(--tx)')+';border:1px solid var(--bd);border-radius:16px;padding:10px 12px;line-height:1.7">'+
+      '<div style="font-size:12px;opacity:.85;margin-bottom:4px;font-weight:700">'+esc(m.display||m.user)+(mine?' · أنت':' · @'+esc(m.user))+'</div>'+
+      esc(m.text)+'</div></div>';
+  }).join("");
+  box.scrollTop=box.scrollHeight;
+}
+async function drawGroupChat(){
+  var b=$("#b-group");
+  GRP.msgs=[];GRP.lastT=0;
+  var members="—";
+  try{var inf=await jpost("chat/info",{grade:S.grade});members=ar(inf.members||0)}catch(e){}
+  b.innerHTML='<div class="card" style="margin-bottom:10px"><b>كروب: '+esc(S.grade)+'</b>'+
+    '<div class="sub">يوزرك: @'+esc(S.username)+' · أعضاء تقريباً: '+members+'</div>'+
+    '<p class="sub" style="margin-top:6px;line-height:1.7">هذا الكروب لطلاب نفس الصف فقط. احترم الآخرين.</p></div>'+
+    '<div id="gMsgs" class="card" style="height:380px;overflow:auto;margin-bottom:10px"></div>'+
+    '<div class="card"><textarea id="gTx" placeholder="اكتب رسالة لطلاب صفّك..." style="min-height:70px"></textarea>'+
+    '<button id="gSend" style="width:100%;margin-top:8px">إرسال</button></div>';
+  await loadGroupMsgs();
+  renderGroupMsgs();
+  stopGroupPoll();
+  GRP.poll=setInterval(function(){if(document.getElementById("gMsgs"))loadGroupMsgs();else stopGroupPoll()},8000);
+  $("#gSend").onclick=async function(){
+    var t=($("#gTx").value||"").trim();if(!t||GRP.busy)return;
+    GRP.busy=true;$("#gSend").disabled=true;
+    try{
+      var r=await jpost("chat/send",{username:S.username,text:t});
+      if(r.message){GRP.msgs.push(r.message);GRP.lastT=Math.max(GRP.lastT,r.message.t||0);renderGroupMsgs()}
+      $("#gTx").value="";
+    }catch(e){alert((e&&e.message)||"تعذر الإرسال")}
+    GRP.busy=false;$("#gSend").disabled=false;
+  };
+}
 
 /* ================= مسار المراجعة الذكي ================= */
 var PATH={list:[],i:0,ok:0,done:false};
