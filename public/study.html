@@ -140,7 +140,7 @@ var ar=function(n){return String(n).replace(/\d/g,function(d){return "٠١٢٣٤
 var DAYS=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 var TIPS=["ادرس أصعب مادة وقت ما يكون ذهنك صافي، غالباً الصبح.","قسّم الدرس إلى أجزاء صغيرة وخلّص جزء كل جلسة.","جرّب تشرح الدرس بصوت عالي كأنك تعلّم أحد، هذا يثبّت المعلومة.","سوّ أسئلة وزارية سنوات سابقة، هي أفضل تدريب للامتحان.","نام كافي، الدماغ يرتب المعلومات وانت نايم.","ابتعد عن الموبايل أثناء الجلسة، خلّه بغرفة ثانية.","راجع كل درس بعد يوم، وبعد أسبوع، وبعد شهر."];
 var S;try{S=JSON.parse(localStorage.getItem("st2"))||{}}catch(e){S={}}
-S.notes=S.notes||[];S.log=S.log||{};S.me=S.me||"";S.grade=S.grade||"";S.name=S.name||"";S.province=S.province||"";S.vid=S.vid||"";S.username=S.username||"";S.chatDisplay=S.chatDisplay||"";
+S.notes=S.notes||[];S.log=S.log||{};S.me=S.me||"";S.grade=S.grade||"";S.name=S.name||"";S.province=S.province||"";S.vid=S.vid||"";S.username=S.username||"";S.chatDisplay=S.chatDisplay||"";S.muted=Array.isArray(S.muted)?S.muted:[];S.verified=!!S.verified;
 function save(){try{localStorage.setItem("st2",JSON.stringify(S))}catch(e){}}
 function dayStart(ts){var d=new Date(ts||Date.now());d.setHours(0,0,0,0);return d.getTime()}
 function ensureStudyData(){
@@ -799,7 +799,7 @@ function drawGroupRegister(){
     $("#gReg").disabled=true;$("#gReg").textContent="جاري التسجيل...";
     try{
       var r=await jpost("chat/register",{username:u,name:d,grade:g,province:S.province||"",vid:S.vid||""});
-      S.username=r.username;S.chatDisplay=r.display||d;S.grade=r.grade||g;save();
+      S.username=r.username;S.chatDisplay=r.display||d;S.grade=r.grade||g;S.verified=!!r.verified||r.username==="aaa";save();
       drawGroupChat();
     }catch(e){
       $("#gReg").disabled=false;$("#gReg").textContent="إنشاء اليوزر ودخول الكروب";
@@ -824,16 +824,47 @@ async function loadGroupMsgs(){
     }
   }catch(e){}
 }
+function isMuted(u){return (S.muted||[]).indexOf(String(u||"").toLowerCase())>=0}
+function toggleMute(u){
+  u=String(u||"").toLowerCase();
+  if(!u||u===S.username)return;
+  S.muted=S.muted||[];
+  var i=S.muted.indexOf(u);
+  if(i>=0)S.muted.splice(i,1);else S.muted.push(u);
+  save();renderGroupMsgs();
+}
+function verifiedBadge(on, light){
+  if(!on)return "";
+  return ' <span title="حساب موثّق" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#1d9bf0;color:#fff;font-size:10px;font-weight:900;vertical-align:middle;line-height:16px">✓</span>';
+}
 function renderGroupMsgs(){
   var box=$("#gMsgs");if(!box)return;
-  if(!GRP.msgs.length){box.innerHTML='<div class="sub" style="text-align:center;padding:20px">ماكو رسائل بعد. اكتب أول رسالة 👋</div>';return}
-  box.innerHTML=GRP.msgs.map(function(m){
+  var list=GRP.msgs.filter(function(m){return !isMuted(m.user)});
+  if(!list.length){box.innerHTML='<div class="sub" style="text-align:center;padding:20px">'+(GRP.msgs.length?"كل الرسائل من أشخاص مكتومين.":"ماكو رسائل بعد. اكتب أول رسالة 👋")+'</div>';return}
+  box.innerHTML=list.map(function(m){
     var mine=m.user===S.username;
+    var ver=!!(m.verified||(mine&&S.verified)||String(m.user||"").toLowerCase()==="aaa");
+    var actions=mine
+      ?('<button type="button" data-del="'+esc(m.id)+'" style="margin-top:6px;padding:4px 10px;font-size:12px;background:rgba(0,0,0,.15);color:inherit;border-radius:8px;box-shadow:none">حذف</button>')
+      :('<button type="button" data-mute="'+esc(m.user)+'" style="margin-top:6px;padding:4px 10px;font-size:12px;background:var(--pri2);color:var(--pri);border-radius:8px;box-shadow:none">'+(isMuted(m.user)?"إلغاء الكتم":"كتم")+"</button>");
     return '<div style="margin-bottom:10px;display:flex;flex-direction:column;align-items:'+(mine?'flex-start':'flex-end')+'">'+
       '<div style="max-width:85%;background:'+(mine?'var(--grad2)':'var(--card)')+';color:'+(mine?'#fff':'var(--tx)')+';border:1px solid var(--bd);border-radius:16px;padding:10px 12px;line-height:1.7">'+
-      '<div style="font-size:12px;opacity:.85;margin-bottom:4px;font-weight:700">'+esc(m.display||m.user)+(mine?' · أنت':' · @'+esc(m.user))+'</div>'+
-      esc(m.text)+'</div></div>';
+      '<div style="font-size:12px;opacity:.9;margin-bottom:4px;font-weight:700">'+esc(m.display||m.user)+verifiedBadge(ver)+(mine?' · أنت':' · @'+esc(m.user))+'</div>'+
+      esc(m.text)+actions+'</div></div>';
   }).join("");
+  box.querySelectorAll("[data-del]").forEach(function(btn){
+    btn.onclick=async function(){
+      if(!confirm("حذف الرسالة؟"))return;
+      try{
+        await jpost("chat/delete",{username:S.username,id:btn.dataset.del});
+        GRP.msgs=GRP.msgs.filter(function(m){return m.id!==btn.dataset.del});
+        renderGroupMsgs();
+      }catch(e){alert((e&&e.message)||"تعذر الحذف")}
+    };
+  });
+  box.querySelectorAll("[data-mute]").forEach(function(btn){
+    btn.onclick=function(){toggleMute(btn.dataset.mute)};
+  });
   box.scrollTop=box.scrollHeight;
 }
 async function drawGroupChat(){
@@ -841,14 +872,19 @@ async function drawGroupChat(){
   GRP.msgs=[];GRP.lastT=0;
   var members="—";
   try{var inf=await jpost("chat/info",{grade:S.grade});members=ar(inf.members||0)}catch(e){}
+  if(S.username==="aaa")S.verified=true;
+  var muteN=(S.muted||[]).length;
   b.innerHTML='<div class="card" style="margin-bottom:10px"><b>كروب: '+esc(S.grade)+'</b>'+
-    '<div class="sub">يوزرك: @'+esc(S.username)+' · أعضاء تقريباً: '+members+'</div>'+
-    '<p class="sub" style="margin-top:6px;line-height:1.7">هذا الكروب لطلاب نفس الصف فقط. احترم الآخرين.</p></div>'+
+    '<div class="sub">يوزرك: @'+esc(S.username)+(S.verified||S.username==="aaa"?verifiedBadge(true):"")+' · أعضاء تقريباً: '+members+(muteN?' · مكتومين: '+ar(muteN):"")+'</div>'+
+    '<p class="sub" style="margin-top:6px;line-height:1.7">تقدر تحذف رسائلك وتكتم أي طالب. الحسابات الموثّقة عليها علامة زرقاء.</p>'+
+    (muteN?'<button class="ghost sm" id="gUnmuteAll" style="margin-top:8px">إلغاء كتم الجميع</button>':'')+
+    '</div>'+
     '<div id="gMsgs" class="card" style="height:380px;overflow:auto;margin-bottom:10px"></div>'+
     '<div class="card"><textarea id="gTx" placeholder="اكتب رسالة لطلاب صفّك..." style="min-height:70px"></textarea>'+
     '<button id="gSend" style="width:100%;margin-top:8px">إرسال</button></div>';
   await loadGroupMsgs();
   renderGroupMsgs();
+  if($("#gUnmuteAll"))$("#gUnmuteAll").onclick=function(){S.muted=[];save();renderGroupMsgs();drawGroupChat()};
   stopGroupPoll();
   GRP.poll=setInterval(function(){if(document.getElementById("gMsgs"))loadGroupMsgs();else stopGroupPoll()},8000);
   $("#gSend").onclick=async function(){
