@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>منصة دليني العراقية | منصتك الدراسية</title>
+<script src="/challenges-data.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
 <style>
 
@@ -151,7 +152,7 @@ var ar=function(n){return String(n).replace(/\d/g,function(d){return "٠١٢٣٤
 var DAYS=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 var TIPS=["ادرس أصعب مادة وقت ما يكون ذهنك صافي، غالباً الصبح.","قسّم الدرس إلى أجزاء صغيرة وخلّص جزء كل جلسة.","جرّب تشرح الدرس بصوت عالي كأنك تعلّم أحد، هذا يثبّت المعلومة.","سوّ أسئلة وزارية سنوات سابقة، هي أفضل تدريب للامتحان.","نام كافي، الدماغ يرتب المعلومات وانت نايم.","ابتعد عن الموبايل أثناء الجلسة، خلّه بغرفة ثانية.","راجع كل درس بعد يوم، وبعد أسبوع، وبعد شهر."];
 var S;try{S=JSON.parse(localStorage.getItem("st2"))||{}}catch(e){S={}}
-S.notes=S.notes||[];S.log=S.log||{};S.me=S.me||"";S.grade=S.grade||"";S.name=S.name||"";S.province=S.province||"";S.vid=S.vid||"";S.username=S.username||"";S.chatDisplay=S.chatDisplay||"";S.muted=Array.isArray(S.muted)?S.muted:[];S.verified=!!S.verified;
+S.notes=S.notes||[];S.log=S.log||{};S.me=S.me||"";S.grade=S.grade||"";S.name=S.name||"";S.province=S.province||"";S.vid=S.vid||"";S.username=S.username||"";S.chatDisplay=S.chatDisplay||"";S.muted=Array.isArray(S.muted)?S.muted:[];S.verified=!!S.verified;S.points=Number(S.points)||0;
 function save(){try{localStorage.setItem("st2",JSON.stringify(S))}catch(e){}}
 function dayStart(ts){var d=new Date(ts||Date.now());d.setHours(0,0,0,0);return d.getTime()}
 function ensureStudyData(){
@@ -304,9 +305,9 @@ $("#ov").onclick=function(e){if(e.target===this)closeSheet()};
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeSheet()});
 
 IC.robot='<rect x="4" y="8" width="16" height="12" rx="4"/><rect x="11" y="4" width="2" height="4"/><circle cx="12" cy="3.4" r="1.7"/><g fill="#fff"><circle cx="9" cy="13.5" r="1.8"/><circle cx="15" cy="13.5" r="1.8"/></g><rect x="9" y="16.8" width="6" height="1.4" rx=".7" fill="#fff"/>';
-var T=[["ai","المساعد الذكي","robot","rgba(255,255,255,.18)","#fff"],["path","مسار المراجعة الذكي","pen","#f3e8ff","#7c3aed"],["report","التقرير الأسبوعي","chart","#fce7f3","#db2777"],["files","ملازمي","books","#fdf0cf","#e8a31c"],["videos","محاضراتي","video","#ebe5f7","#7a4fd0"],["quiz","امتحاناتي","pen","#fbe1ee","#d6338a"],["paper","الامتحانات الورقية","pen","#e8f5e9","#2e7d32"],["res","نتيجتي","chart","#dff2e4","#2e9e5b"],["notes","ملاحظاتي","note","#e1e9f6","#7c3aed"],["timer","المؤقّت","timer","#ffe6d9","#e8641c"],["calc","حاسبة المعدل","calc","#dcf0f5","#1f9bb0"],["dates","مواعيد الامتحانات","cal","#e8e6fa","#5b4fd0"]];
-var TITLES={ai:"المساعد الذكي",path:"مسار المراجعة الذكي",report:"التقرير الأسبوعي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
-var R={home:rHome,ai:rAI,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
+var T=[["ai","المساعد الذكي","robot","rgba(255,255,255,.18)","#fff"],["challenge","تحدياتي","chart","#fff7ed","#ea580c"],["path","مسار المراجعة الذكي","pen","#f3e8ff","#7c3aed"],["report","التقرير الأسبوعي","chart","#fce7f3","#db2777"],["files","ملازمي","books","#fdf0cf","#e8a31c"],["videos","محاضراتي","video","#ebe5f7","#7a4fd0"],["quiz","امتحاناتي","pen","#fbe1ee","#d6338a"],["paper","الامتحانات الورقية","pen","#e8f5e9","#2e7d32"],["res","نتيجتي","chart","#dff2e4","#2e9e5b"],["notes","ملاحظاتي","note","#e1e9f6","#7c3aed"],["timer","المؤقّت","timer","#ffe6d9","#e8641c"],["calc","حاسبة المعدل","calc","#dcf0f5","#1f9bb0"],["dates","مواعيد الامتحانات","cal","#e8e6fa","#5b4fd0"]];
+var TITLES={ai:"المساعد الذكي",challenge:"تحدياتي",path:"مسار المراجعة الذكي",report:"التقرير الأسبوعي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
+var R={home:rHome,ai:rAI,challenge:rChallenge,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
 
 function build(){
   var h='<section id="v-home" class="v"><div class="hero-banner"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><a class="site" href="/" style="color:rgba(255,255,255,.9)">→ منصة دليني العراقية</a><h1 id="hi" style="margin-top:6px;font-size:22px">خطتك الذكية ✨</h1><p class="sub" style="margin-top:4px">تعلّم بذكاء وتقدّم بثقة</p></div><select id="grade" aria-label="الصف" style="background:#fff;color:#2a2140;border:0;max-width:48%;border-radius:12px;font-weight:700"></select></div></div><div id="news"></div><div class="grid" id="tiles"></div><h2>إحصائيات سريعة</h2><div class="stats"><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظاتي</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم متبقي</span></div><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div></div><div class="card" style="margin-top:14px"><b>💡 نصيحة اليوم</b><p id="tip" style="line-height:1.7;margin:6px 0 0"></p></div></section>';
@@ -920,6 +921,91 @@ async function drawGroupChat(){
     }catch(e){alert((e&&e.message)||"تعذر الإرسال")}
     GRP.busy=false;$("#gSend").disabled=false;
   };
+}
+
+/* ================= تحدياتي ================= */
+var CHAL={cat:null,list:[],i:0,sc:0,done:false};
+function shuffleA(a){var x=a.slice();for(var i=x.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=x[i];x[i]=x[j];x[j]=t}return x}
+function bankByCat(cat){
+  var all=window.CHALLENGE_BANK||[];
+  var list=all.filter(function(x){return x.cat===cat});
+  return shuffleA(list).slice(0,10);
+}
+async function rChallenge(){
+  if(needProfile()){showProfileGate(false);$("#b-challenge").innerHTML='<div class="card">أكمل ملفك (الاسم والمحافظة والصف) أولاً للمشاركة في التحديات ولوحة المتصدرين.</div>';return}
+  if(CHAL.cat&&CHAL.list.length&&!CHAL.done) return drawChalQ();
+  drawChalHome();
+}
+async function drawChalHome(){
+  var b=$("#b-challenge");
+  var cats=["علمي","رياضي","ترفيهي","تاريخي"];
+  var leaders="";
+  try{
+    var r=await jget("challenge/leaders");
+    var L=r.leaders||[];
+    if(L.length){
+      leaders='<div class="card"><b>🏆 لوحة المتصدرين</b><div class="sub" style="margin:6px 0 10px">أعلى النقاط في المنصة</div>';
+      leaders+=L.slice(0,15).map(function(x){
+        return '<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--bd)"><div><b>'+ar(x.rank)+'. '+esc(x.name)+'</b><div class="sub">'+esc(x.grade||"—")+'</div></div><b style="color:var(--pri)">'+ar(x.points)+' نقطة</b></div>';
+      }).join("")+'</div>';
+    }else leaders='<div class="card sub">لوحة المتصدرين فارغة بعد — كن أول من يتصدر!</div>';
+  }catch(e){leaders='<div class="card sub">تعذر تحميل المتصدرين حالياً.</div>'}
+  b.innerHTML='<div class="card"><b>⚡ تحدياتي</b><p class="sub" style="line-height:1.8;margin:8px 0 0">اختر فئة، جاوب 10 أسئلة، واجمع النقاط. كل إجابة صحيحة = 10 نقاط.</p><div class="sub" style="margin-top:8px">نقاطك الحالية: <b style="color:var(--pri)">'+ar(S.points||0)+'</b></div></div>'+
+    '<div class="card"><b>اختر الفئة</b>'+cats.map(function(c){return '<button class="opt" data-c="'+esc(c)+'"><span>'+esc(c)+'</span><span class="sub">10 أسئلة</span></button>'}).join("")+'</div>'+leaders;
+  b.querySelectorAll("[data-c]").forEach(function(btn){
+    btn.onclick=function(){
+      CHAL.cat=btn.dataset.c;
+      CHAL.list=bankByCat(CHAL.cat);
+      if(!CHAL.list.length){alert("ماكو أسئلة بهذه الفئة حالياً");return}
+      CHAL.i=0;CHAL.sc=0;CHAL.done=false;
+      drawChalQ();
+    };
+  });
+}
+function drawChalQ(){
+  var b=$("#b-challenge");
+  var q=CHAL.list[CHAL.i];
+  if(!q){return drawChalEnd()}
+  var choices=shuffleA([[q.a,1]].concat((q.o||[]).map(function(o){return[o,0]})));
+  b.innerHTML='<div class="sub" style="margin-bottom:6px">'+esc(CHAL.cat)+' · السؤال '+(CHAL.i+1)+' من '+CHAL.list.length+'</div>'+
+    '<div class="bar2"><i style="width:'+Math.round(CHAL.i/CHAL.list.length*100)+'%"></i></div>'+
+    '<div class="card q"><b>'+esc(q.q)+'</b>'+choices.map(function(c){return '<button class="ch" data-ok="'+c[1]+'">'+esc(c[0])+'</button>'}).join('')+'<div class="msg"></div></div>'+
+    '<button id="cnx" class="hide" style="width:100%;margin-top:8px">'+(CHAL.i===CHAL.list.length-1?"عرض النتيجة":"التالي")+'</button>';
+  var locked=false;
+  b.querySelectorAll(".ch").forEach(function(btn){
+    btn.onclick=function(){
+      if(locked)return;locked=true;
+      var ok=btn.dataset.ok==="1";
+      b.querySelectorAll(".ch").forEach(function(x){x.disabled=true;if(x.dataset.ok==="1")x.classList.add("good")});
+      if(ok){btn.classList.add("good");CHAL.sc++;b.querySelector(".msg").textContent="إجابة صحيحة ✓";}
+      else{btn.classList.add("bad");b.querySelector(".msg").textContent="خطأ — الصحيحة: "+q.a}
+      $("#cnx").classList.remove("hide");
+    };
+  });
+  $("#cnx").onclick=function(){
+    CHAL.i++;
+    if(CHAL.i>=CHAL.list.length)drawChalEnd();
+    else drawChalQ();
+  };
+}
+async function drawChalEnd(){
+  CHAL.done=true;
+  var gained=CHAL.sc*10;
+  S.points=(Number(S.points)||0)+gained;
+  save();
+  try{
+    var r=await jpost("challenge/score",{vid:S.vid||"",name:S.name||"",grade:S.grade||"",add:gained});
+    if(r&&typeof r.points==="number"){S.points=r.points;save()}
+  }catch(e){}
+  try{logActivity("challenge",CHAL.cat,CHAL.sc,CHAL.list.length,"")}catch(e){}
+  var b=$("#b-challenge");
+  b.innerHTML='<div class="card" style="text-align:center"><b style="font-size:20px">انتهى التحدي 🎯</b>'+
+    '<p style="margin:12px 0;line-height:1.8">أجبت '+ar(CHAL.sc)+' من '+ar(CHAL.list.length)+' بشكل صحيح</p>'+
+    '<p class="sub">حصلت على <b style="color:var(--pri)">'+ar(gained)+'</b> نقطة · مجموعك: <b>'+ar(S.points)+'</b></p>'+
+    '<button id="cAgain" style="width:100%;margin-top:12px">تحدي جديد</button>'+
+    '<button class="ghost" id="cBoard" style="width:100%;margin-top:8px">لوحة المتصدرين</button></div>';
+  $("#cAgain").onclick=function(){CHAL.cat=null;CHAL.list=[];CHAL.done=false;drawChalHome()};
+  $("#cBoard").onclick=function(){CHAL.cat=null;CHAL.list=[];CHAL.done=false;drawChalHome()};
 }
 
 /* ================= مسار المراجعة الذكي ================= */
