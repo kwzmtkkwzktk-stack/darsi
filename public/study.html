@@ -102,6 +102,12 @@ a.btn.g{background:var(--pri2);color:var(--pri)}
 @keyframes pl{50%{transform:scale(1.1)}}
 .rs.ok{border-color:#2e9e5b;background:rgba(46,158,91,.12)}.rs.mid{border-color:#e8a31c;background:rgba(232,163,28,.14)}.rs.bad{border-color:#d64545;background:rgba(214,69,69,.1)}
 .ans{padding:8px 10px;border-radius:10px;background:var(--card);margin:4px 0 8px;line-height:1.9}
+.pq{margin:0 0 12px;padding:14px;border-radius:16px;background:rgba(255,255,255,.95);border:1px solid var(--bd);box-shadow:0 4px 14px rgba(42,33,64,.06)}
+.pq .n{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:10px;background:var(--grad2);color:#fff;font-size:13px;font-weight:800;margin-left:8px}
+.pq .qt{display:inline;font-weight:700;font-size:15px;line-height:1.85;overflow-wrap:anywhere;word-break:break-word;color:var(--tx)}
+#b-paper{overflow:visible;max-width:100%}
+#b-paper .card{overflow:visible}
+
 mark{background:#ffe08a;color:#1c1c1c;border-radius:4px;padding:0 3px}
 </style>
 </head>
@@ -563,14 +569,24 @@ function drawPaperPick() {
 function drawPaperExam() {
   PAPER.busy = false;
   var b = $("#b-paper");
-  var qs = PAPER.questions;
+  var qs = (PAPER.questions || []).map(function(q){
+    if(q && typeof q === "object") return String(q.q || q.text || "").trim();
+    return String(q || "").trim();
+  }).filter(Boolean);
+  PAPER.questions = qs;
   var h = '<div class="card" style="margin-bottom:12px"><div class="sub">المادة</div><b style="font-size:18px">' + esc(PAPER.subject) + '</b><div class="sub" style="margin-top:6px">' + ar(qs.length) + ' أسئلة · حلّها على ورقة ثم صوّر إجابتك</div></div>';
 
-  h += '<div class="card" style="margin-bottom:14px"><b>الأسئلة</b><ol style="padding-right:20px;line-height:2;margin:10px 0 0">';
-  qs.forEach(function(q, i) {
-    h += '<li style="margin-bottom:10px">' + esc(q) + '</li>';
-  });
-  h += '</ol></div>';
+  h += '<div class="card" style="margin-bottom:14px"><b style="font-size:17px">📋 الأسئلة</b>';
+  if(!qs.length){
+    h += '<p class="sub" style="margin-top:10px">ماكو أسئلة ظاهرة لهذا الامتحان.</p>';
+  }else{
+    h += '<div style="margin-top:12px">';
+    qs.forEach(function(q, i) {
+      h += '<div class="pq"><span class="n">' + ar(i + 1) + '</span><span class="qt">' + esc(q) + '</span></div>';
+    });
+    h += '</div>';
+  }
+  h += '</div>';
 
   h += '<div class="card"><b>📤 رفع صور الإجابة</b><p class="sub" style="line-height:1.8;margin:8px 0 12px">اضغط «تصوير» أو «من المعرض» لإضافة صورة. كرر العملية لأي عدد من الصور (حتى 5)، وبعدين اضغط تصحيح.</p>';
   h += '<div class="row" style="gap:8px;margin-bottom:10px">';
