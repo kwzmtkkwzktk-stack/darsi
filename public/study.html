@@ -6,6 +6,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>منصة دليني العراقية | منصتك الدراسية</title>
 <script src="/challenges-data.js" defer></script>
+<script src="/physics-game-data.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
 <style>
 
@@ -310,9 +311,9 @@ $("#ov").onclick=function(e){if(e.target===this)closeSheet()};
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeSheet()});
 
 IC.robot='<rect x="4" y="8" width="16" height="12" rx="4"/><rect x="11" y="4" width="2" height="4"/><circle cx="12" cy="3.4" r="1.7"/><g fill="#fff"><circle cx="9" cy="13.5" r="1.8"/><circle cx="15" cy="13.5" r="1.8"/></g><rect x="9" y="16.8" width="6" height="1.4" rx=".7" fill="#fff"/>';
-var T=[["ai","المساعد الذكي","robot","rgba(255,255,255,.18)","#fff"],["challenge","تحدياتي","chart","#fff7ed","#ea580c"],["wheel","عجلة الدوران","calc","#ecfeff","#0891b2"],["path","مسار المراجعة الذكي","pen","#f3e8ff","#7c3aed"],["report","التقرير الأسبوعي","chart","#fce7f3","#db2777"],["files","ملازمي","books","#fdf0cf","#e8a31c"],["videos","محاضراتي","video","#ebe5f7","#7a4fd0"],["quiz","امتحاناتي","pen","#fbe1ee","#d6338a"],["paper","الامتحانات الورقية","pen","#e8f5e9","#2e7d32"],["res","نتيجتي","chart","#dff2e4","#2e9e5b"],["notes","ملاحظاتي","note","#e1e9f6","#7c3aed"],["timer","المؤقّت","timer","#ffe6d9","#e8641c"],["calc","حاسبة المعدل","calc","#dcf0f5","#1f9bb0"],["dates","مواعيد الامتحانات","cal","#e8e6fa","#5b4fd0"]];
-var TITLES={ai:"المساعد الذكي",challenge:"تحدياتي",wheel:"عجلة الدوران",path:"مسار المراجعة الذكي",report:"التقرير الأسبوعي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
-var R={home:rHome,ai:rAI,challenge:rChallenge,wheel:rWheel,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
+var T=[["ai","المساعد الذكي","robot","rgba(255,255,255,.18)","#fff"],["challenge","تحدياتي","chart","#fff7ed","#ea580c"],["wheel","عجلة الدوران","calc","#ecfeff","#0891b2"],["phys","لعبة الفيزياء","robot","#e0f2fe","#0284c8"],["path","مسار المراجعة الذكي","pen","#f3e8ff","#7c3aed"],["report","التقرير الأسبوعي","chart","#fce7f3","#db2777"],["files","ملازمي","books","#fdf0cf","#e8a31c"],["videos","محاضراتي","video","#ebe5f7","#7a4fd0"],["quiz","امتحاناتي","pen","#fbe1ee","#d6338a"],["paper","الامتحانات الورقية","pen","#e8f5e9","#2e7d32"],["res","نتيجتي","chart","#dff2e4","#2e9e5b"],["notes","ملاحظاتي","note","#e1e9f6","#7c3aed"],["timer","المؤقّت","timer","#ffe6d9","#e8641c"],["calc","حاسبة المعدل","calc","#dcf0f5","#1f9bb0"],["dates","مواعيد الامتحانات","cal","#e8e6fa","#5b4fd0"]];
+var TITLES={ai:"المساعد الذكي",challenge:"تحدياتي",wheel:"عجلة الدوران",phys:"لعبة الفيزياء",path:"مسار المراجعة الذكي",report:"التقرير الأسبوعي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
+var R={home:rHome,ai:rAI,challenge:rChallenge,wheel:rWheel,phys:rPhys,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
 
 function build(){
   var h='<section id="v-home" class="v"><div class="hero-banner"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><a class="site" href="/" style="color:rgba(255,255,255,.9)">→ منصة دليني العراقية</a><h1 id="hi" style="margin-top:6px;font-size:22px">خطتك الذكية ✨</h1><p class="sub" style="margin-top:4px">تعلّم بذكاء وتقدّم بثقة</p></div><select id="grade" aria-label="الصف" style="background:#fff;color:#2a2140;border:0;max-width:48%;border-radius:12px;font-weight:700"></select></div></div><div id="news"></div><div class="grid" id="tiles"></div><h2>إحصائيات سريعة</h2><div class="stats"><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظاتي</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم متبقي</span></div><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div></div><div class="card" style="margin-top:14px"><b>💡 نصيحة اليوم</b><p id="tip" style="line-height:1.7;margin:6px 0 0"></p></div></section>';
@@ -322,7 +323,7 @@ function build(){
   $("#nav").classList.remove("hide");
 }
 function go(id){
-  closeSheet();if(window.aiStop)aiStop();if(window.stopGroupPoll)stopGroupPoll();
+  closeSheet();if(window.aiStop)aiStop();if(window.stopGroupPoll)stopGroupPoll();if(window.physStop)physStop();
   document.querySelectorAll(".v").forEach(function(v){v.classList.toggle("hide",v.id!=="v-"+id)});
   document.querySelectorAll("nav button").forEach(function(b){b.classList.toggle("on",b.dataset.go===id)});
   window.scrollTo(0,0);R[id]();
@@ -926,6 +927,104 @@ async function drawGroupChat(){
     }catch(e){alert((e&&e.message)||"تعذر الإرسال")}
     GRP.busy=false;$("#gSend").disabled=false;
   };
+}
+
+/* ================= لعبة الفيزياء ================= */
+var PHYS={mode:null,list:[],i:0,sc:0,t:0,tid:null};
+function physBank(){return shuffleA((window.PHYSICS_BANK||[]).slice())}
+function physStop(){if(PHYS.tid){clearInterval(PHYS.tid);PHYS.tid=null}}
+async function rPhys(){
+  physStop();
+  PHYS.mode=null;PHYS.list=[];PHYS.i=0;PHYS.sc=0;
+  drawPhysHome();
+}
+function drawPhysHome(){
+  var b=$("#b-phys");
+  var n=(window.PHYSICS_BANK||[]).length;
+  b.innerHTML='<div class="card"><b>🎮 لعبة الفيزياء</b><p class="sub" style="line-height:1.8;margin:8px 0 0">العب وتعلّم: سباق أسئلة، صح/خطأ، وتحدي السرعة. بنك الأسئلة: <b>'+ar(n)+'</b></p></div>'+
+    '<button class="opt" id="pm1"><span>⚡ سباق الإجابات</span><span class="sub">10 أسئلة</span></button>'+
+    '<button class="opt" id="pm2"><span>✅ صح أو خطأ</span><span class="sub">10 عبارات</span></button>'+
+    '<button class="opt" id="pm3"><span>⏱️ تحدي 60 ثانية</span><span class="sub">جاوب بأسرع ما يمكن</span></button>';
+  $("#pm1").onclick=function(){startPhys("race")};
+  $("#pm2").onclick=function(){startPhys("tf")};
+  $("#pm3").onclick=function(){startPhys("timed")};
+}
+function startPhys(mode){
+  PHYS.mode=mode;PHYS.i=0;PHYS.sc=0;PHYS.t=mode==="timed"?60:0;
+  var bank=physBank();
+  if(mode==="tf"){
+    PHYS.list=bank.slice(0,10).map(function(x){
+      var truth=Math.random()>0.45;
+      if(truth) return {q:x.q+" — الإجابة: "+x.a, ok:true, a:"صح"};
+      var wrong=(x.o&&x.o[0])||"قيمة أخرى";
+      return {q:x.q+" — الإجابة: "+wrong, ok:false, a:"خطأ"};
+    });
+  }else{
+    PHYS.list=bank.slice(0, mode==="timed"?30:10);
+  }
+  if(!PHYS.list.length){alert("بنك الفيزياء فاضي");return}
+  if(mode==="timed"){
+    physStop();
+    PHYS.tid=setInterval(function(){
+      PHYS.t--;
+      var el=$("#pTime");if(el)el.textContent=ar(PHYS.t);
+      if(PHYS.t<=0){physStop();drawPhysEnd()}
+    },1000);
+  }
+  drawPhysQ();
+}
+function drawPhysQ(){
+  var b=$("#b-phys");
+  if(PHYS.mode==="timed"&&PHYS.t<=0)return drawPhysEnd();
+  if(PHYS.i>=PHYS.list.length)return drawPhysEnd();
+  var x=PHYS.list[PHYS.i];
+  var head='<div class="sub">سؤال '+(PHYS.i+1)+(PHYS.mode==="timed"?' · الوقت: <b id="pTime">'+ar(PHYS.t)+'</b> ث':' من '+PHYS.list.length)+' · نقاط الجولة: '+ar(PHYS.sc)+'</div>';
+  if(PHYS.mode==="tf"){
+    b.innerHTML=head+'<div class="card q"><b>'+esc(x.q)+'</b>'+
+      '<button class="ch" data-v="1">صح</button><button class="ch" data-v="0">خطأ</button><div class="msg"></div></div>';
+    var locked=false;
+    b.querySelectorAll(".ch").forEach(function(btn){
+      btn.onclick=function(){
+        if(locked)return;locked=true;
+        var ans=btn.dataset.v==="1";
+        var ok=ans===x.ok;
+        b.querySelectorAll(".ch").forEach(function(t){t.disabled=true});
+        if(ok){btn.classList.add("good");PHYS.sc++;b.querySelector(".msg").textContent="صح ✓"}
+        else{btn.classList.add("bad");b.querySelector(".msg").textContent="خطأ"}
+        setTimeout(function(){PHYS.i++;drawPhysQ()},550);
+      };
+    });
+    return;
+  }
+  var choices=shuf([[x.a,1]].concat((x.o||[]).map(function(o){return[o,0]})));
+  b.innerHTML=head+'<div class="card q"><b>'+esc(x.q)+'</b>'+choices.map(function(c){return '<button class="ch" data-ok="'+c[1]+'">'+esc(c[0])+'</button>'}).join('')+'<div class="msg"></div></div>';
+  var locked=false;
+  b.querySelectorAll(".ch").forEach(function(btn){
+    btn.onclick=function(){
+      if(locked)return;locked=true;
+      var ok=btn.dataset.ok==="1";
+      b.querySelectorAll(".ch").forEach(function(t){t.disabled=true;if(t.dataset.ok==="1")t.classList.add("good")});
+      if(ok){btn.classList.add("good");PHYS.sc++;b.querySelector(".msg").textContent="أحسنت ✓"}
+      else{btn.classList.add("bad");b.querySelector(".msg").textContent="الصحيحة: "+x.a}
+      setTimeout(function(){PHYS.i++;drawPhysQ()},650);
+    };
+  });
+}
+async function drawPhysEnd(){
+  physStop();
+  var total=PHYS.mode==="timed"?PHYS.i:PHYS.list.length;
+  var gained=PHYS.sc*5;
+  S.points=(Number(S.points)||0)+gained;save();
+  try{await jpost("challenge/score",{vid:S.vid||"",name:S.name||"",grade:S.grade||"",add:gained})}catch(e){}
+  try{logActivity("phys","فيزياء",PHYS.sc,total||PHYS.sc,"")}catch(e){}
+  var b=$("#b-phys");
+  b.innerHTML='<div class="card" style="text-align:center"><b style="font-size:20px">انتهت اللعبة 🎯</b>'+
+    '<p style="margin:12px 0;line-height:1.8">أجبت صح: <b>'+ar(PHYS.sc)+'</b>'+(PHYS.mode!=="timed"?' من '+ar(PHYS.list.length):'')+'</p>'+
+    '<p class="sub">نقاط الجولة: <b style="color:var(--pri)">'+ar(gained)+'</b></p>'+
+    '<button id="pAgain" style="width:100%;margin-top:12px">العب مرة ثانية</button>'+
+    '<button class="ghost" id="pHome" style="width:100%;margin-top:8px">اختر نمط آخر</button></div>';
+  $("#pAgain").onclick=function(){startPhys(PHYS.mode||"race")};
+  $("#pHome").onclick=function(){rPhys()};
 }
 
 /* ================= عجلة الدوران ================= */
