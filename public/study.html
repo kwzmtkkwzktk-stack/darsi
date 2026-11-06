@@ -110,15 +110,38 @@ a.btn.g{background:var(--pri2);color:var(--pri)}
 @keyframes pl{50%{transform:scale(1.1)}}
 .rs.ok{border-color:#2e9e5b;background:rgba(46,158,91,.12)}.rs.mid{border-color:#e8a31c;background:rgba(232,163,28,.14)}.rs.bad{border-color:#d64545;background:rgba(214,69,69,.1)}
 .ans{padding:8px 10px;border-radius:10px;background:var(--card);margin:4px 0 8px;line-height:1.9}
-.law3d-scene{perspective:1000px;margin:12px auto;max-width:320px}
-.law3d-card{position:relative;width:100%;height:220px;transform-style:preserve-3d;transition:transform .7s ease;cursor:pointer}
-.law3d-card.flip{transform:rotateY(180deg)}
-.law3d-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:20px;padding:16px;display:flex;flex-direction:column;justify-content:center;box-shadow:0 12px 30px rgba(124,58,237,.2);border:1px solid var(--bd)}
-.law3d-front{background:linear-gradient(145deg,#7c3aed,#db2777);color:#fff}
-.law3d-back{background:var(--glass);color:var(--tx);transform:rotateY(180deg)}
 .law3d-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.law3d-mini{border-radius:16px;padding:12px;background:var(--glass);border:1px solid var(--bd);text-align:center;cursor:pointer}
+.law3d-mini{border-radius:16px;padding:12px;background:var(--glass);border:1px solid var(--bd);text-align:center;cursor:pointer;transition:.2s}
+.law3d-mini:active{transform:scale(.97)}
 .law3d-mini.on{border-color:var(--pri);box-shadow:0 0 0 2px rgba(124,58,237,.25)}
+/* Alien hologram chamber – embedded inside the existing Laws 3D section */
+#b-law3d .holo-shell{--hc:#68f7ff;--hm:#8ba4ff;position:relative;isolation:isolate;overflow:hidden;padding:14px;border-radius:28px;color:#e8fdff;background:radial-gradient(ellipse at 50% 32%,#123b62 0%,#08192f 42%,#040914 100%);border:1px solid rgba(104,247,255,.35);box-shadow:0 22px 60px rgba(0,0,0,.35),inset 0 0 35px rgba(57,216,255,.08)}
+#b-law3d .holo-shell:before{content:"";position:absolute;inset:0;z-index:-1;opacity:.65;background-image:radial-gradient(2px 2px at 12% 18%,#fff 40%,transparent 70%),radial-gradient(1.5px 1.5px at 78% 22%,#9ff 40%,transparent 70%),radial-gradient(2px 2px at 88% 68%,#fff 40%,transparent 70%),radial-gradient(1px 1px at 32% 76%,#9ff 40%,transparent 70%),radial-gradient(1px 1px at 56% 11%,#fff 40%,transparent 70%),radial-gradient(1px 1px at 21% 54%,#8cf 40%,transparent 70%);background-size:230px 180px}
+.holo-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}.holo-kicker{font:700 10px/1.5 monospace;letter-spacing:1.5px;color:#8befff;text-transform:uppercase}.holo-back{padding:8px 12px;border:1px solid rgba(120,240,255,.28);background:rgba(8,35,56,.75);box-shadow:none;color:#dffcff;border-radius:12px;font-size:13px}
+.holo-title{font-size:18px;font-weight:800;line-height:1.6;margin:0 0 2px;color:#fff}.holo-meta{font-size:12px;color:#9ccbdc;margin-bottom:10px}
+.holo-stage{height:clamp(285px,78vw,410px);max-height:430px;position:relative;overflow:hidden;border-radius:22px;border:1px solid rgba(88,227,255,.25);background:radial-gradient(ellipse at 50% 48%,rgba(25,128,177,.2),transparent 52%),linear-gradient(180deg,rgba(3,15,31,.1),rgba(1,7,18,.7));perspective:1100px;touch-action:pan-y;user-select:none}
+.holo-stage:after{content:"";position:absolute;left:0;right:0;top:0;height:42%;pointer-events:none;background:linear-gradient(180deg,rgba(80,239,255,.08),transparent);animation:holoScan 4s linear infinite}
+.holo-stars{position:absolute;inset:0;background-image:radial-gradient(1px 1px at 20% 24%,#fff 50%,transparent 70%),radial-gradient(2px 2px at 72% 33%,#b7fbff 50%,transparent 70%),radial-gradient(1px 1px at 85% 76%,#fff 50%,transparent 70%),radial-gradient(1px 1px at 36% 82%,#fff 50%,transparent 70%);background-size:170px 150px;opacity:.7}
+.holo-floor{position:absolute;left:-25%;right:-25%;height:48%;bottom:-18%;transform:perspective(280px) rotateX(62deg);transform-origin:top center;background-image:linear-gradient(rgba(70,225,255,.22) 1px,transparent 1px),linear-gradient(90deg,rgba(70,225,255,.18) 1px,transparent 1px);background-size:32px 28px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.95),transparent)}
+.holo-ring{position:absolute;left:50%;top:48%;width:min(74%,300px);height:85px;border:1px solid rgba(98,241,255,.48);border-radius:50%;transform:translate(-50%,-50%) rotateX(68deg) rotateZ(-18deg);box-shadow:0 0 17px rgba(39,217,255,.14),inset 0 0 15px rgba(39,217,255,.12);animation:holoOrbit 12s linear infinite}
+.holo-ring.r2{width:min(90%,355px);height:125px;border-color:rgba(142,152,255,.3);transform:translate(-50%,-50%) rotateX(68deg) rotateZ(48deg);animation-duration:17s;animation-direction:reverse}
+.holo-beam{position:absolute;left:50%;top:51%;width:2px;height:43%;transform:translate(-50%,-50%);background:linear-gradient(transparent,rgba(90,245,255,.6),transparent);filter:blur(2px);opacity:.6}
+.holo-core{position:absolute;left:50%;top:44%;width:88%;min-height:100px;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-50%) rotateX(-12deg) rotateY(-18deg) scale(1);transform-style:preserve-3d;cursor:grab;touch-action:none;outline:none}
+.holo-core:active{cursor:grabbing}
+.holo-formula-wrap{position:relative;max-width:100%;padding:18px 14px;text-align:center;transform:translateZ(35px);transform-style:preserve-3d}
+.holo-formula{position:relative;display:inline-block;max-width:100%;font-family:ui-monospace,Consolas,monospace;font-weight:900;font-size:clamp(22px,6.6vw,43px);line-height:1.35;letter-spacing:.015em;direction:ltr;unicode-bidi:isolate;overflow-wrap:anywhere;color:#e9ffff;text-shadow:0 0 5px #fff,0 0 12px #6df8ff,0 0 28px #00cfff,0 0 55px rgba(0,198,255,.8)}
+.holo-formula .depth{position:absolute;inset:0;color:rgba(53,226,255,.7);pointer-events:none;text-shadow:0 0 10px #00cfff}.holo-formula .d1{transform:translateZ(-4px) translateY(1px);opacity:.8}.holo-formula .d2{transform:translateZ(-8px) translateY(2px);opacity:.6}.holo-formula .d3{transform:translateZ(-12px) translateY(3px);opacity:.42}.holo-formula .d4{transform:translateZ(-16px) translateY(4px);opacity:.25}
+.holo-lawlabel{margin-top:13px;font-size:12px;color:#a6f7ff;text-shadow:0 0 12px #00bde8;letter-spacing:1px}
+.holo-hud{position:absolute;z-index:2;display:flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid rgba(104,247,255,.2);border-radius:10px;background:rgba(2,17,34,.55);backdrop-filter:blur(8px);font:10px monospace;color:#9ef6ff}
+.holo-hud.h1{top:10px;left:10px}.holo-hud.h2{top:10px;right:10px}.holo-hud.h3{bottom:10px;left:10px}.holo-dot{width:6px;height:6px;border-radius:50%;background:#6bffdc;box-shadow:0 0 10px #6bffdc;display:inline-block}
+.holo-hint{position:absolute;bottom:10px;right:10px;color:#8bbacb;font-size:10px;z-index:2}
+.holo-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.holo-controls button{min-width:0;padding:10px 5px;border-radius:13px;font-size:12px;background:linear-gradient(135deg,#0b6b91,#174d81);border:1px solid rgba(104,247,255,.25);color:#e8fdff;box-shadow:0 5px 15px rgba(0,190,255,.12)}.holo-controls button.ghost{background:rgba(7,30,52,.85);color:#9ff4ff}.holo-controls button:active{transform:scale(.97)}
+.holo-zoomrow{display:flex;align-items:center;gap:10px;margin-top:10px;color:#9ccbdc;font-size:12px}.holo-zoomrow input{flex:1;min-width:0;accent-color:#4beaff}
+.holo-info{margin-top:12px;padding:14px;border-radius:16px;border:1px solid rgba(104,247,255,.22);background:rgba(4,25,46,.78);color:#dcfaff;line-height:1.9}.holo-info[hidden]{display:none}.holo-info b{color:#78f5ff}.holo-collect{margin-top:10px;width:100%;background:linear-gradient(120deg,#087eaa,#4c54ba);border:1px solid rgba(140,245,255,.3)}.holo-footnote{text-align:center;color:#6f9bac;font-size:10px;margin-top:10px}
+@keyframes holoOrbit{to{transform:translate(-50%,-50%) rotateX(68deg) rotateZ(342deg)}}
+@keyframes holoScan{0%{transform:translateY(-110%)}100%{transform:translateY(260%)}}
+@media(prefers-reduced-motion:reduce){.holo-ring,.holo-stage:after{animation:none}}
+@media(max-width:360px){.holo-controls{gap:5px}.holo-controls button{font-size:11px;padding:9px 3px}.holo-stage{height:300px}}
 .wheel-box{position:relative;width:min(280px,78vw);height:min(280px,78vw);margin:18px auto}
 .wheel{width:100%;height:100%;border-radius:50%;border:6px solid #7c3aed;background:conic-gradient(#a855f7 0 25%,#ec4899 0 50%,#f59e0b 0 75%,#3b82f6 0 100%);box-shadow:0 10px 30px rgba(124,58,237,.25);transition:transform 4s cubic-bezier(.12,.75,.08,1)}
 .wheel-ptr{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:22px solid #e11d48;z-index:2}
@@ -326,13 +349,14 @@ var TITLES={ai:"المساعد الذكي",challenge:"تحدياتي",wheel:"ع�
 var R={home:rHome,ai:rAI,challenge:rChallenge,wheel:rWheel,phys:rPhys,law3d:rLaw3D,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
 
 function build(){
-  var h='<section id="v-home" class="v"><div class="hero-banner"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><a class="site" href="/" style="color:rgba(255,255,255,.9)">→ منصة دليني العراقية</a><h1 id="hi" style="margin-top:6px;font-size:22px">خطتك الذكية ✨</h1><p class="sub" style="margin-top:4px">تعلّم بذكاء وتقدّم بثقة</p></div><select id="grade" aria-label="الصف" style="background:#fff;color:#2a2140;border:0;max-width:48%;border-radius:12px;font-weight:700"></select></div></div><div id="news"></div><button type="button" data-go="law3d" aria-label="افتح مختبر الفيزياء ثلاثي الأبعاد" style="width:100%;display:flex;align-items:center;gap:14px;text-align:right;margin:12px 0 16px;padding:17px 16px;border:1px solid rgba(34,211,238,.55);border-radius:20px;background:linear-gradient(120deg,#061a2b,#0b4160);color:#e8fbff;box-shadow:0 10px 28px rgba(8,145,178,.2);cursor:pointer;font:inherit"><span style="width:54px;height:54px;flex:0 0 54px;display:grid;place-items:center;border-radius:16px;background:rgba(34,211,238,.16);font-size:30px">⚛️</span><span style="flex:1"><b style="display:block;font-size:17px">مختبر الفيزياء 3D</b><small style="display:block;margin-top:5px;color:#a5f3fc;font-size:12px">اكتشف قوانين السادس العلمي بتقنية الهولوغرام التفاعلية</small></span><span style="font-size:22px;color:#67e8f9">←</span></button><div class="grid" id="tiles"></div><h2>إحصائيات سريعة</h2><div class="stats"><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظاتي</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم متبقي</span></div><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div></div><div class="card" style="margin-top:14px"><b>💡 نصيحة اليوم</b><p id="tip" style="line-height:1.7;margin:6px 0 0"></p></div></section>';
+  var h='<section id="v-home" class="v"><div class="hero-banner"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><a class="site" href="/" style="color:rgba(255,255,255,.9)">→ منصة دليني العراقية</a><h1 id="hi" style="margin-top:6px;font-size:22px">خطتك الذكية ✨</h1><p class="sub" style="margin-top:4px">تعلّم بذكاء وتقدّم بثقة</p></div><select id="grade" aria-label="الصف" style="background:#fff;color:#2a2140;border:0;max-width:48%;border-radius:12px;font-weight:700"></select></div></div><div id="news"></div><div class="grid" id="tiles"></div><h2>إحصائيات سريعة</h2><div class="stats"><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظاتي</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم متبقي</span></div><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div></div><div class="card" style="margin-top:14px"><b>💡 نصيحة اليوم</b><p id="tip" style="line-height:1.7;margin:6px 0 0"></p></div></section>';
   Object.keys(TITLES).forEach(function(k){h+='<section id="v-'+k+'" class="v hide"><div class="bar"><button class="back" data-bk="'+k+'" aria-label="رجوع">→</button><h1 id="t-'+k+'">'+TITLES[k]+'</h1></div><div id="b-'+k+'"></div></section>'});
   $("#app").innerHTML=h;
   document.querySelectorAll("[data-ic]").forEach(function(e){e.innerHTML=ico(e.dataset.ic)});
   $("#nav").classList.remove("hide");
 }
 function go(id){
+  if(id!=="law3d"&&typeof stopLawSpin==="function")stopLawSpin();
   closeSheet();if(window.aiStop)aiStop();if(window.stopGroupPoll)stopGroupPoll();if(window.physStop)physStop();
   document.querySelectorAll(".v").forEach(function(v){v.classList.toggle("hide",v.id!=="v-"+id)});
   document.querySelectorAll("nav button").forEach(function(b){b.classList.toggle("on",b.dataset.go===id)});
@@ -970,7 +994,7 @@ function drawLaw3DHome(){
   var subs=[];
   all.forEach(function(x){if(subs.indexOf(x.subject)<0)subs.push(x.subject)});
   var owned=(S.heroes||[]).length;
-  b.innerHTML='<div class="card"><b>🧊 قوانين 3D</b><p class="sub" style="line-height:1.8;margin:8px 0 0">استعرض قوانين كل مادة وفصل بشكل بطاقة ثلاثية الأبعاد، اجمعها كـ «أبطال»، واعرف وين تُستخدم بالموضوع.</p><div class="sub" style="margin-top:8px">أبطالك: <b style="color:var(--pri)">'+ar(owned)+'</b> / '+ar(all.length)+'</div></div>'+
+  b.innerHTML='<div class="card"><b>🧊 قوانين 3D</b><p class="sub" style="line-height:1.8;margin:8px 0 0">اختر أي قانون وشاهده كمعادلة هولوغرام مضيئة داخل مختبر فضائي. اسحب المعادلة لتدويرها، وكبّرها وصغّرها، وافتح شرحها.</p><div class="sub" style="margin-top:8px">أبطالك: <b style="color:var(--pri)">'+ar(owned)+'</b> / '+ar(all.length)+'</div></div>'+
     '<div class="card"><b>المواد</b>'+subs.map(function(s){
       var n=all.filter(function(x){return x.subject===s}).length;
       var h=all.filter(function(x){return x.subject===s&&heroHas(x.id)}).length;
@@ -1011,36 +1035,45 @@ function drawLaw3DList(){
   });
   $("#lBack2").onclick=function(){drawLaw3DChapters()};
 }
+function stopLawSpin(){if(LAW3D.spin){clearInterval(LAW3D.spin);LAW3D.spin=null}}
 function drawLaw3DCard(id){
+  stopLawSpin();
   var x=lawsAll().filter(function(i){return i.id===id})[0];
   if(!x)return;
   LAW3D.cur=x;
-  var b=$("#b-law3d");
-  var got=heroHas(x.id);
-  b.innerHTML='<div class="law3d-scene"><div class="law3d-card" id="lCard">'+
-    '<div class="law3d-face law3d-front"><div class="sub" style="color:rgba(255,255,255,.85)">'+esc(x.subject)+' · '+esc(x.chapter)+'</div>'+
-    '<b style="font-size:20px;margin:10px 0">'+esc(x.name)+'</b>'+
-    '<div style="font-size:18px;font-weight:800;letter-spacing:.3px;direction:ltr;text-align:center">'+esc(x.formula)+'</div>'+
-    '<div class="sub" style="color:rgba(255,255,255,.9);margin-top:12px">اضغط لقلب البطاقة</div></div>'+
-    '<div class="law3d-face law3d-back"><b>المعنى</b><p style="line-height:1.8;margin:8px 0 12px">'+esc(x.meaning)+'</p>'+
-    '<b>وين يُستخدم؟</b><p style="line-height:1.8;margin:8px 0 0;color:var(--pri)">'+esc(x.where)+'</p></div>'+
-    '</div></div>'+
-    '<button id="lFlip" style="width:100%;margin-top:8px">قلب البطاقة 🔄</button>'+
-    '<button id="lCollect" style="width:100%;margin-top:8px" '+(got?'disabled':'')+'>'+(got?'تم جمعه ضمن أبطالك ⭐':'جمع كبطل')+'</button>'+
-    '<button class="ghost" id="lBack3" style="width:100%;margin-top:8px">رجوع</button>';
-  var card=$("#lCard");
-  function flip(){card.classList.toggle("flip")}
-  $("#lFlip").onclick=flip;
-  card.onclick=flip;
-  $("#lCollect").onclick=function(){
-    if(heroAdd(x.id)){
-      S.points=(Number(S.points)||0)+3;save();
-      try{jpost("challenge/score",{vid:S.vid||"",name:S.name||"",grade:S.grade||"",add:3})}catch(e){}
-      alert("تم جمع البطل: "+x.name);
-      drawLaw3DCard(id);
-    }
-  };
-  $("#lBack3").onclick=function(){drawLaw3DList()};
+  var b=$("#b-law3d"),got=heroHas(x.id);
+  var formula=String(x.formula||"—");
+  b.innerHTML='<div class="holo-shell">'+
+    '<div class="holo-head"><div><div class="holo-kicker">DLEEN // NEURAL PHYSICS LAB</div><div class="holo-title">'+esc(x.name)+'</div><div class="holo-meta">'+esc(x.subject)+' · '+esc(x.chapter)+'</div></div><button class="holo-back" id="lBack3">رجوع ↩</button></div>'+
+    '<div class="holo-stage" id="holoStage" aria-label="عارض هولوغرام ثلاثي الأبعاد للقانون">'+
+      '<div class="holo-stars"></div><div class="holo-floor"></div><div class="holo-ring"></div><div class="holo-ring r2"></div><div class="holo-beam"></div>'+
+      '<div class="holo-hud h1"><i class="holo-dot"></i> HOLOGRAM ONLINE</div><div class="holo-hud h2">3D · LIVE</div><div class="holo-hud h3">FIELD: ACTIVE</div><div class="holo-hint">اسحب المعادلة بإصبعك أو الفأرة ↗</div>'+
+      '<div class="holo-core" id="holoCore" role="img" aria-label="معادلة '+esc(x.name)+' قابلة للتدوير">'+
+        '<div class="holo-formula-wrap"><div class="holo-formula">'+
+          '<span class="depth d1" aria-hidden="true">'+esc(formula)+'</span><span class="depth d2" aria-hidden="true">'+esc(formula)+'</span><span class="depth d3" aria-hidden="true">'+esc(formula)+'</span><span class="depth d4" aria-hidden="true">'+esc(formula)+'</span><span>'+esc(formula)+'</span></div><div class="holo-lawlabel">'+esc(x.name)+' // FORMULA PROJECTION</div></div></div></div>'+
+    '<div class="holo-controls"><button id="holoAuto">⏸ إيقاف الدوران</button><button class="ghost" id="holoReset">⟳ إعادة ضبط</button><button class="ghost" id="holoExplainBtn">✦ شرح القانون</button><button class="ghost" id="holoZoomIn">＋ تكبير</button><button class="ghost" id="holoZoomOut">－ تصغير</button><button class="ghost" id="holoFullscreen">⛶ ملء الشاشة</button></div>'+
+    '<div class="holo-zoomrow"><span>حجم المجسم</span><input id="holoZoom" type="range" min="65" max="170" value="100" aria-label="التحكم بحجم المجسم"><span id="holoZoomVal">١٠٠٪</span></div>'+
+    '<div class="holo-info" id="holoInfo" hidden><b>المعنى:</b><div>'+esc(x.meaning||"لا يتوفر شرح لهذا القانون حالياً.")+'</div><div style="margin-top:8px"><b>أين يُستخدم؟</b><div>'+esc(x.where||"ضمن تطبيقات هذا الفصل.")+'</div></div></div>'+
+    '<button class="holo-collect" id="lCollect" '+(got?'disabled':'')+'>'+(got?'تم جمع القانون ضمن أبطالك ⭐':'⭐ اجمع هذا القانون ضمن أبطالك')+'</button>'+
+    '<div class="holo-footnote">اسحب المعادلة لتغيير زاويتها · استخدم أزرار التحكم للتقريب والتدوير</div></div>';
+  var core=$("#holoCore"),stage=$("#holoStage"),zoomInput=$("#holoZoom"),zoomVal=$("#holoZoomVal"),autoBtn=$("#holoAuto");
+  var rx=-12,ry=-18,zoom=1,drag=false,lastX=0,lastY=0,auto=true;
+  function renderTransform(){core.style.transform='translate(-50%,-50%) rotateX('+rx+'deg) rotateY('+ry+'deg) scale('+zoom+')';zoomInput.value=Math.round(zoom*100);zoomVal.textContent=ar(Math.round(zoom*100))+'٪'}
+  function startSpin(){stopLawSpin();LAW3D.spin=setInterval(function(){if(!drag){ry=(ry+.32)%360;renderTransform()}},35)}
+  function setAuto(on){auto=on;autoBtn.textContent=on?'⏸ إيقاف الدوران':'▶ تدوير تلقائي';if(on)startSpin();else stopLawSpin()}
+  core.addEventListener('pointerdown',function(e){drag=true;lastX=e.clientX;lastY=e.clientY;try{core.setPointerCapture(e.pointerId)}catch(_){}});
+  core.addEventListener('pointermove',function(e){if(!drag)return;var dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;ry+=dx*.72;rx=Math.max(-75,Math.min(75,rx-dy*.58));renderTransform()});
+  function endDrag(){drag=false}core.addEventListener('pointerup',endDrag);core.addEventListener('pointercancel',endDrag);core.addEventListener('lostpointercapture',endDrag);
+  autoBtn.onclick=function(){setAuto(!auto)};
+  $("#holoReset").onclick=function(){rx=-12;ry=-18;zoom=1;renderTransform();setAuto(true)};
+  $("#holoZoomIn").onclick=function(){zoom=Math.min(1.7,zoom+.1);renderTransform()};
+  $("#holoZoomOut").onclick=function(){zoom=Math.max(.65,zoom-.1);renderTransform()};
+  zoomInput.oninput=function(){zoom=Number(this.value)/100;renderTransform()};
+  $("#holoExplainBtn").onclick=function(){var info=$("#holoInfo");info.hidden=!info.hidden;this.textContent=info.hidden?'✦ شرح القانون':'✦ إخفاء الشرح'};
+  $("#holoFullscreen").onclick=function(){if(stage.requestFullscreen){stage.requestFullscreen().catch(function(){})}else{alert('وضع ملء الشاشة غير مدعوم في هذا المتصفح.')}};
+  $("#lCollect").onclick=function(){if(heroAdd(x.id)){S.points=(Number(S.points)||0)+3;save();try{jpost("challenge/score",{vid:S.vid||"",name:S.name||"",grade:S.grade||"",add:3})}catch(e){}alert("تم جمع القانون: "+x.name);drawLaw3DCard(id)}};
+  $("#lBack3").onclick=function(){stopLawSpin();drawLaw3DList()};
+  renderTransform();setAuto(true);
 }
 function drawLaw3DHeroes(){
   var b=$("#b-law3d");
