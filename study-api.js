@@ -838,6 +838,42 @@ module.exports = function (app, db, express) {
     } catch (e) { fail(res, e); }
   });
 
+  // ===================== التحديات ولوحة المتصدرين =====================
+  app.post("/api/study/challenge/score", async (req, res) => {
+    if (tooMany("chs" + (req.ip || "x"), 60, 600000)) return res.sendStatus(429);
+    try {
+      const b = req.body || {};
+      const vid = S(b.vid, 64) || ("v_" + (req.ip || "x"));
+      const name = S(b.name, 40) || "طالب";
+      const grade = S(b.grade, 80) || "";
+      const add = Math.max(0, Math.min(500, Number(b.add) || 0));
+      const c = await col("st_challenge");
+      const prev = await c.findOne({ _id: vid });
+      const points = (prev && prev.points ? Number(prev.points) : 0) + add;
+      await c.updateOne(
+        { _id: vid },
+        { $set: { name, grade, points, updatedAt: Date.now() }, $setOnInsert: { createdAt: Date.now() } },
+        { upsert: true }
+      );
+      res.json({ ok: true, points });
+    } catch (e) { fail(res, e); }
+  });
+
+  app.get("/api/study/challenge/leaders", async (req, res) => {
+    if (tooMany("chl" + (req.ip || "x"), 80, 600000)) return res.sendStatus(429);
+    try {
+      const list = await (await col("st_challenge")).find({}).sort({ points: -1, updatedAt: 1 }).limit(30).toArray();
+      res.json({
+        leaders: list.map((x, i) => ({
+          rank: i + 1,
+          name: x.name || "طالب",
+          grade: x.grade || "",
+          points: Number(x.points) || 0
+        }))
+      });
+    } catch (e) { fail(res, e); }
+  });
+
   // مزامنة ملف الطالب ونشاطه من المنصة الدراسية
   app.post("/api/study/activity/sync", async (req, res) => {
     if (tooMany("act" + (req.ip || "x"), 40, 600000)) return res.sendStatus(429);
@@ -910,4 +946,5 @@ module.exports = function (app, db, express) {
     try { res.json(await h(req.body || {})); } catch (e) { fail(res, e); }
   });
 };
+ 
  
