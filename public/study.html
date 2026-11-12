@@ -154,6 +154,35 @@ a.btn.g{background:var(--pri2);color:var(--pri)}
 
 mark{background:#ffe08a;color:#1c1c1c;border-radius:4px;padding:0 3px}
 </style>
+<style id="profileGateStyles">
+.profile-gate-backdrop{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:22px 16px;background:radial-gradient(ellipse at 12% 12%,rgba(52,211,190,.22),transparent 34%),radial-gradient(ellipse at 90% 85%,rgba(99,102,241,.25),transparent 38%),rgba(3,9,22,.91);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);font-family:"Cairo",system-ui,sans-serif}
+.profile-gate-card{position:relative;width:min(100%,490px);margin:auto;padding:clamp(22px,5vw,34px);border-radius:30px;overflow:hidden;color:#f4fbff;background:linear-gradient(150deg,rgba(17,35,59,.98),rgba(8,19,37,.98));border:1px solid rgba(125,211,252,.25);box-shadow:0 30px 100px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.08)}
+.profile-gate-card:before{content:"";position:absolute;inset:0 0 auto;height:190px;pointer-events:none;background:radial-gradient(circle at 50% 0,rgba(45,212,191,.18),transparent 68%)}
+.profile-gate-top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
+.profile-gate-mark{display:grid;place-items:center;width:58px;height:58px;border-radius:19px;font-size:29px;background:linear-gradient(145deg,#18a88b,#1460a1);box-shadow:0 10px 30px rgba(20,184,166,.25)}
+.profile-gate-tag{font-size:11px;font-weight:800;color:#9be9da;background:rgba(45,212,191,.09);border:1px solid rgba(45,212,191,.24);border-radius:100px;padding:8px 12px;white-space:nowrap}
+.profile-gate-card h2{position:relative;margin:0;color:#fff;font-size:clamp(24px,5vw,31px);font-weight:900;letter-spacing:-.5px}
+.profile-gate-desc{position:relative;color:#b7c9dc;font-size:13px;line-height:2;margin:7px 0 20px}
+.profile-gate-progress{height:5px;border-radius:10px;background:rgba(255,255,255,.09);overflow:hidden;margin-bottom:22px}
+.profile-gate-progress span{display:block;width:100%;height:100%;border-radius:10px;background:linear-gradient(90deg,#24d6b2,#60a5fa);box-shadow:0 0 16px rgba(45,212,191,.5)}
+.profile-gate-field{position:relative;margin:0 0 15px}
+.profile-gate-field label{display:block;margin:0 0 7px;color:#dceaf6;font-size:12px;font-weight:800}
+.profile-gate-input{display:flex;align-items:center;gap:10px;min-height:56px;padding:0 14px;border-radius:15px;background:rgba(255,255,255,.055);border:1px solid rgba(173,216,230,.17);transition:border-color .2s,box-shadow .2s,background .2s}
+.profile-gate-input:focus-within{border-color:#42d9c0;background:rgba(45,212,191,.07);box-shadow:0 0 0 3px rgba(45,212,191,.11)}
+.profile-gate-input>span:first-child{font-size:18px;flex:0 0 auto}
+.profile-gate-input input,.profile-gate-input select{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#f5fbff;font:600 14px "Cairo",system-ui,sans-serif;padding:12px 0;appearance:none;-webkit-appearance:none}
+.profile-gate-input input::placeholder{color:#8298ad;font-weight:500}
+.profile-gate-input select{cursor:pointer}
+.profile-gate-input select option{color:#102033;background:#fff}
+.profile-gate-chevron{color:#8fb8c8;font-size:20px;pointer-events:none}
+.profile-gate-submit{width:100%;min-height:58px;display:flex;align-items:center;justify-content:center;gap:14px;margin-top:22px;padding:12px 18px;border:0;border-radius:17px;color:#062b2c;background:linear-gradient(105deg,#5de3bd,#61c7ee);font:900 16px "Cairo",system-ui,sans-serif;cursor:pointer;box-shadow:0 12px 30px rgba(45,212,191,.22);transition:transform .2s,filter .2s}
+.profile-gate-submit:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.profile-gate-submit:active{transform:scale(.99)}
+.profile-gate-submit span:last-child{font-size:23px}
+.profile-gate-foot{display:flex;justify-content:center;align-items:center;gap:7px;margin-top:14px;color:#8ea5ba;font-size:10px;line-height:1.8;text-align:center}
+.profile-gate-cancel{display:block;width:100%;margin-top:10px;padding:9px;border:0;background:transparent;color:#9eb0c1;font:700 12px "Cairo",system-ui,sans-serif;cursor:pointer}
+@media(max-width:420px){.profile-gate-backdrop{align-items:flex-start;padding:12px}.profile-gate-card{margin:auto 0;border-radius:24px}.profile-gate-top{margin-bottom:17px}.profile-gate-mark{width:50px;height:50px;border-radius:16px}.profile-gate-tag{font-size:10px;padding:7px 9px}.profile-gate-input{min-height:53px}}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -191,7 +220,7 @@ var ar=function(n){return String(n).replace(/\d/g,function(d){return "٠١٢٣٤
 var DAYS=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 var TIPS=["ادرس أصعب مادة وقت ما يكون ذهنك صافي، غالباً الصبح.","قسّم الدرس إلى أجزاء صغيرة وخلّص جزء كل جلسة.","جرّب تشرح الدرس بصوت عالي كأنك تعلّم أحد، هذا يثبّت المعلومة.","سوّ أسئلة وزارية سنوات سابقة، هي أفضل تدريب للامتحان.","نام كافي، الدماغ يرتب المعلومات وانت نايم.","ابتعد عن الموبايل أثناء الجلسة، خلّه بغرفة ثانية.","راجع كل درس بعد يوم، وبعد أسبوع، وبعد شهر."];
 var S;try{S=JSON.parse(localStorage.getItem("st2"))||{}}catch(e){S={}}
-S.notes=S.notes||[];S.log=S.log||{};S.me=S.me||"";S.grade=S.grade||"";S.name=S.name||"";S.province=S.province||"";S.vid=S.vid||"";S.username=S.username||"";S.chatDisplay=S.chatDisplay||"";S.muted=Array.isArray(S.muted)?S.muted:[];S.verified=!!S.verified;S.points=Number(S.points)||0;S.heroes=Array.isArray(S.heroes)?S.heroes:[];
+S.notes=S.notes||[];S.log=S.log||{};S.me=S.me||"";S.grade=S.grade||"";S.name=S.name||"";S.province=S.province||"";S.school=S.school||"";S.profileVersion=Number(S.profileVersion)||0;S.vid=S.vid||"";S.username=S.username||"";S.chatDisplay=S.chatDisplay||"";S.muted=Array.isArray(S.muted)?S.muted:[];S.verified=!!S.verified;S.points=Number(S.points)||0;S.heroes=Array.isArray(S.heroes)?S.heroes:[];
 function save(){try{localStorage.setItem("st2",JSON.stringify(S))}catch(e){}}
 function dayStart(ts){var d=new Date(ts||Date.now());d.setHours(0,0,0,0);return d.getTime()}
 function ensureStudyData(){
@@ -216,11 +245,12 @@ function logActivity(type,subject,score,total,extra,details){
 }
 function syncActivityToServer(sessions){
   try{
-    if(!S.name||!S.province||!S.grade)return;
+    if(!S.name||!S.school||!S.grade)return;
     var body={
       vid:S.vid||"",
       name:S.name,
-      province:S.province,
+      school:S.school,
+      province:S.province||"",
       grade:S.grade,
       sessions:sessions||[]
     };
@@ -395,7 +425,7 @@ function rHome(){
     }
   }
   if(pf){
-    pf.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>الملف الشخصي</b><div class="sub">'+(S.name?esc(S.name):"—")+(S.province?" · "+esc(S.province):"")+(S.grade?" · "+esc(S.grade):"")+'</div></div><button class="ghost sm" id="pfEdit" style="flex:0 0 auto">تعديل</button></div>';
+    pf.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>الملف الشخصي</b><div class="sub">'+(S.name?esc(S.name):"—")+(S.school?" · "+esc(S.school):"")+(S.grade?" · "+esc(S.grade):"")+'</div></div><button class="ghost sm" id="pfEdit" style="flex:0 0 auto">تعديل</button></div>';
     $("#pfEdit").onclick=function(){showProfileGate(true)};
   }
 }
@@ -1716,37 +1746,47 @@ function endAI(){
   say("انتهت الجلسة. أجبت صح على "+AI.ok+" من "+n+(AI.wrong.length?". سأذكّرك بالأسئلة التي أخطأت بها لتراجعها.":". أحسنت!"));
 }
 
-/* الملف الشخصي عند أول دخول */
-var PROVINCES=["بغداد","البصرة","نينوى","أربيل","النجف","كربلاء","بابل","الأنبار","ديالى","ذي قار","القادسية","ميسان","واسط","صلاح الدين","المثنى","دهوك","السليمانية","كركوك"];
-function needProfile(){return !(S.name&&S.name.trim()&&S.province&&S.grade)}
+/* الملف الشخصي: تسجيل أول دخول مرة واحدة، ويشمل الطلاب القدامى بعد التحديث */
+function needProfile(){
+  return !(S.profileVersion===1 && S.name && S.name.trim().length>=2 && S.school && S.school.trim().length>=2 && S.grade);
+}
 function showProfileGate(force){
   if(!force&&!needProfile())return false;
+  if($("#profileGate"))return true;
   var grades=Object.keys((INFO&&INFO.grades)||{});
+  var gradeOptions='<option value="">اختر صفك الدراسي</option>'+grades.map(function(g){return '<option value="'+esc(g)+'"'+(g===S.grade?' selected':'')+'>'+esc(g)+'</option>'}).join('');
   var ov=document.createElement("div");
   ov.id="profileGate";
-  ov.style.cssText="position:fixed;inset:0;background:rgba(18,15,28,.55);z-index:80;display:flex;align-items:flex-end;justify-content:center;padding:16px;";
-  ov.innerHTML='<div style="width:100%;max-width:480px;background:var(--card);border-radius:24px 24px 16px 16px;padding:20px 18px calc(18px + env(safe-area-inset-bottom,0px));box-shadow:0 -12px 40px rgba(124,58,237,.2)">'+
-    '<div style="text-align:center;margin-bottom:8px;font-size:34px">👋</div>'+
-    '<b style="display:block;text-align:center;font-size:20px;margin-bottom:4px">مرحباً بك في المنصة</b>'+
-    '<p class="sub" style="text-align:center;line-height:1.7;margin:0 0 14px">كتب معلوماتك حتى نخصص لك المحتوى حسب صفّك</p>'+
-    '<label class="lb">اسمك</label>'+
-    '<input id="pfName" maxlength="40" placeholder="مثال: أحمد" value="'+esc(S.name||'')+'" style="width:100%">'+
-    '<label class="lb">المحافظة</label>'+
-    '<select id="pfProv" style="width:100%">'+PROVINCES.map(function(p){return '<option value="'+esc(p)+'"'+(p===S.province?' selected':'')+'>'+esc(p)+'</option>'}).join('')+'</select>'+
-    '<label class="lb">الصف</label>'+
-    '<select id="pfGrade" style="width:100%">'+grades.map(function(g){return '<option value="'+esc(g)+'"'+(g===S.grade?' selected':'')+'>'+esc(g)+'</option>'}).join('')+'</select>'+
-    '<button id="pfSave" style="width:100%;margin-top:16px">دخول المنصة</button>'+
-    (force?'<button class="ghost" id="pfCancel" style="width:100%;margin-top:8px">إلغاء</button>':'')+
+  ov.className="profile-gate-backdrop";
+  ov.setAttribute("role","dialog");
+  ov.setAttribute("aria-modal","true");
+  ov.setAttribute("aria-labelledby","profileGateTitle");
+  ov.innerHTML='<div class="profile-gate-card">'+
+    '<div class="profile-gate-top"><div class="profile-gate-mark">🎓</div><span class="profile-gate-tag">✦ ملف الطالب · إعداد لمرة واحدة</span></div>'+
+    '<h2 id="profileGateTitle">خلّينا نتعرّف عليك</h2>'+
+    '<p class="profile-gate-desc">سجّل معلوماتك حتى نجهّز لك محتوى ومواد تناسب صفّك ومدرستك.</p>'+
+    '<div class="profile-gate-progress"><span></span></div>'+
+    '<div class="profile-gate-field"><label for="pfName">اسم الطالب</label><div class="profile-gate-input"><span>👤</span><input id="pfName" maxlength="40" autocomplete="name" placeholder="اكتب اسمك الكامل" value="'+esc(S.name||'')+'"></div></div>'+
+    '<div class="profile-gate-field"><label for="pfGrade">الصف الدراسي</label><div class="profile-gate-input"><span>📚</span><select id="pfGrade">'+gradeOptions+'</select><span class="profile-gate-chevron">⌄</span></div></div>'+
+    '<div class="profile-gate-field"><label for="pfSchool">اسم المدرسة</label><div class="profile-gate-input"><span>🏫</span><input id="pfSchool" maxlength="100" autocomplete="organization" placeholder="مثال: ثانوية النور للبنين" value="'+esc(S.school||'')+'"></div></div>'+
+    '<button id="pfSave" class="profile-gate-submit"><span>دخول المنصة</span><span aria-hidden="true">←</span></button>'+
+    '<div class="profile-gate-foot"><span>🔒</span> تُحفظ ضمن ملفك الدراسي، وتبقى مسجلاً على نفس المتصفح عند الزيارات القادمة.</div>'+
+    (force?'<button class="profile-gate-cancel" id="pfCancel">إلغاء</button>':'')+
   '</div>';
   document.body.appendChild(ov);
+  var nameInput=$("#pfName");
+  setTimeout(function(){if(nameInput)nameInput.focus()},100);
   $("#pfSave").onclick=function(){
     var n=($("#pfName").value||"").trim();
-    var p=$("#pfProv").value;
     var g=$("#pfGrade").value;
-    if(!n||n.length<2){alert("اكتب اسمك");return}
-    if(!p){alert("اختر المحافظة");return}
-    if(!g){alert("اختر الصف");return}
-    S.name=n;S.province=p;S.grade=g;save();
+    var school=($("#pfSchool").value||"").trim();
+    if(n.length<2){alert("اكتب اسم الطالب بشكل صحيح");$("#pfName").focus();return}
+    if(!g){alert("اختر صفك الدراسي");$("#pfGrade").focus();return}
+    if(school.length<2){alert("اكتب اسم المدرسة");$("#pfSchool").focus();return}
+    S.name=n;S.grade=g;S.school=school;
+    /* علامة الإصدار تجبر أصحاب الملفات القديمة على إكمال البيانات مرة واحدة فقط */
+    S.profileVersion=1;S.profileCompletedAt=Date.now();
+    save();
     syncProfileNow();
     ov.remove();
     if(typeof rHome==="function"&&$("#hi"))rHome();
