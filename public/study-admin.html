@@ -408,7 +408,7 @@ async function tActivity(){
   drawActivity();
 }
 function drawActivity(){
-  var h='<div class="card"><b>📋 نشاط الطلاب على المنصة</b><p class="small" style="line-height:1.7;margin:8px 0 0">يظهر اسم الطالب والمحافظة والصف ونتائج الاختبارات والامتحانات التي حلّها.</p>'+
+  var h='<div class="card"><b>📋 نشاط الطلاب على المنصة</b><p class="small" style="line-height:1.7;margin:8px 0 0">يظهر اسم الطالب والمدرسة والصف ونتائج الاختبارات والامتحانات التي حلّها.</p>'+
     '<div class="row" style="margin-top:10px"><button class="ghost" id="actRef">تحديث</button><button class="ghost" id="actClr" style="color:var(--red)">مسح الكل</button></div></div>';
   if(!ACTL.length){
     h+='<div class="card">لا يوجد نشاط بعد. يظهر هنا بعد ما الطلاب يملون ملفهم ويحلون اختبارات أو امتحانات ورقية.</div>';
@@ -422,7 +422,7 @@ function drawActivity(){
     return '<div class="card" style="margin-bottom:10px">'+
       '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">'+
         '<div><b>'+esc(r.name||"بدون اسم")+'</b>'+
-        '<div class="sub">'+esc(r.grade||"—")+' · '+esc(r.province||"—")+'</div>'+
+        '<div class="sub">'+esc(r.grade||"—")+' · '+esc(r.school||r.province||"—")+'</div>'+
         '<div class="sub">جلسات: '+ar(r.sessionCount||0)+(last?' · آخر: '+typeAr(last.type)+' '+(last.subject||'')+' '+(last.percent!=null?last.percent+"%":""):"")+' · '+agoAr(r.updatedAt)+'</div></div>'+
         '<div class="row" style="flex:0 0 auto"><button class="ghost sm" data-open="'+i+'">التفاصيل</button><button class="ghost sm" data-del="'+esc(r.id)+'">حذف</button></div>'+
       '</div><div id="actD'+i+'" class="hide" style="margin-top:12px;border-top:1px solid var(--bd);padding-top:10px"></div></div>';
@@ -554,5 +554,6 @@ if(PASS)enter();
 </script>
 </body>
 </html>
+ 
  
  
