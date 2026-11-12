@@ -359,6 +359,7 @@ module.exports = function (app, db, express) {
       return rows.map((r) => ({
         id: String(r._id),
         name: r.name || "",
+        school: r.school || "",
         province: r.province || "",
         grade: r.grade || "",
         sessions: Array.isArray(r.sessions) ? r.sessions.slice(-40) : [],
@@ -884,10 +885,11 @@ module.exports = function (app, db, express) {
         vid = require("crypto").randomBytes(12).toString("hex");
       }
       const name = S(b.name, 40);
-      const province = S(b.province, 40);
+      const school = S(b.school, 100);
+      const province = S(b.province, 40); // حقل قديم محفوظ للتوافق مع السجلات السابقة
       const grade = S(b.grade, 80);
       need(name, "الاسم مطلوب");
-      need(province, "المحافظة مطلوبة");
+      need(school, "اسم المدرسة مطلوب");
       need(grade, "الصف مطلوب");
 
       const sessionsIn = Array.isArray(b.sessions) ? b.sessions : [];
@@ -923,6 +925,7 @@ module.exports = function (app, db, express) {
         {
           $set: {
             name,
+            school,
             province,
             grade,
             sessions,
@@ -946,5 +949,6 @@ module.exports = function (app, db, express) {
     try { res.json(await h(req.body || {})); } catch (e) { fail(res, e); }
   });
 };
+ 
  
  
