@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>منصة دليني العراقية | منصتك الدراسية</title>
+<title>دليني | منصتك الدراسية العراقية</title>
+<meta name="description" content="منصة دليني التعليمية للطالب العراقي: ملازم ومحاضرات وامتحانات وخطة مذاكرة ومختبر قوانين تفاعلي.">
 <script src="/challenges-data.js" defer></script>
 <script src="/physics-game-data.js" defer></script>
 <script src="/laws-3d-data.js" defer></script>
@@ -182,6 +183,42 @@ mark{background:#ffe08a;color:#1c1c1c;border-radius:4px;padding:0 3px}
 .profile-gate-foot{display:flex;justify-content:center;align-items:center;gap:7px;margin-top:14px;color:#8ea5ba;font-size:10px;line-height:1.8;text-align:center}
 .profile-gate-cancel{display:block;width:100%;margin-top:10px;padding:9px;border:0;background:transparent;color:#9eb0c1;font:700 12px "Cairo",system-ui,sans-serif;cursor:pointer}
 @media(max-width:420px){.profile-gate-backdrop{align-items:flex-start;padding:12px}.profile-gate-card{margin:auto 0;border-radius:24px}.profile-gate-top{margin-bottom:17px}.profile-gate-mark{width:50px;height:50px;border-radius:16px}.profile-gate-tag{font-size:10px;padding:7px 9px}.profile-gate-input{min-height:53px}}
+
+/* ===== DLEENI 2026: complete student dashboard refresh ===== */
+:root{--bg:#f3f6fb;--card:#fff;--glass:rgba(255,255,255,.93);--tx:#14243a;--mut:#718096;--pri:#5b61dc;--pri2:#eef0ff;--accent:#12a88a;--grad:linear-gradient(135deg,#111f3b 0%,#183b5d 58%,#315b83 100%);--grad2:linear-gradient(135deg,#5e62dd 0%,#397fc7 100%);--bd:#e4eaf2;--shadow:0 10px 30px rgba(24,45,75,.07)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1422;--card:#131f31;--glass:rgba(19,31,49,.95);--tx:#e9f0fa;--mut:#9aaac0;--pri:#a4a8ff;--pri2:#222b49;--bd:#2a3a50;--shadow:0 12px 30px rgba(0,0,0,.25)}}
+:root[data-theme="dark"]{--bg:#0c1422;--card:#131f31;--glass:rgba(19,31,49,.95);--tx:#e9f0fa;--mut:#9aaac0;--pri:#a4a8ff;--pri2:#222b49;--bd:#2a3a50;--shadow:0 12px 30px rgba(0,0,0,.25)}
+html,body{min-height:100%;background:var(--bg)}
+body{background-image:radial-gradient(ellipse at 8% 0%,rgba(81,111,220,.10),transparent 34%),radial-gradient(ellipse at 100% 25%,rgba(18,168,138,.08),transparent 30%);background-attachment:fixed}
+.wrap{max-width:1080px;padding:22px 22px calc(112px + env(safe-area-inset-bottom,0px))}
+#app{overflow:visible}
+h1{letter-spacing:-.5px}h2{letter-spacing:-.3px}
+.home-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:2px 0 18px}
+.brand-lockup{display:flex;align-items:center;gap:11px}.brand-symbol{width:45px;height:45px;border-radius:15px;background:linear-gradient(145deg,#1d3c62,#5268d9);display:grid;place-items:center;color:#fff;font-size:25px;font-weight:900;box-shadow:0 8px 20px rgba(57,88,175,.2)}
+.brand-lockup b{display:block;font-size:19px;font-weight:900;line-height:1.2}.brand-lockup span{display:block;font-size:11px;color:var(--mut);margin-top:3px}
+.home-grade{display:flex;align-items:center;gap:8px;background:var(--glass);border:1px solid var(--bd);border-radius:14px;padding:5px 9px 5px 5px}.home-grade label{font-size:11px;color:var(--mut);white-space:nowrap}.home-grade select{width:auto;max-width:180px;border:0;background:transparent;padding:8px 6px;font-size:13px;font-weight:800}
+.hero-banner.home-hero{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;min-height:230px;padding:26px 28px;border-radius:28px;background:linear-gradient(115deg,#101e38 0%,#173957 58%,#335e83 100%);box-shadow:0 18px 42px rgba(18,44,75,.2);margin-bottom:22px}
+.hero-banner.home-hero:before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 15% 20%,rgba(89,210,195,.2),transparent 30%),linear-gradient(115deg,transparent 48%,rgba(255,255,255,.035) 48%,transparent 72%)}
+.hero-copy{position:relative;z-index:2;max-width:620px}.eyebrow,.block-kicker{display:inline-flex;align-items:center;gap:6px;color:#8ce4d4;font-size:11px;font-weight:800;letter-spacing:.3px}.eyebrow:before{content:"";width:7px;height:7px;background:#51d5b9;border-radius:50%;box-shadow:0 0 12px #51d5b9}
+.home-hero h1{margin:9px 0 6px;color:#fff;font-size:clamp(24px,4vw,34px);line-height:1.3}.home-hero .sub{max-width:560px;color:#c3d4e6;font-size:14px;line-height:1.9}
+.hero-actions{display:flex;gap:9px;margin-top:17px;flex-wrap:wrap}.hero-actions button{min-height:42px;padding:10px 15px;border-radius:13px;font-size:13px}.hero-primary{background:linear-gradient(100deg,#55d2ba,#8be2cf);color:#0d3440;box-shadow:0 8px 20px rgba(54,210,183,.15)}.hero-primary span{margin-right:8px;font-size:17px}.hero-secondary{background:rgba(255,255,255,.09);color:#fff;border:1px solid rgba(255,255,255,.16);box-shadow:none}
+.hero-student{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}.hero-student span{font-size:11px;color:#d8e6f4;background:rgba(255,255,255,.085);border:1px solid rgba(255,255,255,.11);border-radius:99px;padding:5px 9px}
+.hero-illustration{position:absolute;left:4%;top:50%;width:220px;height:190px;transform:translateY(-50%);display:grid;place-items:center;opacity:.95;pointer-events:none}.hero-orb{position:absolute;border-radius:50%;filter:blur(1px);pointer-events:none}.hero-orb-a{width:180px;height:180px;left:9%;top:-50px;background:radial-gradient(circle,rgba(63,188,186,.16),transparent 68%)}.hero-orb-b{width:150px;height:150px;right:30%;bottom:-80px;background:radial-gradient(circle,rgba(115,127,255,.22),transparent 68%)}.orbit{position:absolute;border:1px solid rgba(133,222,228,.25);border-radius:50%;width:155px;height:60px;transform:rotate(-25deg)}.orbit-two{width:180px;height:80px;transform:rotate(48deg);border-color:rgba(160,170,255,.3)}.hero-book{width:85px;height:85px;border-radius:27px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(105,231,211,.23),rgba(106,132,255,.23));border:1px solid rgba(185,247,255,.5);box-shadow:0 0 35px rgba(86,226,218,.18),inset 0 0 24px rgba(255,255,255,.08);color:#b5fff0;font-size:42px;transform:rotate(-12deg)}.float-note{position:absolute;padding:7px 10px;border-radius:10px;background:rgba(9,28,49,.75);border:1px solid rgba(150,234,230,.2);color:#bff6e9;font-size:11px}.fn-one{top:28px;right:7px}.fn-two{bottom:25px;left:10px}
+.home-block{margin:26px 0}.block-heading{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:0 2px 13px}.block-heading h2{font-size:21px;margin:3px 0 2px}.block-heading p{font-size:12px;color:var(--mut);margin:0}.block-kicker{color:var(--pri);font-size:10px}.block-count{flex:0 0 auto;padding:6px 10px;border-radius:99px;background:var(--pri2);color:var(--pri);font-size:10px;font-weight:800}.text-action{padding:7px 0;background:none;color:var(--pri);box-shadow:none;font-size:12px;white-space:nowrap}
+.tiles-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.tile{position:relative;display:flex;align-items:center;gap:11px;min-height:90px;text-align:right;padding:14px;background:var(--glass);border:1px solid var(--bd);border-radius:19px;color:var(--tx);box-shadow:var(--shadow);font-size:14px;transition:transform .18s,border-color .18s,box-shadow .18s}.tile:hover{transform:translateY(-2px);border-color:rgba(91,97,220,.3);box-shadow:0 14px 28px rgba(24,45,75,.1)}.tile:active{transform:scale(.985)}.tile-icon{width:45px;height:45px;flex:0 0 45px;border-radius:15px;background:var(--tile-bg);color:var(--tile-color);display:grid;place-items:center;font-size:20px}.tile-icon svg{width:22px;height:22px;fill:currentColor}.tile-copy{min-width:0;flex:1}.tile-copy b{display:block;font-size:13px;line-height:1.5}.tile-copy small{display:block;margin-top:3px;color:var(--mut);font-size:10px;font-weight:500;line-height:1.55}.tile-arrow{font-size:24px;color:var(--mut);opacity:.6}
+.home-news .card{border-radius:16px;padding:13px 15px;margin-bottom:9px}.home-news .card b{font-size:13px}.home-news .card p{font-size:12px}
+.stats{gap:11px}.st{border-radius:18px;padding:15px 8px;background:var(--glass);border-color:var(--bd)}.st b{font-size:27px;color:var(--tx)}.st span{font-size:10px;line-height:1.6}.st em{height:22px}
+.home-insight{margin-top:12px;padding:15px;border:1px solid var(--bd);border-radius:18px;background:var(--glass)}.insight-line{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.insight-line>div{padding:8px;border-radius:12px;background:var(--bg)}.insight-line span{display:block;color:var(--mut);font-size:10px}.insight-line b{display:block;font-size:20px;margin-top:4px}.home-plan-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--bd);margin-top:12px;padding-top:12px}.home-plan-row b,.home-plan-row small{display:block}.home-plan-row small{font-size:11px;color:var(--mut);margin-top:3px}.home-plan-row button{padding:9px 12px;font-size:11px;white-space:nowrap}
+.home-tip{display:flex;align-items:flex-start;gap:12px;padding:15px 16px;border:1px solid rgba(18,168,138,.18);border-radius:18px;background:linear-gradient(110deg,rgba(18,168,138,.08),rgba(91,97,220,.05));margin:20px 0}.tip-icon{width:34px;height:34px;flex:0 0 34px;border-radius:11px;display:grid;place-items:center;color:#087d6a;background:rgba(18,168,138,.14)}.home-tip b{font-size:13px}.home-tip p{color:var(--mut);font-size:12px;line-height:1.8;margin:3px 0 0}.profile-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 4px;margin-top:12px}.profile-summary-main{display:flex;align-items:center;gap:10px;min-width:0}.profile-summary-main .sub{font-size:11px;line-height:1.8}.profile-avatar{width:39px;height:39px;border-radius:14px;display:grid;place-items:center;background:var(--pri2);color:var(--pri);font-weight:900}.home-footer{text-align:center;color:var(--mut);font-size:10px;padding:14px 0 3px}
+.v:not(#v-home){max-width:940px;margin:0 auto}.bar{padding:7px 0 12px;margin-bottom:14px}.bar h1{font-size:22px}.card{border-radius:18px;border-color:var(--bd);box-shadow:var(--shadow)}.opt{border-radius:15px}.chips{scrollbar-width:none}
+nav{left:50%;right:auto;transform:translateX(-50%);bottom:10px;width:min(680px,calc(100% - 22px));border:1px solid rgba(220,228,240,.85);border-radius:20px;background:rgba(255,255,255,.92);backdrop-filter:blur(18px);padding:7px 8px calc(7px + env(safe-area-inset-bottom,0px));box-shadow:0 12px 38px rgba(20,40,70,.18);gap:4px}nav button{min-width:0;border-radius:14px;font-size:10px;color:#718096}nav button i{height:20px;width:20px}nav button svg{width:20px;height:20px}nav button.on{background:#eef0ff;color:#4e55cc}
+:root[data-theme="dark"] nav{background:rgba(19,31,49,.94);border-color:#2a3a50}nav button.on{background:var(--pri2);color:var(--pri)}
+/* Daily study planner */
+.plan-hero{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;padding:23px;border-radius:23px;color:#fff;background:linear-gradient(120deg,#10233e,#1e5570 65%,#247d7a);margin-bottom:13px}.plan-hero:after{content:"";position:absolute;width:190px;height:190px;border:1px solid rgba(255,255,255,.16);border-radius:50%;left:-45px;top:-85px;box-shadow:0 0 0 22px rgba(255,255,255,.025),0 0 0 48px rgba(255,255,255,.02)}.plan-hero h2{margin:4px 0;font-size:24px;color:#fff}.plan-hero p{margin:0;color:#c7e2eb;font-size:12px}.plan-label{font-size:10px;color:#9debd8;font-weight:800}.plan-hero-mark{z-index:1;width:63px;height:63px;border-radius:20px;display:grid;place-items:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#a8ffea;font-size:31px}
+.plan-overview{display:flex;align-items:center;gap:17px;padding:17px;border:1px solid var(--bd);border-radius:20px;background:var(--glass);box-shadow:var(--shadow);margin-bottom:13px}.plan-progress-ring{width:92px;height:92px;flex:0 0 92px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#19b99b var(--progress),var(--pri2) 0);position:relative}.plan-progress-ring:before{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--card)}.plan-progress-ring>div{position:relative;text-align:center}.plan-progress-ring b{display:block;font-size:20px}.plan-progress-ring small{display:block;color:var(--mut);font-size:9px}.plan-overview-copy{flex:1;min-width:0}.plan-overview-copy>b{font-size:14px}.plan-overview-copy p{margin:4px 0;color:var(--mut);font-size:11px}.plan-overview-copy>small{color:var(--mut);font-size:10px}.plan-form-card{padding:17px;border:1px solid var(--bd);border-radius:20px;background:var(--glass);box-shadow:var(--shadow)}.plan-form-title{display:flex;align-items:center;gap:10px;margin-bottom:7px}.plan-form-title>span{width:37px;height:37px;border-radius:12px;display:grid;place-items:center;background:var(--pri2);color:var(--pri);font-size:22px}.plan-form-title b,.plan-form-title small{display:block}.plan-form-title b{font-size:14px}.plan-form-title small{color:var(--mut);font-size:10px;margin-top:2px}.plan-form-card select,.plan-form-card input{border-radius:13px;background:var(--bg)}.plan-add{display:flex;justify-content:center;align-items:center;gap:9px;width:100%;margin-top:15px;padding:13px;background:linear-gradient(110deg,#4d62d5,#258f9e)}.plan-add span{font-size:18px}.plan-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:20px 2px 10px}.plan-list-head b,.plan-list-head small{display:block}.plan-list-head b{font-size:16px}.plan-list-head small{font-size:10px;color:var(--mut);margin-top:2px}.plan-task-list{display:grid;gap:8px}.plan-task{display:flex;align-items:center;gap:11px;padding:13px;border:1px solid var(--bd);border-radius:16px;background:var(--glass)}.plan-check{position:relative;width:23px;height:23px;flex:0 0 23px}.plan-check input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}.custom-check{width:23px;height:23px;display:block;border:1.5px solid #aab7c8;border-radius:8px;background:var(--card)}.plan-check input:checked+.custom-check{background:#18a987;border-color:#18a987}.plan-check input:checked+.custom-check:after{content:"✓";display:block;text-align:center;color:#fff;font-weight:900;line-height:21px}.plan-task-copy{flex:1;min-width:0}.plan-task-copy b,.plan-task-copy small{display:block}.plan-task-copy b{font-size:13px;line-height:1.6}.plan-task-copy small{font-size:10px;color:var(--mut);margin-top:3px}.plan-task.is-done .plan-task-copy b{text-decoration:line-through;color:var(--mut)}.plan-delete{width:31px;height:31px;flex:0 0 31px;padding:0;border-radius:10px;background:var(--bg);color:var(--mut);box-shadow:none;font-size:20px}.plan-empty{padding:28px 16px;border:1px dashed var(--bd);border-radius:17px;text-align:center;color:var(--mut)}.plan-empty span{font-size:31px}.plan-empty b{display:block;color:var(--tx);margin-top:8px}.plan-empty p{font-size:11px;line-height:1.8;max-width:280px;margin:6px auto 0}.plan-actions{display:flex;gap:8px;margin-top:13px}.plan-actions button{flex:1;font-size:11px;padding:10px 6px}.plan-note{text-align:center;font-size:10px;color:var(--mut);margin:12px 0}
+@media(min-width:700px){.tiles-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.hero-illustration{left:8%;width:260px}.hero-copy{max-width:65%}.home-block{margin:31px 0}.home-hero{min-height:255px}.stats{max-width:680px}.plan-form-card{max-width:720px}}
+@media(max-width:600px){.wrap{padding:13px 13px calc(104px + env(safe-area-inset-bottom,0px))}.home-top{margin-bottom:13px}.brand-symbol{width:40px;height:40px}.brand-lockup b{font-size:17px}.home-grade{gap:3px;padding-right:7px}.home-grade label{font-size:9px}.home-grade select{max-width:118px;font-size:11px}.hero-banner.home-hero{min-height:220px;padding:20px 17px;border-radius:22px}.hero-copy{max-width:100%}.home-hero h1{font-size:24px}.home-hero .sub{max-width:95%;font-size:12px}.hero-illustration{left:-60px;opacity:.22}.hero-student{max-width:90%}.block-heading h2{font-size:19px}.tiles-grid{gap:8px}.tile{min-height:91px;padding:11px 9px;gap:8px;border-radius:16px}.tile-icon{width:38px;height:38px;flex-basis:38px;border-radius:13px}.tile-copy b{font-size:12px}.tile-copy small{font-size:9px}.tile-arrow{font-size:19px}.block-count{font-size:9px}.insight-line{gap:5px}.insight-line>div{padding:7px 5px}.insight-line span{font-size:9px}.insight-line b{font-size:17px}.home-plan-row button{padding:8px 9px;font-size:10px}.profile-summary{padding:12px 2px}.plan-overview{gap:12px;padding:13px}.plan-progress-ring{width:78px;height:78px;flex-basis:78px}.plan-overview-copy>b{font-size:12px}.plan-actions{flex-direction:column}}
+@media(max-width:360px){.tiles-grid{grid-template-columns:1fr}.tile{min-height:76px}.home-grade label{display:none}.home-grade select{max-width:145px}.hero-actions button{font-size:11px}}
 </style>
 </head>
 <body>
@@ -192,9 +229,10 @@ mark{background:#ffe08a;color:#1c1c1c;border-radius:4px;padding:0 3px}
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
 <nav id="nav" class="hide">
   <button data-go="home" class="on"><i data-ic="home"></i>الرئيسية</button>
-  <button data-go="files"><i data-ic="books"></i>ملازمي</button>
-  <button data-go="res"><i data-ic="chart"></i>نتيجتي</button>
-  <button data-go="notes"><i data-ic="note"></i>ملاحظاتي</button>
+  <button data-go="plan"><i data-ic="cal"></i>خطة اليوم</button>
+  <button data-go="files"><i data-ic="books"></i>الملازم</button>
+  <button data-go="quiz"><i data-ic="pen"></i>الامتحانات</button>
+  <button data-go="report"><i data-ic="chart"></i>إنجازي</button>
 </nav>
 
 <script>
@@ -211,6 +249,7 @@ trophy:'<path d="M7 3h10v5a5 5 0 0 1-10 0V3z"/><path d="M7 5H3.5v2A3.5 3.5 0 0 0
 home:'<path d="M12 3 2.5 11.5H5V20h5v-5.5h4V20h5v-8.5h2.5L12 3z"/>'
 };
 function ico(n){return '<svg viewBox="0 0 24 24">'+IC[n]+'</svg>'}
+IC.trophy='<path d="M7 3h10v5a5 5 0 0 1-10 0V3z"/><path d="M7 5H3.5v2A3.5 3.5 0 0 0 7 10.5M17 5h3.5v2a3.5 3.5 0 0 1-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="11" y="13" width="2" height="4"/><rect x="7.5" y="17.5" width="9" height="3" rx="1.2"/>';
 IC.video='<rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M10 9.2v5.6l5-2.8z" fill="#fff"/>';
 IC.note='<path d="M5 3h14a2 2 0 0 1 2 2v9l-7 7H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M14 21v-5a2 2 0 0 1 2-2h5" fill="#fff" opacity=".55"/><g fill="#fff" opacity=".95"><rect x="6.5" y="7" width="10" height="1.6" rx=".8"/><rect x="6.5" y="10.5" width="7" height="1.6" rx=".8"/></g>';
 IC.calc='<rect x="4" y="2.5" width="16" height="19" rx="3.2"/><rect x="7" y="5.5" width="10" height="3.5" rx="1" fill="#fff" opacity=".9"/><g fill="#fff"><circle cx="8.5" cy="13" r="1.2"/><circle cx="12" cy="13" r="1.2"/><circle cx="15.5" cy="13" r="1.2"/><circle cx="8.5" cy="17" r="1.2"/><circle cx="12" cy="17" r="1.2"/><circle cx="15.5" cy="17" r="1.2"/></g>';
@@ -374,12 +413,38 @@ $("#ov").onclick=function(e){if(e.target===this)closeSheet()};
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeSheet()});
 
 IC.robot='<rect x="4" y="8" width="16" height="12" rx="4"/><rect x="11" y="4" width="2" height="4"/><circle cx="12" cy="3.4" r="1.7"/><g fill="#fff"><circle cx="9" cy="13.5" r="1.8"/><circle cx="15" cy="13.5" r="1.8"/></g><rect x="9" y="16.8" width="6" height="1.4" rx=".7" fill="#fff"/>';
-var T=[["ai","المساعد الذكي","robot","rgba(255,255,255,.18)","#fff"],["challenge","تحدياتي","chart","#fff7ed","#ea580c"],["wheel","عجلة الدوران","calc","#ecfeff","#0891b2"],["phys","لعبة الفيزياء","robot","#e0f2fe","#0284c8"],["law3d","قوانين 3D","books","#fdf4ff","#a21caf"],["path","مسار المراجعة الذكي","pen","#f3e8ff","#7c3aed"],["report","التقرير الأسبوعي","chart","#fce7f3","#db2777"],["files","ملازمي","books","#fdf0cf","#e8a31c"],["videos","محاضراتي","video","#ebe5f7","#7a4fd0"],["quiz","امتحاناتي","pen","#fbe1ee","#d6338a"],["paper","الامتحانات الورقية","pen","#e8f5e9","#2e7d32"],["res","نتيجتي","chart","#dff2e4","#2e9e5b"],["notes","ملاحظاتي","note","#e1e9f6","#7c3aed"],["timer","المؤقّت","timer","#ffe6d9","#e8641c"],["calc","حاسبة المعدل","calc","#dcf0f5","#1f9bb0"],["dates","مواعيد الامتحانات","cal","#e8e6fa","#5b4fd0"]];
-var TITLES={ai:"المساعد الذكي",challenge:"تحدياتي",wheel:"عجلة الدوران",phys:"لعبة الفيزياء",law3d:"قوانين 3D",path:"مسار المراجعة الذكي",report:"التقرير الأسبوعي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
-var R={home:rHome,ai:rAI,challenge:rChallenge,wheel:rWheel,phys:rPhys,law3d:rLaw3D,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
-
+var T=[
+ ["ai","المساعد الذكي","robot","#e7f0ff","#2563eb","اسأل كتابةً أو بالصوت وخذ شرحاً فورياً"],
+ ["law3d","مختبر القوانين 3D","books","#e3fbf8","#078b83","شاهد القوانين كمعادلات هولوغرام تفاعلية"],
+ ["videos","المحاضرات","video","#f1eaff","#7c3aed","شروحات الدروس بالفيديو"],
+ ["files","الملازم والملخصات","books","#fff4df","#bb7810","ملفات مرتبة حسب صفك ومادتك"],
+ ["quiz","اختبر نفسك","pen","#ffe9ef","#db3564","أسئلة تدريبية حسب المادة والفصل"],
+ ["paper","الامتحان الورقي","doc","#e8f7ee","#218653","صوّر إجابتك واحصل على تحليلها"],
+ ["challenge","تحديات يومية","trophy","#fff2df","#d97706","اجمع النقاط وارفع مستواك"],
+ ["path","مراجعة أخطائي","chart","#eeeaff","#7358df","درّب نفسك على الأسئلة التي أخطأت بها"],
+ ["phys","لعبة الفيزياء","robot","#e1f3ff","#1683b7","تعلّم المفاهيم بطريقة تفاعلية"],
+ ["plan","خطة مذاكرتي","cal","#e1f8f2","#078b70","وزّع وقتك وتابع إنجاز مهام اليوم"],
+ ["timer","مؤقّت التركيز","timer","#fff0e6","#df7130","جلسات تركيز واستراحات قصيرة"],
+ ["dates","مواعيد الامتحانات","cal","#e9efff","#486acb","رتّب مواعيدك ولا تنسَ امتحاناً"],
+ ["report","تقريري الأسبوعي","chart","#f2eaff","#8a54c7","اعرف تقدمك والمواد التي تحتاج مراجعة"],
+ ["res","درجاتي وغيابي","chart","#e7f6e9","#37834a","تابع نتائجك وسجّل ملاحظاتك"],
+ ["notes","دفتر ملاحظاتي","note","#edf1f8","#526783","احفظ أفكارك وملاحظات الدروس"],
+ ["calc","حاسبة المعدل","calc","#e2f5fb","#1786a3","احسب معدلك بسهولة"],
+ ["wheel","اختيار مادة عشوائياً","calc","#fbeafa","#b344a1","خلّ القرار على عجلة الدراسة"]
+];
+var TITLES={ai:"المساعد الذكي",challenge:"تحدياتي",wheel:"عجلة الدوران",phys:"لعبة الفيزياء",law3d:"قوانين 3D",plan:"خطة مذاكرتي",path:"مسار المراجعة الذكي",report:"التقرير الأسبوعي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
+var R={home:rHome,ai:rAI,challenge:rChallenge,wheel:rWheel,phys:rPhys,law3d:rLaw3D,plan:rPlan,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
 function build(){
-  var h='<section id="v-home" class="v"><div class="hero-banner"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><a class="site" href="/" style="color:rgba(255,255,255,.9)">→ منصة دليني العراقية</a><h1 id="hi" style="margin-top:6px;font-size:22px">خطتك الذكية ✨</h1><p class="sub" style="margin-top:4px">تعلّم بذكاء وتقدّم بثقة</p></div><select id="grade" aria-label="الصف" style="background:#fff;color:#2a2140;border:0;max-width:48%;border-radius:12px;font-weight:700"></select></div></div><div id="news"></div><div class="grid" id="tiles"></div><h2>إحصائيات سريعة</h2><div class="stats"><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظاتي</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم متبقي</span></div><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div></div><div class="card" style="margin-top:14px"><b>💡 نصيحة اليوم</b><p id="tip" style="line-height:1.7;margin:6px 0 0"></p></div></section>';
+  var h='<section id="v-home" class="v home-view">'+
+    '<header class="home-top"><div class="brand-lockup"><div class="brand-symbol">د</div><div><b>دليني</b><span>منصتك الدراسية العراقية</span></div></div><div class="home-grade"><label for="grade">الصف الدراسي</label><select id="grade" aria-label="الصف"></select></div></header>'+
+    '<div class="hero-banner home-hero"><div class="hero-orb hero-orb-a"></div><div class="hero-orb hero-orb-b"></div><div class="hero-copy"><span class="eyebrow">مساحتك للتعلّم والإنجاز</span><h1 id="hi">أهلاً بك في دليني ✨</h1><p class="sub">كل أدوات دراستك بمكان واحد. خطوة صغيرة اليوم تصنع فرقاً كبيراً بالامتحان.</p><div class="hero-actions"><button data-go="plan" class="hero-primary">رتّب دراسة اليوم <span>←</span></button><button data-go="quiz" class="hero-secondary">ابدأ اختباراً</button></div><div id="hero-student" class="hero-student"></div></div><div class="hero-illustration" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-book">✦</div><span class="float-note fn-one">+ تركيز</span><span class="float-note fn-two">+ إنجاز</span></div></div>'+
+    '<div id="news" class="home-news"></div>'+
+    '<section class="home-block"><div class="block-heading"><div><span class="block-kicker">ابدأ من هنا</span><h2>تعلّم وافهم</h2><p>مصادر وشرح يساعدك تستوعب الدرس</p></div><span class="block-count">٠٤ أدوات</span></div><div class="tiles-grid" id="tile-learn"></div></section>'+
+    '<section class="home-block"><div class="block-heading"><div><span class="block-kicker">استعد بثقة</span><h2>تدرّب وامتحن</h2><p>اختبر معلوماتك وراجع نقاط ضعفك</p></div><span class="block-count">٠٥ أدوات</span></div><div class="tiles-grid" id="tile-practice"></div></section>'+
+    '<section class="home-block"><div class="block-heading"><div><span class="block-kicker">نظّم وقتك</span><h2>خطّط وتابع</h2><p>خلّي دراستك واضحة وإنجازك محسوب</p></div><span class="block-count">٠٨ أدوات</span></div><div class="tiles-grid" id="tile-organize"></div></section>'+
+    '<section class="home-block"><div class="block-heading"><div><span class="block-kicker">ملخص سريع</span><h2>لوحة إنجازك</h2><p>نظرة سريعة على نشاطك الدراسي</p></div><button class="text-action" data-go="report">التقرير الكامل ←</button></div><div class="stats"><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم للامتحان الأقرب</span></div><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظات محفوظة</span></div></div><div id="home-insight" class="home-insight"></div></section>'+
+    '<div class="home-tip"><span class="tip-icon">✦</span><div><b>نصيحة دليني لليوم</b><p id="tip"></p></div></div>'+
+    '<div id="pfLine" class="profile-summary"></div><div class="home-footer">دليني · رفيقك بالدراسة خطوة بخطوة 🇮🇶</div></section>';
   Object.keys(TITLES).forEach(function(k){h+='<section id="v-'+k+'" class="v hide"><div class="bar"><button class="back" data-bk="'+k+'" aria-label="رجوع">→</button><h1 id="t-'+k+'">'+TITLES[k]+'</h1></div><div id="b-'+k+'"></div></section>'});
   $("#app").innerHTML=h;
   document.querySelectorAll("[data-ic]").forEach(function(e){e.innerHTML=ico(e.dataset.ic)});
@@ -402,32 +467,59 @@ document.addEventListener("click",function(e){
 });
 
 /* الرئيسية */
+function tileHTML(t){
+  return '<button class="tile" data-go="'+t[0]+'"><span class="tile-icon" style="--tile-bg:'+t[3]+';--tile-color:'+t[4]+'">'+(IC[t[2]]?ico(t[2]):'✦')+'</span><span class="tile-copy"><b>'+esc(t[1])+'</b><small>'+esc(t[5]||"")+'</small></span><span class="tile-arrow">‹</span></button>';
+}
 function rHome(){
-  $("#tiles").innerHTML=T.map(function(t){var w=t[0]==="ai";return '<button class="tile'+(w?" wide":"")+'" data-go="'+t[0]+'"><div class="ic" style="background:'+t[3]+';color:'+t[4]+'">'+ico(t[2])+'</div>'+(w?"<span><b>"+t[1]+"</b><small>اسأله وجاوبه بصوتك، وهو يصحّح لك</small></span>":t[1])+"</button>"}).join("");
-  var g=$("#grade");g.innerHTML=Object.keys(INFO.grades).map(function(k){return "<option"+(k===S.grade?" selected":"")+">"+esc(k)+"</option>"}).join("");
+  var groups={
+    learn:["ai","law3d","videos","files"],
+    practice:["quiz","paper","challenge","path","phys"],
+    organize:["plan","timer","dates","report","res","notes","calc","wheel"]
+  };
+  function byId(id){for(var i=0;i<T.length;i++)if(T[i][0]===id)return T[i];return null}
+  Object.keys(groups).forEach(function(k){var host=$("#tile-"+k);if(host)host.innerHTML=groups[k].map(function(id){var t=byId(id);return t?tileHTML(t):""}).join("")});
+  var g=$("#grade");
+  g.innerHTML=Object.keys(INFO.grades).map(function(k){return "<option"+(k===S.grade?" selected":"")+">"+esc(k)+"</option>"}).join("");
   g.style.display=REC?"none":"";g.onchange=function(){S.grade=g.value;save();rHome()};
-  $("#hi").textContent=(S.name?("مرحباً، "+S.name.split(" ")[0]):(REC?("أهلاً يا "+REC.n.split(" ")[0]):"خطتك الذكية"))+" ✨";
+  $("#hi").textContent=(S.name?("أهلاً، "+S.name.split(" ")[0]):(REC?("أهلاً يا "+REC.n.split(" ")[0]):"أهلاً بك في دليني"))+" ✨";
+  $("#hero-student").innerHTML=(S.name?'<span>👤 '+esc(S.name)+'</span>':"")+(S.school?'<span>🏫 '+esc(S.school)+'</span>':"")+(S.grade?'<span>📚 '+esc(S.grade)+'</span>':"");
   $("#news").innerHTML=INFO.news.map(function(n){return '<div class="card news"><b>📢 '+esc(n.title)+'</b>'+(n.text?'<p class="sub" style="line-height:1.8;white-space:pre-wrap">'+esc(n.text)+"</p>":"")+(n.image?'<img src="'+esc(n.image)+'" alt="" loading="lazy">':"")+"</div>"}).join("");
   var m=null;INFO.exams.forEach(function(e){var n=daysTo(e.d);if(n>=0&&(m===null||n<m))m=n});
-  $("#s1").textContent=subs().length;$("#s2").textContent=m===null?"—":m;$("#s3").textContent=S.notes.length;
+  $("#s1").textContent=subs().length;$("#s2").textContent=m===null?"—":ar(m);$("#s3").textContent=S.notes.length;
   $("#e1").innerHTML=ico("doc");$("#e2").innerHTML=ico("cal");$("#e3").innerHTML=ico("note");
   $("#tip").textContent=TIPS[new Date().getDate()%TIPS.length];
+  var w=weekStats(),p=dayPlanTasks(),done=p.filter(function(x){return x.done}).length,mins=p.reduce(function(a,x){return a+(Number(x.minutes)||0)},0);
+  $("#home-insight").innerHTML='<div class="insight-line"><div><span>جلسات هذا الأسبوع</span><b>'+ar(w.sessions)+'</b></div><div><span>أسئلة للمراجعة</span><b>'+ar(w.due)+'</b></div><div><span>مهام اليوم</span><b>'+ar(done)+' / '+ar(p.length)+'</b></div></div><div class="home-plan-row"><div><b>خطة اليوم</b><small>'+(p.length?('أنجزت '+ar(done)+' من '+ar(p.length)+' · '+ar(mins)+' دقيقة مخططة'):'ابدأ بإضافة أول مهمة دراسية')+'</small></div><button data-go="plan">'+(p.length?'متابعة الخطة':'أنشئ خطتك')+'</button></div>';
   var pf=$("#pfLine");
-  if(!pf){
-    var tipCard=$("#tip")&&$("#tip").parentNode;
-    if(tipCard){
-      var d=document.createElement("div");
-      d.className="card";
-      d.style.marginTop="12px";
-      d.id="pfLine";
-      tipCard.parentNode.insertBefore(d, tipCard.nextSibling);
-      pf=d;
-    }
+  if(pf)pf.innerHTML='<div class="profile-summary-main"><div class="profile-avatar">'+(S.name?esc(S.name.trim().charAt(0)):'👤')+'</div><div><b>ملفي الدراسي</b><div class="sub">'+(S.name?esc(S.name):"طالب دليني")+(S.school?" · "+esc(S.school):"")+(S.grade?" · "+esc(S.grade):"")+'</div></div></div><button class="ghost sm" id="pfEdit">تعديل</button>';
+  if($("#pfEdit"))$("#pfEdit").onclick=function(){showProfileGate(true)};
+}
+
+/* خطة مذاكرة يومية محلية لكل طالب */
+function todayPlanKey(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function dayPlanTasks(){
+  if(!S.studyPlans||typeof S.studyPlans!=="object")S.studyPlans={};
+  var key=todayPlanKey();if(!Array.isArray(S.studyPlans[key]))S.studyPlans[key]=[];
+  return S.studyPlans[key];
+}
+function rPlan(){
+  var b=$("#b-plan");if(!b)return;
+  var tasks=dayPlanTasks(),subjects=subs(),date=new Date().toLocaleDateString("ar-IQ",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  function render(){
+    tasks=dayPlanTasks();var done=tasks.filter(function(x){return x.done}).length,total=tasks.length,minutes=tasks.reduce(function(a,x){return a+(Number(x.minutes)||0)},0),pct=total?Math.round(done/total*100):0;
+    var list=tasks.length?tasks.map(function(x){return '<div class="plan-task'+(x.done?' is-done':'')+'"><label class="plan-check"><input type="checkbox" data-plan-toggle="'+esc(x.id)+'" '+(x.done?'checked':'')+'><span class="custom-check"></span></label><div class="plan-task-copy"><b>'+esc(x.task)+'</b><small>'+esc(x.subject||"مهمة عامة")+' · '+ar(x.minutes||30)+' دقيقة</small></div><button class="plan-delete" data-plan-delete="'+esc(x.id)+'" aria-label="حذف المهمة">×</button></div>'}).join(""):'<div class="plan-empty"><span>🗓️</span><b>يومك بعده ينتظر خطتك</b><p>أضف أول مهمة وحدد المادة والوقت، وابدأ الإنجاز خطوة بخطوة.</p></div>';
+    b.innerHTML='<div class="plan-hero"><div><span class="plan-label">مساحة تنظيم وقتك</span><h2>خطة مذاكرتي</h2><p>'+esc(date)+'</p></div><div class="plan-hero-mark">✦</div></div>'+
+      '<div class="plan-overview"><div class="plan-progress-ring" style="--progress:'+pct+'%"><div><b>'+ar(pct)+'٪</b><small>الإنجاز</small></div></div><div class="plan-overview-copy"><b>'+ (total&&done===total?'أحسنت! أكملت خطة اليوم 🎉':total?'استمر، أنت تتقدم':'ابدأ بخطوة بسيطة') +'</b><p>أنجزت <strong>'+ar(done)+'</strong> من <strong>'+ar(total)+'</strong> مهام</p><div class="bar2"><i style="width:'+pct+'%"></i></div><small>'+ar(minutes)+' دقيقة مخططة لهذا اليوم</small></div></div>'+
+      '<div class="plan-form-card"><div class="plan-form-title"><span>＋</span><div><b>أضف مهمة دراسية</b><small>قسّم الدراسة إلى مهام صغيرة وواضحة</small></div></div><label class="lb" for="planSubject">المادة</label><select id="planSubject"><option value="عام">مهمة عامة</option>'+subjects.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>'}).join("")+'</select><label class="lb" for="planTask">شنو راح تدرس؟</label><input type="text" id="planTask" maxlength="90" placeholder="مثال: مراجعة الفصل الأول وحل 10 أسئلة"><label class="lb" for="planMinutes">الوقت المتوقع</label><select id="planMinutes"><option value="20">٢٠ دقيقة</option><option value="30" selected>٣٠ دقيقة</option><option value="45">٤٥ دقيقة</option><option value="60">ساعة</option><option value="90">ساعة ونصف</option><option value="120">ساعتان</option></select><button id="planAdd" class="plan-add">إضافة إلى خطة اليوم <span>←</span></button></div>'+
+      '<div class="plan-list-head"><div><b>مهام اليوم</b><small>علّم على المهمة بعد ما تكملها</small></div><span class="badge">'+ar(total)+' مهام</span></div><div class="plan-task-list">'+list+'</div>'+
+      '<div class="plan-actions"><button class="ghost" id="planFocus">ابدأ جلسة تركيز ٢٥ دقيقة</button><button class="ghost" id="planClearDone">حذف المهام المكتملة</button></div><p class="plan-note">🔒 خطتك محفوظة على هذا الجهاز والمتصفح.</p>';
+    $("#planAdd").onclick=function(){var sub=$("#planSubject").value,task=($("#planTask").value||"").trim(),mins=Number($("#planMinutes").value)||30;if(task.length<2){alert("اكتب اسم المهمة أولاً");$("#planTask").focus();return}tasks.push({id:String(Date.now())+Math.random().toString(16).slice(2,6),subject:sub,task:task,minutes:mins,done:false});S.studyPlans[todayPlanKey()]=tasks;save();render()};
+    b.querySelectorAll("[data-plan-toggle]").forEach(function(el){el.onchange=function(){var id=this.getAttribute("data-plan-toggle");tasks.forEach(function(x){if(x.id===id)x.done=this.checked}.bind(this));S.studyPlans[todayPlanKey()]=tasks;save();render()}});
+    b.querySelectorAll("[data-plan-delete]").forEach(function(el){el.onclick=function(){var id=this.getAttribute("data-plan-delete");tasks=tasks.filter(function(x){return x.id!==id});S.studyPlans[todayPlanKey()]=tasks;save();render()}});
+    $("#planFocus").onclick=function(){go("timer")};
+    $("#planClearDone").onclick=function(){tasks=tasks.filter(function(x){return !x.done});S.studyPlans[todayPlanKey()]=tasks;save();render()};
   }
-  if(pf){
-    pf.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>الملف الشخصي</b><div class="sub">'+(S.name?esc(S.name):"—")+(S.school?" · "+esc(S.school):"")+(S.grade?" · "+esc(S.grade):"")+'</div></div><button class="ghost sm" id="pfEdit" style="flex:0 0 auto">تعديل</button></div>';
-    $("#pfEdit").onclick=function(){showProfileGate(true)};
-  }
+  render();
 }
 
 /* قائمة مع فلتر المادة */
