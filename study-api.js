@@ -529,6 +529,86 @@ module.exports = function (app, db, express) {
     return (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "";
   }
 
+  // ===================== تجاربي: حل المسائل على السبورة بالذكاء الاصطناعي =====================
+  app.post("/api/study/experiment/solve", async (req, res) => {
+    const ip = req.ip || "x";
+    if (tooMany("experiment:" + ip, 8, 5 * 60 * 1000)) {
+      return res.status(429).json({ error: "وصلت للحد المؤقت من المحاولات. انتظر قليلاً ثم جرّب مرة ثانية." });
+    }
+    try {
+      const problem = S(req.body && req.body.problem, 5000);
+      const subject = S(req.body && req.body.subject, 80);
+      const grade = S(req.body && req.body.grade, 80);
+      const image = String((req.body && req.body.image) || "");
+      const imagePattern = /^data:image\/(?:jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+      need(problem.length >= 2 || imagePattern.test(image), "اكتب المسألة أو أرفق صورة واضحة لها.");
+      if (image && !imagePattern.test(image)) throw bad("صيغة الصورة غير مدعومة. استخدم JPG أو PNG أو WEBP.");
+      if (image.length > 1500000) throw bad("حجم الصورة كبير. اختر صورة أصغر أو التقط صورة جديدة.");
+
+      const context = [
+        "الصف الدراسي: " + (grade || "غير محدد"),
+        "المادة: " + (subject || "حدد المادة من نص السؤال"),
+        "المسألة المكتوبة: " + (problem || "اقرأ المسألة من الصورة المرفقة.")
+      ].join("\n");
+      const system = `أنت مدرس عراقي خبير يشرح لطلاب المدارس وفق مستوى الصف المحدد. مهمتك حل المسائل التعليمية بدقة وبأسلوب مبسّط.
+أخرج JSON صالحاً فقط، بلا markdown ولا سياج كود، وبالمفاتيح التالية حصراً:
+{"title":"عنوان قصير","problem":"نص المسألة كما فهمته","finalAnswer":"الجواب النهائي مع الوحدة إن وجدت","steps":[{"title":"اسم الخطوة","equation":"القانون أو العملية الحسابية","explanation":"شرح قصير وواضح بالعربية"}],"check":"طريقة تحقق مختصرة أو فارغ","tip":"ملاحظة تعليمية مفيدة أو فارغ","needsClarification":false}
+قواعد الحل:
+1) ابدأ بذكر المعطيات والمطلوب ضمن الخطوات إذا كان ذلك مناسباً، ثم اكتب القانون، ثم التعويض، ثم الحساب، ثم النتيجة.
+2) اجعل كل خطوة قصيرة وقابلة للعرض منفردة على سبورة رقمية. استخدم رموزاً ومعادلات نصية واضحة، وتجنب LaTeX وعلامات markdown.
+3) في الرياضيات لا تقفز على التحويلات الجبرية. في الفيزياء اذكر الوحدات والتحويلات. في الكيمياء اذكر الكتل المولية أو الموازنة عند الحاجة.
+4) لا تخترع قيماً أو نصاً غير ظاهر في صورة السؤال. إذا كانت الصورة غير واضحة أو تنقصها معطيات لازمة، اجعل needsClarification=true واطلب صورة أوضح/معطيات إضافية في finalAnswer أو tip، ولا تخمّن النتيجة.
+5) راعِ مستوى الطالب العراقي والصف المحدد، واشرح بالعربية السهلة. لا تدّعِ أن الإجابة مضمونة 100%.
+6) اجعل steps بين 2 و10 خطوات، وfinalAnswer موجزاً وواضحاً.`;
+      const userContent = image
+        ? [{ type: "text", text: context }, { type: "image_url", image_url: { url: image } }]
+        : context;
+      const raw = await callAI([
+        { role: "system", content: system },
+        { role: "user", content: userContent }
+      ], 2200);
+
+      let parsed = null;
+      const clean = String(raw || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+      try { parsed = JSON.parse(clean); } catch (_) {
+        const match = clean.match(/\{[\s\S]*\}/);
+        if (match) { try { parsed = JSON.parse(match[0]); } catch (_) {} }
+      }
+      // Fallback for providers that return explanatory text rather than strict JSON.
+      if (!parsed || typeof parsed !== "object") {
+        const lines = clean.split(/\r?\n/).map(x => x.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, "").trim()).filter(Boolean).slice(0, 10);
+        parsed = {
+          title: "شرح المسألة",
+          problem: problem || "مسألة من صورة",
+          finalAnswer: lines.length ? lines[lines.length - 1] : clean.slice(-500),
+          steps: (lines.length ? lines : [clean]).map((line, i) => ({ title: "الخطوة " + (i + 1), equation: line.slice(0, 500), explanation: "" })),
+          check: "",
+          tip: "راجع الوحدات والمعطيات مع كتابك الدراسي.",
+          needsClarification: false
+        };
+      }
+      const steps = (Array.isArray(parsed.steps) ? parsed.steps : []).slice(0, 10).map((st, i) => ({
+        title: S(st && st.title, 100) || ("الخطوة " + (i + 1)),
+        equation: S(st && st.equation, 500),
+        explanation: S(st && st.explanation, 600)
+      }));
+      if (!steps.length) throw bad("لم أستطع استخراج خطوات واضحة. أعد كتابة المسألة بصورة أبسط.", 502);
+      res.set("Cache-Control", "no-store");
+      res.json({
+        ok: true,
+        solution: {
+          title: S(parsed.title, 120) || "حل المسألة",
+          problem: S(parsed.problem, 1200) || problem || "مسألة من صورة",
+          finalAnswer: S(parsed.finalAnswer, 700) || "راجع الخطوات أعلاه.",
+          steps,
+          check: S(parsed.check, 500),
+          tip: S(parsed.tip, 500),
+          needsClarification: !!parsed.needsClarification
+        }
+      });
+    } catch (e) { fail(res, e); }
+  });
+
   // جلب أسئلة الامتحان الورقي من قاعدة البيانات (يضيفها الأدمن)
   // للطالب نرجع نص الأسئلة فقط بدون الأجوبة
   app.post("/api/study/paper/generate", async (req, res) => {
