@@ -156,11 +156,11 @@ a.btn.g{background:var(--pri2);color:var(--pri)}
 mark{background:#ffe08a;color:#1c1c1c;border-radius:4px;padding:0 3px}
 
 /* ===== Live holographic teacher scene: large tutor + real dynamic board ===== */
-.exp-live-classroom{position:relative;display:block;min-height:510px;overflow:hidden;direction:ltr;background:#061426 url('/exp-hologram-scene.jpg') center 37%/cover no-repeat;}
+.exp-live-classroom{position:relative;display:block;min-height:510px;overflow:hidden;direction:ltr;background:#061426;}
 .exp-live-classroom:before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(90deg,rgba(2,12,26,.18),rgba(2,12,26,.04) 48%,rgba(1,10,21,.18)),repeating-linear-gradient(180deg,rgba(93,225,255,.04) 0,rgba(93,225,255,.04) 1px,transparent 1px,transparent 5px);}
 .exp-board-wrap{position:absolute;z-index:2;top:0;bottom:0;left:0;width:48%;min-width:0;direction:rtl;border:0;background:rgba(2,13,28,.22);backdrop-filter:blur(1.5px);}
 .exp-live-classroom .exp-board{height:100%;min-height:510px;max-height:650px;overflow:auto;background-color:rgba(4,18,36,.93);background-image:radial-gradient(circle at 50% 0,rgba(41,114,163,.22),transparent 55%),linear-gradient(rgba(64,162,204,.075) 1px,transparent 1px),linear-gradient(90deg,rgba(64,162,204,.075) 1px,transparent 1px);box-shadow:0 0 30px rgba(40,213,255,.16);}
-.exp-teacher-panel{position:absolute;z-index:3;top:0;right:0;bottom:0;width:52%;min-height:510px;overflow:hidden;background:linear-gradient(180deg,rgba(1,12,25,.12) 0%,rgba(1,12,25,.02) 35%,rgba(1,12,25,.17) 60%,rgba(1,12,25,.93) 100%);border:0;isolation:isolate;}
+.exp-teacher-panel{position:absolute;z-index:3;top:0;right:0;bottom:0;width:52%;min-height:510px;overflow:hidden;background:#061426;border:0;isolation:isolate;}
 .exp-teacher-panel:before{content:"";position:absolute;z-index:0;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(2,17,34,.05),transparent 28%,rgba(2,12,25,.2));}
 .exp-teacher-scan{position:absolute;z-index:1;inset:0;pointer-events:none;background:repeating-linear-gradient(180deg,rgba(96,230,255,.065) 0,rgba(96,230,255,.065) 1px,transparent 1px,transparent 5px);opacity:.46;mix-blend-mode:screen;animation:teacherScan 8s linear infinite;}
 .exp-teacher-top{position:absolute;z-index:4;top:12px;left:12px;right:12px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:9px 11px;border:1px solid rgba(111,232,255,.28);border-radius:13px;background:rgba(3,19,34,.72);backdrop-filter:blur(10px);color:#dbfbff;font-size:11px;font-weight:900;box-shadow:0 0 24px rgba(40,204,255,.1);}
@@ -182,65 +182,78 @@ mark{background:#ffe08a;color:#1c1c1c;border-radius:4px;padding:0 3px}
 @keyframes teacherScan{0%{transform:translateY(-10%)}100%{transform:translateY(10%)}}
 @keyframes teacherWave{from{height:3px}to{height:12px}}
 @keyframes teacherPulse{0%,100%{opacity:.4}50%{opacity:1}}
-/* Moving hologram avatar inside the live teacher panel */
-.exp-teacher-panel .exp-holo-avatar{
-  position:absolute;z-index:3;left:50%;top:48px;transform:translateX(-50%);
-  width:min(160px,42%);height:auto;aspect-ratio:100/125;
-  display:grid;place-items:center;pointer-events:none;
+
+
+/* ===== شخصية هولوغرامية متحركة + إيد تكتب ===== */
+.exp-teacher-panel{background:#061426!important;}
+.exp-char-stage{
+  position:absolute;z-index:2;left:0;right:0;top:28px;bottom:155px;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;overflow:hidden;
 }
-.exp-teacher-panel .exp-holo-avatar .exp-avatar-halo{
-  position:absolute;inset:0;border:1px solid rgba(100,235,255,.45);border-radius:50%;
-  box-shadow:0 0 22px rgba(70,220,255,.3),inset 0 0 28px rgba(70,220,255,.12);
-  animation:expHalo 6s linear infinite;
+.exp-char-glow{
+  position:absolute;left:50%;bottom:8%;transform:translateX(-50%);
+  width:55%;height:18px;border-radius:50%;
+  background:#4deaff;filter:blur(16px);opacity:.4;
 }
-.exp-teacher-panel .exp-holo-avatar .exp-avatar-halo:before,
-.exp-teacher-panel .exp-holo-avatar .exp-avatar-halo:after{
-  content:"";position:absolute;inset:-8px;border:1px dashed rgba(100,230,255,.3);border-radius:50%;
-  transform:rotateX(62deg);
+.exp-char{
+  width:min(180px,58%);height:auto;
+  filter:drop-shadow(0 0 14px rgba(80,230,255,.7));
+  animation:charFloat 4s ease-in-out infinite;
+  transform-origin:center 85%;
 }
-.exp-teacher-panel .exp-holo-avatar .exp-avatar-halo:after{inset:18px -12px;transform:rotateY(62deg);}
-.exp-teacher-panel .exp-holo-avatar svg{
-  width:92%;height:auto;position:relative;z-index:1;
-  filter:drop-shadow(0 0 12px rgba(80,230,255,.85));
-  animation:expFloat 3.6s ease-in-out infinite;
+.exp-teacher-panel.talking .exp-char{
+  filter:drop-shadow(0 0 22px #5af0ff) drop-shadow(0 0 40px rgba(80,220,255,.35));
 }
-.exp-teacher-panel.talking .exp-holo-avatar svg{
-  filter:drop-shadow(0 0 20px #5af0ff) drop-shadow(0 0 40px rgba(80,220,255,.4));
+.exp-char-body{transform-origin:100px 200px;animation:charSway 5s ease-in-out infinite;}
+.exp-char-mouth{transform-box:fill-box;transform-origin:center;}
+.exp-teacher-panel.talking .exp-char-mouth{animation:charMouth .17s ease-in-out infinite alternate;}
+.exp-char-arm-right{transform-origin:128px 150px;}
+.exp-teacher-panel.writing .exp-char-arm-right{
+  animation:charWriteArm 1.4s ease-in-out infinite;
 }
-.exp-teacher-panel .exp-holo-avatar .exp-mouth{
-  transform-box:fill-box;transform-origin:center;
-  transition:transform .08s;
+.exp-teacher-panel.writing .exp-char-hand{
+  animation:charWriteHand 1.4s ease-in-out infinite;
 }
-.exp-teacher-panel.talking .exp-holo-avatar .exp-mouth{
-  animation:expMouth .18s ease-in-out infinite alternate;
+.exp-char-p1{animation:charParticle 3.5s linear infinite;}
+.exp-char-p2{animation:charParticle 4.2s linear infinite .7s;}
+.exp-char-p3{animation:charParticle 3.8s linear infinite 1.4s;}
+.exp-char-p4{animation:charParticle 4.5s linear infinite 2.1s;}
+@keyframes charFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-10px)}
 }
-.exp-teacher-panel .exp-holo-avatar .exp-holo-beam{
-  position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
-  width:70%;height:10px;border-radius:50%;background:#5af0ff;
-  filter:blur(10px);opacity:.55;pointer-events:none;
+@keyframes charSway{
+  0%,100%{transform:rotate(-1.2deg)}
+  50%{transform:rotate(1.5deg)}
 }
-.exp-teacher-panel .exp-holo-avatar .exp-particles{
-  position:absolute;inset:0;pointer-events:none;overflow:hidden;
+@keyframes charMouth{
+  from{transform:scaleY(.4)}
+  to{transform:scaleY(1.35)}
 }
-.exp-teacher-panel .exp-holo-avatar .exp-particles i{
-  position:absolute;width:2px;height:2px;border-radius:50%;background:#9ff;opacity:0;
-  animation:holoParticle 3.2s linear infinite;
+@keyframes charWriteArm{
+  0%,100%{transform:rotate(0deg)}
+  25%{transform:rotate(-12deg)}
+  50%{transform:rotate(8deg)}
+  75%{transform:rotate(-6deg)}
 }
-.exp-teacher-panel .exp-holo-avatar .exp-particles i:nth-child(1){left:20%;top:30%;animation-delay:0s}
-.exp-teacher-panel .exp-holo-avatar .exp-particles i:nth-child(2){left:70%;top:25%;animation-delay:.6s}
-.exp-teacher-panel .exp-holo-avatar .exp-particles i:nth-child(3){left:40%;top:60%;animation-delay:1.2s}
-.exp-teacher-panel .exp-holo-avatar .exp-particles i:nth-child(4){left:80%;top:50%;animation-delay:1.8s}
-.exp-teacher-panel .exp-holo-avatar .exp-particles i:nth-child(5){left:15%;top:70%;animation-delay:2.4s}
-@keyframes holoParticle{
-  0%{opacity:0;transform:translateY(8px) scale(.5)}
-  20%{opacity:.9}
-  80%{opacity:.4}
-  100%{opacity:0;transform:translateY(-40px) scale(1.2)}
+@keyframes charWriteHand{
+  0%,100%{transform:translate(0,0)}
+  25%{transform:translate(-4px,3px)}
+  50%{transform:translate(5px,-2px)}
+  75%{transform:translate(-3px,4px)}
+}
+@keyframes charParticle{
+  0%{opacity:0;transform:translateY(12px)}
+  20%{opacity:.85}
+  80%{opacity:.3}
+  100%{opacity:0;transform:translateY(-55px)}
 }
 @media(max-width:760px){
-  .exp-teacher-panel .exp-holo-avatar{top:36px;width:min(130px,38%)}
+  .exp-char-stage{top:22px;bottom:140px;}
+  .exp-char{width:min(150px,52%);}
 }
-@media(max-width:760px){.exp-live-classroom{display:flex;flex-direction:column;min-height:0;background:none;overflow:visible}.exp-teacher-panel{position:relative;order:1;right:auto;top:auto;bottom:auto;width:100%;min-height:375px;max-height:400px;background:linear-gradient(180deg,rgba(1,12,25,.05),rgba(1,12,25,.06) 42%,rgba(1,12,25,.95) 100%),url('/exp-hologram-scene.jpg') 69% 22%/cover no-repeat;border-bottom:1px solid rgba(82,221,255,.24)}.exp-board-wrap{position:relative;order:2;left:auto;top:auto;bottom:auto;width:100%;min-height:0;border:0;background:#041321;backdrop-filter:none}.exp-live-classroom .exp-board{height:auto;min-height:390px;max-height:none}.exp-teacher-panel .exp-talk{min-height:132px}.exp-teacher-base{bottom:195px}}
+@media(max-width:760px){.exp-live-classroom{display:flex;flex-direction:column;min-height:0;background:none;overflow:visible}.exp-teacher-panel{position:relative;order:1;right:auto;top:auto;bottom:auto;width:100%;min-height:375px;max-height:400px;background:linear-gradient(180deg,rgba(1,12,25,.05),rgba(1,12,25,.06) 42%,rgba(1,12,25,.95) 100%);border-bottom:1px solid rgba(82,221,255,.24)}.exp-board-wrap{position:relative;order:2;left:auto;top:auto;bottom:auto;width:100%;min-height:0;border:0;background:#041321;backdrop-filter:none}.exp-live-classroom .exp-board{height:auto;min-height:390px;max-height:none}.exp-teacher-panel .exp-talk{min-height:132px}.exp-teacher-base{bottom:195px}}
 @media(max-width:420px){.exp-teacher-panel{min-height:355px;max-height:375px;background-position:70% 20%}.exp-teacher-panel .exp-talk{left:8px;right:8px;bottom:8px;padding:9px}.exp-teacher-panel .exp-talk p{font-size:11px}.exp-teacher-panel .exp-talk-controls button{font-size:9px;padding:6px 7px}.exp-teacher-top{font-size:10px;padding:8px}}
 @media(prefers-reduced-motion:reduce){.exp-teacher-scan,.exp-teacher-panel.talking:after,.exp-wave i{animation:none!important}}
 </style>
@@ -326,7 +339,7 @@ nav{left:50%;right:auto;transform:translateX(-50%);bottom:10px;width:min(680px,c
 .exp-input-card{padding:16px}.exp-panel-title{display:flex;align-items:center;gap:9px;margin-bottom:13px}.exp-panel-icon{width:38px;height:38px;display:grid;place-items:center;border-radius:13px;background:var(--pri2);font-size:20px}.exp-panel-title b,.exp-panel-title small{display:block}.exp-panel-title b{font-size:14px}.exp-panel-title small{font-size:10px;color:var(--mut);margin-top:2px}.exp-field{display:block;margin:0 0 11px}.exp-field>span{display:block;margin-bottom:6px;font-size:11px;font-weight:800;color:var(--tx)}.exp-field textarea,.exp-field select{width:100%;border:1px solid var(--bd);border-radius:13px;background:var(--bg);color:var(--tx);font:600 13px/1.9 'Tajawal',sans-serif;padding:11px 12px;outline:none}.exp-field textarea{min-height:132px;resize:vertical}.exp-field textarea:focus,.exp-field select:focus{border-color:#5bcae0;box-shadow:0 0 0 3px rgba(61,177,205,.12)}.exp-upload{display:flex;align-items:center;gap:9px;padding:12px;border:1px dashed rgba(73,156,192,.45);border-radius:14px;background:var(--bg);font-size:11px;color:var(--mut);cursor:pointer}.exp-upload b{color:var(--pri)}.exp-upload input{display:none}
 .exp-preview{display:none;align-items:center;gap:9px;margin-top:8px;padding:7px;border-radius:12px;background:var(--bg);font-size:10px;color:var(--mut)}.exp-preview.show{display:flex}.exp-preview img{width:54px;height:54px;object-fit:cover;border-radius:9px}.exp-preview button{margin-right:auto;background:none;color:var(--red);box-shadow:none;padding:5px}.exp-solve{width:100%;margin-top:13px;min-height:49px;border-radius:14px;background:linear-gradient(105deg,#236ac8,#17a98f);box-shadow:0 9px 24px rgba(25,142,172,.22);color:white;font-size:13px;font-weight:900}.exp-solve:disabled{opacity:.55;cursor:wait}.exp-status{min-height:25px;margin:8px 2px 0;font-size:10px;line-height:1.8;color:var(--mut)}.exp-status.error{color:#e45d76}.exp-examples{margin-top:15px;padding-top:13px;border-top:1px solid var(--bd)}.exp-examples>b{display:block;font-size:11px;margin-bottom:8px}.exp-example{display:block;width:100%;margin:6px 0;padding:9px 11px;text-align:right;border-radius:11px;background:var(--bg);color:var(--mut);border:1px solid var(--bd);box-shadow:none;font-size:10px;line-height:1.6}.exp-example:hover{border-color:var(--pri);color:var(--pri)}.exp-note{margin:12px 2px 0;color:var(--mut);font-size:9px;line-height:1.8}
 @media(max-width:760px){.exp-layout{grid-template-columns:1fr}.exp-tutor-stage{min-height:132px;padding:10px}.exp-avatar-wrap{width:100px;height:105px;flex-basis:100px}.exp-avatar-svg{width:83px;height:96px}.exp-board{min-height:350px}}@media(max-width:420px){.exp-talk p{font-size:11px}.exp-talk{padding:9px}.exp-avatar-wrap{width:84px;flex-basis:84px}.exp-avatar-svg{width:76px}.exp-work{font-size:24px}.exp-explain{font-size:18px}}
-@media(prefers-reduced-motion:reduce){.exp-board:after,.exp-tutor-stage.talking .exp-mouth,.exp-avatar-halo,.exp-avatar-svg,.exp-step.written .exp-work,.exp-step.written .exp-work:after,.exp-final.show{animation:none!important}.exp-step{transition:none}}
+@media(prefers-reduced-motion:reduce){.exp-board:after,.exp-char,.exp-char-body,.exp-char-mouth,.exp-char-arm-right,.exp-char-hand,.exp-char-p1,.exp-char-p2,.exp-char-p3,.exp-char-p4,.exp-step.written .exp-work,.exp-step.written .exp-work:after,.exp-final.show{animation:none!important}.exp-step{transition:none}}
 </style>
 </head>
 <body>
@@ -523,7 +536,7 @@ document.addEventListener("keydown",function(e){if(e.key==="Escape")closeSheet()
 IC.robot='<rect x="4" y="8" width="16" height="12" rx="4"/><rect x="11" y="4" width="2" height="4"/><circle cx="12" cy="3.4" r="1.7"/><g fill="#fff"><circle cx="9" cy="13.5" r="1.8"/><circle cx="15" cy="13.5" r="1.8"/></g><rect x="9" y="16.8" width="6" height="1.4" rx=".7" fill="#fff"/>';
 var T=[
  ["ai","المساعد الذكي","robot","#e7f0ff","#2563eb","اسأل كتابةً أو بالصوت وخذ شرحاً فورياً"],
- ["experiments","تجاربي · الهولوغرام المتحرّك","robot","#e4f7ff","#167ba7","صوّر المسألة وشاهد الهولوغرام يكتب الحل ويحچي وياك بالعراقي"],
+ ["experiments","تجاربي · الشخصية الهولوغرامية","robot","#e4f7ff","#167ba7","صوّر المسألة وشاهد الشخصية تتحرك وتكتب على السبورة وتحچي وياك بالعراقي"],
  ["law3d","مختبر القوانين 3D","books","#e3fbf8","#078b83","شاهد القوانين كمعادلات هولوغرام تفاعلية"],
  ["videos","المحاضرات","video","#f1eaff","#7c3aed","شروحات الدروس بالفيديو"],
  ["files","الملازم والملخصات","books","#fff4df","#bb7810","ملفات مرتبة حسب صفك ومادتك"],
@@ -541,7 +554,7 @@ var T=[
  ["calc","حاسبة المعدل","calc","#e2f5fb","#1786a3","احسب معدلك بسهولة"],
  ["wheel","اختيار مادة عشوائياً","calc","#fbeafa","#b344a1","خلّ القرار على عجلة الدراسة"]
 ];
-var TITLES={experiments:"تجاربي · الهولوغرام المتحرّك",ai:"المساعد الذكي",challenge:"تحدياتي",wheel:"عجلة الدوران",phys:"لعبة الفيزياء",law3d:"قوانين 3D",plan:"خطة مذاكرتي",path:"مسار المراجعة الذكي",report:"التقرير الأسبوعي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
+var TITLES={experiments:"تجاربي · الشخصية الهولوغرامية",ai:"المساعد الذكي",challenge:"تحدياتي",wheel:"عجلة الدوران",phys:"لعبة الفيزياء",law3d:"قوانين 3D",plan:"خطة مذاكرتي",path:"مسار المراجعة الذكي",report:"التقرير الأسبوعي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
 var R={home:rHome,experiments:rExperiments,ai:rAI,challenge:rChallenge,wheel:rWheel,phys:rPhys,law3d:rLaw3D,plan:rPlan,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
 function build(){
   var h='<section id="v-home" class="v home-view">'+
@@ -620,7 +633,7 @@ function expSpeakAndWait(text){return new Promise(function(resolve){
   utter.rate=.92;utter.pitch=1.03;utter.volume=1;
   var done=false,guard=setTimeout(finish,Math.min(60000,Math.max(10000,String(text).length*230)));
   function finish(){if(done)return;done=true;clearTimeout(guard);var stage=$("#expTutorStage"),pbtn=$("#expTutorPause");if(stage)stage.classList.remove("talking");if(pbtn){pbtn.disabled=true;pbtn.textContent="⏸ إيقاف مؤقت"}resolve()}
-  utter.onstart=function(){var pbtn=$("#expTutorPause");if(pbtn)pbtn.disabled=false;expSetStatus("المدرّسة تشرح الحل بالصوت…")};
+  utter.onstart=function(){var pbtn=$("#expTutorPause");if(pbtn)pbtn.disabled=false;expSetStatus("الشخصية تشرح الحل بالصوت…")};
   utter.onend=finish;utter.onerror=function(){expSetStatus("تعذر تشغيل الصوت من الجهاز. اضغط «اسمع الشرح» أو فعّل صوتاً عربياً في إعدادات الجهاز.",true);finish()};
   try{window.speechSynthesis.speak(utter)}catch(e){finish()}
 })}
@@ -643,9 +656,10 @@ function expPlaySteps(withVoice){
   var count=$("#expCount"),allBtn=$("#expAll");if(allBtn)allBtn.disabled=false;
   function tick(){
     if(run!==EXP.runId)return;
-    if(at>=total){var f=$("#expFinal");if(f)f.classList.add("show");if(board)board.scrollTop=board.scrollHeight;expSetStatus("وصلنا للنتيجة! المدرّسة تراجع وياك الخلاصة.");var ending=EXP.answer&&(EXP.answer.spokenScript||("وهسه وصلنا للنتيجة: "+(EXP.answer.finalAnswer||"شوف الجواب على السبورة")+". أحسنت، راجع القانون حتى تتأكد من فهمك."));if(withVoice&&ending&&!EXP.muted){expSpeakAndWait(ending).then(function(){if(run===EXP.runId)expTutorSay("أحسنت! إذا تحب، عيد الشرح أو جرّب مسألة ثانية.",false)})}else expTutorSay("أحسنت! إذا تحب، عيد الشرح أو جرّب مسألة ثانية.",false);EXP.timer=null;return}
+    if(at>=total){var f=$("#expFinal");if(f)f.classList.add("show");if(board)board.scrollTop=board.scrollHeight;expSetStatus("وصلنا للنتيجة! الشخصية تراجع وياك الخلاصة.");var ending=EXP.answer&&(EXP.answer.spokenScript||("وهسه وصلنا للنتيجة: "+(EXP.answer.finalAnswer||"شوف الجواب على السبورة")+". أحسنت، راجع القانون حتى تتأكد من فهمك."));if(withVoice&&ending&&!EXP.muted){expSpeakAndWait(ending).then(function(){if(run===EXP.runId)expTutorSay("أحسنت! إذا تحب، عيد الشرح أو جرّب مسألة ثانية.",false)})}else expTutorSay("أحسنت! إذا تحب، عيد الشرح أو جرّب مسألة ثانية.",false);EXP.timer=null;return}
     var index=at,st=EXP.steps[index],el=$("#expStep"+index);if(el)el.classList.add("written");at++;EXP.sequence=at;if(count)count.textContent=ar(at)+" / "+ar(total)+" خطوات";if(board)board.scrollTop=board.scrollHeight;
-    var line=(st&&st.spoken)||[st&&st.title,st&&st.explanation].filter(Boolean).join(". ")||"هسه ننتقل للخطوة الجاية.";expSetStatus("المدرّسة تشرح الخطوة "+ar(at)+" باللهجة العراقية…");
+    var stage=$("#expTutorStage");if(stage){stage.classList.add("writing");setTimeout(function(){if(stage)stage.classList.remove("writing")},1450)}
+    var line=(st&&st.spoken)||[st&&st.title,st&&st.explanation].filter(Boolean).join(". ")||"هسه ننتقل للخطوة الجاية.";expSetStatus("الشخصية تكتب وتشرح الخطوة "+ar(at)+" باللهجة العراقية…");
     if(withVoice&&!EXP.muted){expSpeakAndWait(line).then(function(){if(run===EXP.runId)EXP.timer=setTimeout(tick,300)})}
     else{expTutorSay(line,false);EXP.timer=setTimeout(tick,1150)}
   }
@@ -656,9 +670,9 @@ function expResetBoard(){expStop();EXP.steps=[];EXP.answer=null;var sol=$("#expS
 function rExperiments(){
   var b=$("#b-experiments");if(!b)return;EXP.image="";expResetBoard();
   var subjectOptions='<option value="">اختيار المادة (اختياري)</option>'+subs().map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>'}).join("");
-  b.innerHTML='<div class="exp-hero"><div class="exp-hero-top"><i class="exp-live"></i> DLEENI AI LAB · HOLOGRAM TEACHER</div><h2>تجاربي، مختبري الذكي ✦</h2><p>اكتب المسألة أو صوّرها، وخلي الهولوغرام المتحرّك يحلّها على السبورة بخط يشبه خط اليد، ويشرحلك كل خطوة بصوت وباللهجة العراقية.</p><div class="exp-hero-orb">∑</div></div>'+ 
+  b.innerHTML='<div class="exp-hero"><div class="exp-hero-top"><i class="exp-live"></i> DLEENI AI LAB · HOLOGRAM TEACHER</div><h2>تجاربي، مختبري الذكي ✦</h2><p>اكتب المسألة أو صوّرها، وخلي الشخصية الهولوغرامية تتحرك وتكتب الحل على السبورة بإيدها، وتشرحلك كل خطوة بصوت وباللهجة العراقية.</p><div class="exp-hero-orb">∑</div></div>'+ 
     '<div class="exp-layout"><section class="exp-board-card"><div class="exp-board-head"><b>◈ HOLO-BOARD / 01</b><span class="exp-board-state"><i class="exp-live"></i> <span id="expCount">بانتظار مسألتك</span></span></div>'+ 
-    '<div class="exp-live-classroom"><div class="exp-board-wrap"><div class="exp-board" id="expBoard"><div class="exp-empty" id="expEmpty"><div class="exp-empty-symbol">∑</div><h3>السبورة بانتظار أول تجربة</h3><p>هنا راح تنكتب خطوات الحل بخط يشبه الكتابة اليدوية،<br>والمدرّسة الهولوغرامية تشرحلك إياها وحدة وحدة.</p><small>THINK · WRITE · EXPLAIN</small></div><div class="exp-solution" id="expSolution" hidden></div></div></div><div class="exp-teacher-panel" id="expTutorStage"><div class="exp-teacher-scan"></div><div class="exp-teacher-top"><i class="exp-live"></i><span>مدرّسة دليني الهولوغرامية</span><small>HOLOGRAM LIVE · متحركة</small></div><div class="exp-holo-avatar" aria-hidden="true"><div class="exp-avatar-halo"></div><div class="exp-particles"><i></i><i></i><i></i><i></i><i></i></div><svg class="exp-avatar-svg" viewBox="0 0 100 125" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="holoGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7cf8ff"/><stop offset="100%" stop-color="#3ab8ff"/></linearGradient><filter id="holoGlow"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><!-- outer ring --><circle cx="50" cy="42" r="34" fill="none" stroke="rgba(120,240,255,0.2)" stroke-width="1" stroke-dasharray="5 4"/><!-- head --><ellipse cx="50" cy="40" rx="17" ry="19" fill="rgba(90,220,255,0.12)" stroke="url(#holoGrad)" stroke-width="1.8" filter="url(#holoGlow)"/><!-- hair / soft hijab outline --><path d="M33 44 Q31 18 50 14 Q69 18 67 44" fill="none" stroke="#8af4ff" stroke-width="2.2" stroke-linecap="round"/><path d="M34 45 Q32 55 36 62" fill="none" stroke="rgba(140,240,255,0.6)" stroke-width="1.2"/><path d="M66 45 Q68 55 64 62" fill="none" stroke="rgba(140,240,255,0.6)" stroke-width="1.2"/><!-- eyes --><circle cx="43" cy="37" r="2.8" fill="#e8ffff"/><circle cx="57" cy="37" r="2.8" fill="#e8ffff"/><circle cx="43.5" cy="36.5" r="1" fill="#0a2a40"/><circle cx="57.5" cy="36.5" r="1" fill="#0a2a40"/><!-- mouth (animated when talking) --><ellipse class="exp-mouth" cx="50" cy="50" rx="5.5" ry="2.8" fill="#9ef8ff"/><!-- neck --><path d="M44 59 Q50 63 56 59" fill="none" stroke="#6ee8ff" stroke-width="1.5"/><!-- body / shoulders --><path d="M38 68 Q50 78 62 68 L68 105 Q50 118 32 105 Z" fill="rgba(70,200,255,0.1)" stroke="url(#holoGrad)" stroke-width="1.6"/><!-- shoulder lines --><path d="M22 78 Q35 70 40 74" fill="none" stroke="#7cf0ff" stroke-width="1.6" stroke-linecap="round"/><path d="M78 78 Q65 70 60 74" fill="none" stroke="#7cf0ff" stroke-width="1.6" stroke-linecap="round"/><!-- vertical holo scan lines on body --><line x1="42" y1="75" x2="42" y2="100" stroke="rgba(120,240,255,0.25)" stroke-width="1"/><line x1="50" y1="72" x2="50" y2="108" stroke="rgba(120,240,255,0.3)" stroke-width="1"/><line x1="58" y1="75" x2="58" y2="100" stroke="rgba(120,240,255,0.25)" stroke-width="1"/><!-- top antenna-like holo point --><line x1="50" y1="14" x2="50" y2="5" stroke="#8af8ff" stroke-width="1.5" stroke-linecap="round"/><circle cx="50" cy="4" r="2" fill="#a0faff" opacity="0.9"/></svg><div class="exp-holo-beam"></div></div><div class="exp-teacher-base"></div><div class="exp-talk"><div class="exp-talk-head"><i class="exp-live"></i> شرح مباشر <small>· باللهجة العراقية</small></div><p id="expTutorText" aria-live="polite">هلا بيك بمختبر دليني. دزلي المسألة، وآني أشرحلك الحل خطوة بخطوة وباللهجة العراقية.</p><div class="exp-talk-controls"><button type="button" id="expTutorListen">🔊 اسمع الشرح</button><button type="button" id="expTutorPause" disabled>⏸ إيقاف مؤقت</button><button type="button" id="expVoiceToggle">🔇 كتم</button></div><div class="exp-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div></div><div class="exp-board-actions"><button id="expReplay" disabled>↻ إعادة الشرح بالصوت</button><button id="expListen" disabled>🔊 اسمع الخلاصة</button><button id="expAll" disabled>إظهار كل الخطوات</button><button id="expClear">مسألة جديدة</button><button id="expCopy" disabled>نسخ الحل</button></div></section>'+ 
+    '<div class="exp-live-classroom"><div class="exp-board-wrap"><div class="exp-board" id="expBoard"><div class="exp-empty" id="expEmpty"><div class="exp-empty-symbol">∑</div><h3>السبورة بانتظار أول تجربة</h3><p>هنا راح تنكتب خطوات الحل بخط يشبه الكتابة اليدوية،<br>والشخصية الهولوغرامية تكتب وتشرحلك وحدة وحدة.</p><small>THINK · WRITE · EXPLAIN</small></div><div class="exp-solution" id="expSolution" hidden></div></div></div><div class="exp-teacher-panel" id="expTutorStage"><div class="exp-teacher-scan"></div><div class="exp-char-stage"><div class="exp-char-glow"></div><svg class="exp-char" viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="cBody" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7af0ff"/><stop offset="100%" stop-color="#3aa0ff"/></linearGradient><linearGradient id="cSkin" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#b8f4ff"/><stop offset="100%" stop-color="#6ad8f0"/></linearGradient><filter id="cGlow"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><!-- pedestal / base ring --><ellipse cx="100" cy="268" rx="48" ry="8" fill="rgba(80,220,255,0.25)" filter="url(#cGlow)"/><ellipse cx="100" cy="268" rx="36" ry="5" fill="none" stroke="#6ef0ff" stroke-width="1.5" opacity="0.7"/><!-- body --><g class="exp-char-body"><!-- torso --><path d="M72 145 Q100 130 128 145 L135 210 Q100 235 65 210 Z" fill="url(#cBody)" opacity="0.25" stroke="#6ef0ff" stroke-width="2"/><!-- holographic grid on body --><path d="M80 155 L120 155 M78 170 L122 170 M76 185 L124 185 M75 200 L125 200" fill="none" stroke="rgba(140,240,255,0.35)" stroke-width="1"/><!-- head --><circle cx="100" cy="95" r="38" fill="rgba(100,220,255,0.15)" stroke="#7af0ff" stroke-width="2.5" filter="url(#cGlow)"/><!-- hair / soft outline --><path d="M68 100 Q62 55 100 48 Q138 55 132 100" fill="none" stroke="#8af8ff" stroke-width="3.5" stroke-linecap="round"/><path d="M70 105 Q65 125 72 140" fill="none" stroke="rgba(140,240,255,0.5)" stroke-width="2"/><path d="M130 105 Q135 125 128 140" fill="none" stroke="rgba(140,240,255,0.5)" stroke-width="2"/><!-- eyes --><circle cx="88" cy="90" r="5" fill="#e8ffff"/><circle cx="112" cy="90" r="5" fill="#e8ffff"/><circle cx="89" cy="89" r="2" fill="#0a3048"/><circle cx="113" cy="89" r="2" fill="#0a3048"/><!-- mouth --><ellipse class="exp-char-mouth" cx="100" cy="112" rx="9" ry="4.5" fill="#9ef8ff"/><!-- neck --><path d="M92 132 Q100 140 108 132" fill="none" stroke="#6ee8ff" stroke-width="2.5"/><!-- left arm (static-ish, holding) --><g class="exp-char-arm-left"><path d="M72 150 Q45 165 40 200" fill="none" stroke="#6ef0ff" stroke-width="4.5" stroke-linecap="round"/><circle cx="40" cy="205" r="7" fill="rgba(120,240,255,0.3)" stroke="#7af0ff" stroke-width="1.5"/></g><!-- right arm (writing arm - will animate) --><g class="exp-char-arm-right"><path class="exp-char-arm-path" d="M128 150 Q160 160 155 195" fill="none" stroke="#6ef0ff" stroke-width="4.5" stroke-linecap="round"/><g class="exp-char-hand"><circle cx="155" cy="200" r="8" fill="rgba(120,240,255,0.35)" stroke="#7af0ff" stroke-width="1.5"/><!-- pen --><line x1="155" y1="200" x2="168" y2="185" stroke="#a0f8ff" stroke-width="2.5" stroke-linecap="round"/><circle cx="170" cy="182" r="3" fill="#c0ffff"/></g></g></g><!-- floating particles --><circle class="exp-char-p1" cx="55" cy="80" r="2" fill="#9ff" opacity="0.7"/><circle class="exp-char-p2" cx="150" cy="70" r="1.5" fill="#9ff" opacity="0.6"/><circle class="exp-char-p3" cx="40" cy="130" r="1.8" fill="#9ff" opacity="0.5"/><circle class="exp-char-p4" cx="165" cy="140" r="2" fill="#9ff" opacity="0.65"/></svg></div><div class="exp-teacher-top"><i class="exp-live"></i><span>شخصية دليني الهولوغرامية</span><small>HOLOGRAM LIVE · تتحرك وتكتب</small></div><div class="exp-talk"><div class="exp-talk-head"><i class="exp-live"></i> شرح مباشر <small>· باللهجة العراقية</small></div><p id="expTutorText" aria-live="polite">هلا بيك بمختبر دليني. دزلي المسألة، وآني أكتب الحل على السبورة وأشرحهالك خطوة بخطوة وباللهجة العراقية.</p><div class="exp-talk-controls"><button type="button" id="expTutorListen">🔊 اسمع الشرح</button><button type="button" id="expTutorPause" disabled>⏸ إيقاف مؤقت</button><button type="button" id="expVoiceToggle">🔇 كتم</button></div><div class="exp-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div></div><div class="exp-board-actions"><button id="expReplay" disabled>↻ إعادة الشرح بالصوت</button><button id="expListen" disabled>🔊 اسمع الخلاصة</button><button id="expAll" disabled>إظهار كل الخطوات</button><button id="expClear">مسألة جديدة</button><button id="expCopy" disabled>نسخ الحل</button></div></section>'+ 
     '<aside class="exp-input-card"><div class="exp-panel-title"><span class="exp-panel-icon">🧠</span><div><b>أرسل مسألتك إلى المدرّس</b><small>الشرح يتكيّف مع صفّك ومادتك</small></div></div><label class="exp-field"><span>المادة الدراسية</span><select id="expSubject">'+subjectOptions+'</select></label><label class="exp-field"><span>اكتب المسألة</span><textarea id="expProblem" maxlength="5000" placeholder="مثلاً: احسب شدة التيار إذا كانت الشحنة 120 كولوم والزمن 20 ثانية…"></textarea></label><label class="exp-upload" for="expImage"><span style="font-size:23px">📷</span><span><b>صوّر المسألة أو ارفع صورة</b><br>من الكتاب أو الدفتر</span><input id="expImage" type="file" accept="image/*" capture="environment"></label><div class="exp-preview" id="expPreview"><img id="expPreviewImg" alt="معاينة المسألة"><span id="expPreviewName">تم اختيار صورة</span><button id="expRemoveImage" type="button">إزالة ×</button></div><button class="exp-solve" id="expSolve">✦ حلّ المسألة وخلّي المدرّس يشرح</button><div class="exp-status" id="expStatusMsg" role="status" aria-live="polite">جاهز. اكتب المسألة أو صوّرها واضغط حلّ.</div><div class="exp-examples"><b>جرّب مثالاً سريعاً</b><button class="exp-example" data-exp-example="حل المعادلة: 3x + 7 = 22، واشرح كل خطوة.">رياضيات · حل المعادلة 3x + 7 = 22</button><button class="exp-example" data-exp-example="احسب شدة التيار الكهربائي إذا مرت شحنة مقدارها 120 كولوم خلال 20 ثانية، واكتب القانون والوحدات.">فيزياء · شحنة 120 كولوم خلال 20 ثانية</button><button class="exp-example" data-exp-example="ما عدد مولات 18 غراماً من الماء H₂O؟ وضّح حساب الكتلة المولية.">كيمياء · احسب مولات 18 غرام ماء</button></div><p class="exp-note">المعادلات تظهر بتأثير كتابة يدوية، والصوت يستخدم أفضل صوت عربي متاح بجهاز الطالب؛ قد يختلف اللفظ حسب الجهاز. راجع الحل مع كتابك لأن الذكاء الاصطناعي قد يخطئ أحياناً.</p></aside></div>';
   b.querySelectorAll("[data-exp-example]").forEach(function(btn){btn.onclick=function(){var q=$("#expProblem");q.value=btn.dataset.expExample;q.focus()}});
   $("#expImage").onchange=async function(){var f=this.files&&this.files[0];if(!f)return;if(!/^image\//.test(f.type)){expSetStatus("اختار صورة صالحة.",true);return}try{expSetStatus("جاري تجهيز صورة السؤال…");EXP.image=await compressImage(f,1400,950000);$("#expPreviewImg").src=EXP.image;$("#expPreviewName").textContent=f.name||"صورة المسألة";$("#expPreview").classList.add("show");expSetStatus("الصورة جاهزة. اضغط حلّ حتى يبدأ المدرّس.")}catch(e){EXP.image="";expSetStatus(e.message||"تعذرت قراءة الصورة.",true)}};
