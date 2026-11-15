@@ -9,7 +9,11 @@
 <script src="/challenges-data.js" defer></script>
 <script src="/physics-game-data.js" defer></script>
 <script src="/laws-3d-data.js" defer></script>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Caveat:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Aref+Ruqaa:wght@400;700&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Aref+Ruqaa:wght@400;700&display=swap" rel="stylesheet"></noscript>
 <style>
 
 :root{
@@ -312,7 +316,8 @@ mark{background:#ffe08a;color:#1c1c1c;border-radius:4px;padding:0 3px}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1422;--card:#131f31;--glass:rgba(19,31,49,.95);--tx:#e9f0fa;--mut:#9aaac0;--pri:#a4a8ff;--pri2:#222b49;--bd:#2a3a50;--shadow:0 12px 30px rgba(0,0,0,.25)}}
 :root[data-theme="dark"]{--bg:#0c1422;--card:#131f31;--glass:rgba(19,31,49,.95);--tx:#e9f0fa;--mut:#9aaac0;--pri:#a4a8ff;--pri2:#222b49;--bd:#2a3a50;--shadow:0 12px 30px rgba(0,0,0,.25)}
 html,body{min-height:100%;background:var(--bg)}
-body{background-image:radial-gradient(ellipse at 8% 0%,rgba(81,111,220,.10),transparent 34%),radial-gradient(ellipse at 100% 25%,rgba(18,168,138,.08),transparent 30%);background-attachment:fixed}
+body{background-image:radial-gradient(ellipse at 8% 0%,rgba(81,111,220,.10),transparent 34%),radial-gradient(ellipse at 100% 25%,rgba(18,168,138,.08),transparent 30%);background-attachment:scroll}
+@media(min-width:768px){body{background-attachment:fixed}}
 .wrap{max-width:1080px;padding:22px 22px calc(112px + env(safe-area-inset-bottom,0px))}
 #app{overflow:visible}
 h1{letter-spacing:-.5px}h2{letter-spacing:-.3px}
@@ -628,7 +633,7 @@ function rHome(){
   g.style.display=REC?"none":"";g.onchange=function(){S.grade=g.value;save();rHome()};
   $("#hi").textContent=(S.name?("أهلاً، "+S.name.split(" ")[0]):(REC?("أهلاً يا "+REC.n.split(" ")[0]):"أهلاً بك في دليني"))+" ✨";
   $("#hero-student").innerHTML=(S.name?'<span>👤 '+esc(S.name)+'</span>':"")+(S.school?'<span>🏫 '+esc(S.school)+'</span>':"")+(S.grade?'<span>📚 '+esc(S.grade)+'</span>':"");
-  $("#news").innerHTML=INFO.news.map(function(n){return '<div class="card news"><b>📢 '+esc(n.title)+'</b>'+(n.text?'<p class="sub" style="line-height:1.8;white-space:pre-wrap">'+esc(n.text)+"</p>":"")+(n.image?'<img src="'+esc(n.image)+'" alt="" loading="lazy">':"")+"</div>"}).join("");
+  $("#news").innerHTML=INFO.news.map(function(n){return '<div class="card news"><b>📢 '+esc(n.title)+'</b>'+(n.text?'<p class="sub" style="line-height:1.8;white-space:pre-wrap">'+esc(n.text)+"</p>":"")+(n.image?'<img src="'+esc(n.image)+'" alt="" loading="lazy" decoding="async">':"")+"</div>"}).join("");
   var m=null;INFO.exams.forEach(function(e){var n=daysTo(e.d);if(n>=0&&(m===null||n<m))m=n});
   $("#s1").textContent=subs().length;$("#s2").textContent=m===null?"—":ar(m);$("#s3").textContent=S.notes.length;
   $("#e1").innerHTML=ico("doc");$("#e2").innerHTML=ico("cal");$("#e3").innerHTML=ico("note");
@@ -784,7 +789,7 @@ async function rVideos(){
   var b=$("#b-videos");loading(b);var l;
   try{l=await jget("videos?grade="+encodeURIComponent(S.grade))}catch(e){return errBox(b,rVideos)}
   listWithChips(b,l,function(v,i){
-    return '<div class="card vid" data-id="'+v.id+'"><div class="cover">'+(v.cover?'<img src="'+esc(v.cover)+'" alt="" loading="lazy">':ico("video"))+'</div><b>'+esc(v.title)+'</b><div class="sub">'+esc(v.subject)+"</div></div>"
+    return '<div class="card vid" data-id="'+v.id+'"><div class="cover">'+(v.cover?'<img src="'+esc(v.cover)+'" alt="" loading="lazy" decoding="async">':ico("video"))+'</div><b>'+esc(v.title)+'</b><div class="sub">'+esc(v.subject)+"</div></div>"
   },"لا توجد محاضرات لصفك حالياً 🎬",function(bx,vis){
     bx.querySelectorAll(".vid").forEach(function(c){c.onclick=function(){
       var v=l.filter(function(x){return x.id===c.dataset.id})[0];if(!v)return;
@@ -1031,7 +1036,7 @@ function drawPaperExam() {
     preview.classList.remove("hide");
     preview.innerHTML = selectedImages.map(function(src, i){
       return '<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;background:rgba(0,0,0,.04);border-radius:12px;padding:8px">'+
-        '<img src="'+src+'" alt="صورة '+(i+1)+'" style="width:72px;height:72px;object-fit:cover;border-radius:10px;background:#eee">'+
+        '<img src="'+src+'" alt="صورة '+(i+1)+'" style="width:72px;height:72px;object-fit:cover;border-radius:10px;background:#eee" loading="lazy" decoding="async">'+
         '<div style="flex:1"><b>صورة '+(i+1)+'</b><div class="sub">جاهزة للتصحيح</div></div>'+
         '<button type="button" class="ghost sm" data-rm="'+i+'" style="padding:8px 12px">حذف</button></div>';
     }).join("");
@@ -1407,7 +1412,7 @@ function drawLaw3DCard(id){
   var core=$("#holoCore"),stage=$("#holoStage"),zoomInput=$("#holoZoom"),zoomVal=$("#holoZoomVal"),autoBtn=$("#holoAuto");
   var rx=-12,ry=-18,zoom=1,drag=false,lastX=0,lastY=0,auto=true;
   function renderTransform(){core.style.transform='translate(-50%,-50%) rotateX('+rx+'deg) rotateY('+ry+'deg) scale('+zoom+')';zoomInput.value=Math.round(zoom*100);zoomVal.textContent=ar(Math.round(zoom*100))+'٪'}
-  function startSpin(){stopLawSpin();LAW3D.spin=setInterval(function(){if(!drag){ry=(ry+.32)%360;renderTransform()}},35)}
+  function startSpin(){stopLawSpin();LAW3D.spin=setInterval(function(){if(!drag&&!document.hidden){ry=(ry+.4)%360;renderTransform()}},50)}
   function setAuto(on){auto=on;autoBtn.textContent=on?'⏸ إيقاف الدوران':'▶ تدوير تلقائي';if(on)startSpin();else stopLawSpin()}
   core.addEventListener('pointerdown',function(e){drag=true;lastX=e.clientX;lastY=e.clientY;try{core.setPointerCapture(e.pointerId)}catch(_){}});
   core.addEventListener('pointermove',function(e){if(!drag)return;var dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;ry+=dx*.72;rx=Math.max(-75,Math.min(75,rx-dy*.58));renderTransform()});
