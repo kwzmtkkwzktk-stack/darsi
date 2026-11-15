@@ -281,6 +281,7 @@ mark{background:#ffe08a;color:#1c1c1c;border-radius:4px;padding:0 3px}
 @media(max-width:760px){.exp-live-classroom{display:flex;flex-direction:column;min-height:0;background:none;overflow:visible}.exp-teacher-panel{position:relative;order:1;right:auto;top:auto;bottom:auto;width:100%;min-height:375px;max-height:400px;background:linear-gradient(180deg,rgba(1,12,25,.05),rgba(1,12,25,.06) 42%,rgba(1,12,25,.95) 100%);border-bottom:1px solid rgba(82,221,255,.24)}.exp-board-wrap{position:relative;order:2;left:auto;top:auto;bottom:auto;width:100%;min-height:0;border:0;background:#041321;backdrop-filter:none}.exp-live-classroom .exp-board{height:auto;min-height:390px;max-height:none}.exp-teacher-panel .exp-talk{min-height:132px}.exp-teacher-base{bottom:195px}}
 @media(max-width:420px){.exp-teacher-panel{min-height:355px;max-height:375px;background-position:70% 20%}.exp-teacher-panel .exp-talk{left:8px;right:8px;bottom:8px;padding:9px}.exp-teacher-panel .exp-talk p{font-size:11px}.exp-teacher-panel .exp-talk-controls button{font-size:9px;padding:6px 7px}.exp-teacher-top{font-size:10px;padding:8px}}
 @media(prefers-reduced-motion:reduce){.exp-teacher-scan,.exp-teacher-panel.talking:after,.exp-wave i{animation:none!important}}
+.cms-custom-block{background:var(--cms-block-bg,#fff);border:1px solid var(--bd);border-radius:22px;padding:18px;margin:18px 0;box-shadow:var(--shadow)}.cms-custom-inner{display:flex;align-items:flex-start;gap:13px}.cms-custom-icon{width:48px;height:48px;flex:0 0 48px;border-radius:15px;display:grid;place-items:center;background:var(--pri2);color:var(--pri);font-size:24px}.cms-custom-copy{min-width:0;flex:1}.cms-custom-copy h2{margin:3px 0 6px}.cms-custom-copy p{margin:0;color:var(--mut);line-height:1.9;white-space:pre-wrap}.cms-block-action{display:inline-block;margin-top:12px;color:var(--pri);font-weight:800}
 </style>
 <style id="profileGateStyles">
 .profile-gate-backdrop{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:22px 16px;background:radial-gradient(ellipse at 12% 12%,rgba(52,211,190,.22),transparent 34%),radial-gradient(ellipse at 90% 85%,rgba(99,102,241,.25),transparent 38%),rgba(3,9,22,.91);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);font-family:"Cairo",system-ui,sans-serif}
@@ -523,7 +524,7 @@ function weekStats(){
     ai:list.filter(function(x){return x.type==="ai"}).length
   };
 }
-var INFO=null,REC=null;
+var INFO=null,REC=null,SITE_CFG=null;
 async function jget(u){var r=await fetch("/api/study/"+u,{cache:"no-store"});if(!r.ok)throw r.status;return r.json()}
 async function jpost(u,b){var r=await fetch("/api/study/"+u,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(b)});var j={};try{j=await r.json()}catch(e){}if(!r.ok){var err=new Error(j.error||("خطأ "+r.status));err.status=r.status;err.body=j;throw err}return j}
 function compressImage(file,maxSide,maxBytes){
@@ -585,15 +586,15 @@ var TITLES={explain:"شرح الذكي",experiments:"تجاربي · الشخص�
 var R={home:rHome,explain:function(){rExperiments("explain")},experiments:function(){rExperiments("experiments")},ai:rAI,challenge:rChallenge,wheel:rWheel,phys:rPhys,law3d:rLaw3D,plan:rPlan,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
 function build(){
   var h='<section id="v-home" class="v home-view">'+
-    '<header class="home-top"><div class="brand-lockup"><div class="brand-symbol">د</div><div><b>دليني</b><span>منصتك الدراسية العراقية</span></div></div><div class="home-grade"><label for="grade">الصف الدراسي</label><select id="grade" aria-label="الصف"></select></div></header>'+
-    '<div class="hero-banner home-hero"><div class="hero-orb hero-orb-a"></div><div class="hero-orb hero-orb-b"></div><div class="hero-copy"><span class="eyebrow">مساحتك للتعلّم والإنجاز</span><h1 id="hi">أهلاً بك في دليني ✨</h1><p class="sub">كل أدوات دراستك بمكان واحد. خطوة صغيرة اليوم تصنع فرقاً كبيراً بالامتحان.</p><div class="hero-actions"><button data-go="plan" class="hero-primary">رتّب دراسة اليوم <span>←</span></button><button data-go="quiz" class="hero-secondary">ابدأ اختباراً</button></div><div id="hero-student" class="hero-student"></div></div><div class="hero-illustration" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-book">✦</div><span class="float-note fn-one">+ تركيز</span><span class="float-note fn-two">+ إنجاز</span></div></div>'+
-    '<div id="news" class="home-news"></div>'+
-    '<section class="home-block"><div class="block-heading"><div><span class="block-kicker">ابدأ من هنا</span><h2>تعلّم وافهم</h2><p>مصادر وشرح يساعدك تستوعب الدرس</p></div><span class="block-count">٠٦ أدوات</span></div><div class="tiles-grid" id="tile-learn"></div></section>'+
-    '<section class="home-block"><div class="block-heading"><div><span class="block-kicker">استعد بثقة</span><h2>تدرّب وامتحن</h2><p>اختبر معلوماتك وراجع نقاط ضعفك</p></div><span class="block-count">٠٥ أدوات</span></div><div class="tiles-grid" id="tile-practice"></div></section>'+
-    '<section class="home-block"><div class="block-heading"><div><span class="block-kicker">نظّم وقتك</span><h2>خطّط وتابع</h2><p>خلّي دراستك واضحة وإنجازك محسوب</p></div><span class="block-count">٠٨ أدوات</span></div><div class="tiles-grid" id="tile-organize"></div></section>'+
-    '<section class="home-block"><div class="block-heading"><div><span class="block-kicker">ملخص سريع</span><h2>لوحة إنجازك</h2><p>نظرة سريعة على نشاطك الدراسي</p></div><button class="text-action" data-go="report">التقرير الكامل ←</button></div><div class="stats"><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم للامتحان الأقرب</span></div><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظات محفوظة</span></div></div><div id="home-insight" class="home-insight"></div></section>'+
-    '<div class="home-tip"><span class="tip-icon">✦</span><div><b>نصيحة دليني لليوم</b><p id="tip"></p></div></div>'+
-    '<div id="pfLine" class="profile-summary"></div><div class="home-footer">دليني · رفيقك بالدراسة خطوة بخطوة 🇮🇶</div></section>';
+    '<header class="home-top"><div class="brand-lockup"><div class="brand-symbol" id="cms-brand-symbol">د</div><div><b id="cms-brand-name">دليني</b><span id="cms-brand-tagline">منصتك الدراسية العراقية</span></div></div><div class="home-grade"><label for="grade">الصف الدراسي</label><select id="grade" aria-label="الصف"></select></div></header>'+
+    '<div class="hero-banner home-hero"><div class="hero-orb hero-orb-a"></div><div class="hero-orb hero-orb-b"></div><div class="hero-copy"><span class="eyebrow" id="cms-hero-eyebrow">مساحتك للتعلّم والإنجاز</span><h1 id="hi">أهلاً بك في دليني ✨</h1><p class="sub" id="cms-hero-description">كل أدوات دراستك بمكان واحد. خطوة صغيرة اليوم تصنع فرقاً كبيراً بالامتحان.</p><div class="hero-actions"><button data-go="plan" class="hero-primary" id="cms-hero-primary">رتّب دراسة اليوم <span>←</span></button><button data-go="quiz" class="hero-secondary" id="cms-hero-secondary">ابدأ اختباراً</button></div><div id="hero-student" class="hero-student"></div></div><div class="hero-illustration" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-book">✦</div><span class="float-note fn-one">+ تركيز</span><span class="float-note fn-two">+ إنجاز</span></div></div>'+
+    '<div id="news" class="home-news"></div><div id="cms-custom-sections"></div>'+
+    '<section class="home-block" id="cms-group-learn"><div class="block-heading"><div><span class="block-kicker" id="cms-learn-kicker">ابدأ من هنا</span><h2 id="cms-learn-title">تعلّم وافهم</h2><p id="cms-learn-description">مصادر وشرح يساعدك تستوعب الدرس</p></div><span class="block-count">٠٦ أدوات</span></div><div class="tiles-grid" id="tile-learn"></div></section>'+
+    '<section class="home-block" id="cms-group-practice"><div class="block-heading"><div><span class="block-kicker" id="cms-practice-kicker">استعد بثقة</span><h2 id="cms-practice-title">تدرّب وامتحن</h2><p id="cms-practice-description">اختبر معلوماتك وراجع نقاط ضعفك</p></div><span class="block-count">٠٥ أدوات</span></div><div class="tiles-grid" id="tile-practice"></div></section>'+
+    '<section class="home-block" id="cms-group-organize"><div class="block-heading"><div><span class="block-kicker" id="cms-organize-kicker">نظّم وقتك</span><h2 id="cms-organize-title">خطّط وتابع</h2><p id="cms-organize-description">خلّي دراستك واضحة وإنجازك محسوب</p></div><span class="block-count">٠٨ أدوات</span></div><div class="tiles-grid" id="tile-organize"></div></section>'+
+    '<section class="home-block" id="cms-group-stats"><div class="block-heading"><div><span class="block-kicker" id="cms-stats-kicker">ملخص سريع</span><h2 id="cms-stats-title">لوحة إنجازك</h2><p id="cms-stats-description">نظرة سريعة على نشاطك الدراسي</p></div><button class="text-action" data-go="report">التقرير الكامل ←</button></div><div class="stats"><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم للامتحان الأقرب</span></div><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظات محفوظة</span></div></div><div id="home-insight" class="home-insight"></div></section>'+
+    '<div class="home-tip"><span class="tip-icon">✦</span><div><b id="cms-tip-title">نصيحة دليني لليوم</b><p id="tip"></p></div></div>'+
+    '<div id="pfLine" class="profile-summary"></div><div class="home-footer" id="cms-footer">دليني · رفيقك بالدراسة خطوة بخطوة 🇮🇶</div></section>';
   Object.keys(TITLES).forEach(function(k){h+='<section id="v-'+k+'" class="v hide"><div class="bar"><button class="back" data-bk="'+k+'" aria-label="رجوع">→</button><h1 id="t-'+k+'">'+TITLES[k]+'</h1></div><div id="b-'+k+'"></div></section>'});
   $("#app").innerHTML=h;
   document.querySelectorAll("[data-ic]").forEach(function(e){e.innerHTML=ico(e.dataset.ic)});
@@ -617,10 +618,38 @@ document.addEventListener("click",function(e){
 });
 
 /* الرئيسية */
+function cmsTool(id){return SITE_CFG&&SITE_CFG.tools?SITE_CFG.tools[id]||{}:{}}
 function tileHTML(t){
-  return '<button class="tile" data-go="'+t[0]+'"><span class="tile-icon" style="--tile-bg:'+t[3]+';--tile-color:'+t[4]+'">'+(IC[t[2]]?ico(t[2]):'✦')+'</span><span class="tile-copy"><b>'+esc(t[1])+'</b><small>'+esc(t[5]||"")+'</small></span><span class="tile-arrow">‹</span></button>';
+  var c=cmsTool(t[0]);if(c.visible===false)return "";
+  var title=c.title||t[1],description=c.description||t[5]||"";
+  return '<button class="tile" data-go="'+t[0]+'"><span class="tile-icon" style="--tile-bg:'+t[3]+';--tile-color:'+t[4]+'">'+(IC[t[2]]?ico(t[2]):'✦')+'</span><span class="tile-copy"><b>'+esc(title)+'</b><small>'+esc(description)+'</small></span><span class="tile-arrow">‹</span></button>';
+}
+function applyCmsSettings(){
+  var c=SITE_CFG;if(!c)return;
+  var root=document.documentElement,th=c.theme||{};
+  var vars={bg:"--bg",card:"--card",glass:"--glass",text:"--tx",muted:"--mut",primary:"--pri",primarySoft:"--pri2",accent:"--accent",border:"--bd",dark:"--dark"};
+  Object.keys(vars).forEach(function(k){if(th[k])root.style.setProperty(vars[k],th[k])});
+  if(c.site){
+    document.title=c.site.pageTitle||document.title;
+    var meta=document.querySelector('meta[name="description"]');if(meta&&c.site.metaDescription)meta.content=c.site.metaDescription;
+    var name=document.getElementById("cms-brand-name"),tag=document.getElementById("cms-brand-tagline"),sym=document.getElementById("cms-brand-symbol");
+    if(name)name.textContent=c.site.name||"دليني";if(tag)tag.textContent=c.site.tagline||"";if(sym)sym.textContent=c.site.symbol||"د";
+    if(c.site.backgroundImage)document.body.style.backgroundImage='url('+JSON.stringify(c.site.backgroundImage)+')';
+  }
+  var put=function(id,value){var e=document.getElementById(id);if(e&&value)e.textContent=value};
+  if(c.hero){put("cms-hero-eyebrow",c.hero.eyebrow);put("cms-hero-description",c.hero.description);put("cms-hero-primary",c.hero.primaryLabel);put("cms-hero-secondary",c.hero.secondaryLabel)}
+  if(c.groups)Object.keys(c.groups).forEach(function(k){var g=c.groups[k]||{},wrap=document.getElementById("cms-group-"+k);if(wrap)wrap.style.display=g.enabled===false?"none":"";put("cms-"+k+"-kicker",g.kicker);put("cms-"+k+"-title",g.title);put("cms-"+k+"-description",g.description)});
+  if(c.footer){put("cms-tip-title",c.footer.tipTitle);put("cms-footer",c.footer.text)}
+  if(c.nav){Object.keys(c.nav).forEach(function(k){var b=document.querySelector('#nav button[data-go="'+k+'"]');if(b){var ic=b.querySelector("i");b.innerHTML=(ic?ic.outerHTML:"")+esc(c.nav[k]||"")}})}
+  if(c.tools){Object.keys(c.tools).forEach(function(k){var t=c.tools[k]||{};if(t.title&&TITLES[k]){TITLES[k]=t.title;var h=document.getElementById("t-"+k);if(h)h.textContent=t.title}})}
+  var host=document.getElementById("cms-custom-sections");
+  if(host){host.innerHTML=(c.customSections||[]).filter(function(b){return b&&b.enabled!==false}).map(function(b){
+    var href=b.url?'<a class="cms-block-action" href="'+esc(b.url)+'" '+(/^https?:/i.test(b.url)?'target="_blank" rel="noopener noreferrer"':'')+'>'+(esc(b.buttonText||"افتح الرابط"))+' ←</a>':"";
+    return '<section class="home-block cms-custom-block" style="--cms-block-bg:'+esc(b.background||"#fff")+'"><div class="cms-custom-inner"><div class="cms-custom-icon">'+esc(b.icon||"✦")+'</div><div class="cms-custom-copy">'+(b.kicker?'<span class="block-kicker">'+esc(b.kicker)+'</span>':'')+'<h2>'+esc(b.title||"قسم جديد")+'</h2>'+(b.body?'<p>'+esc(b.body)+'</p>':'')+href+'</div></div></section>';
+  }).join("")}
 }
 function rHome(){
+  applyCmsSettings();
   var groups={
     learn:["ai","explain","experiments","law3d","videos","files"],
     practice:["quiz","paper","challenge","path","phys"],
@@ -631,7 +660,8 @@ function rHome(){
   var g=$("#grade");
   g.innerHTML=Object.keys(INFO.grades).map(function(k){return "<option"+(k===S.grade?" selected":"")+">"+esc(k)+"</option>"}).join("");
   g.style.display=REC?"none":"";g.onchange=function(){S.grade=g.value;save();rHome()};
-  $("#hi").textContent=(S.name?("أهلاً، "+S.name.split(" ")[0]):(REC?("أهلاً يا "+REC.n.split(" ")[0]):"أهلاً بك في دليني"))+" ✨";
+  var defaultWelcome=SITE_CFG&&SITE_CFG.hero&&SITE_CFG.hero.title?SITE_CFG.hero.title:"أهلاً بك في دليني ✨";
+  $("#hi").textContent=(S.name?("أهلاً، "+S.name.split(" ")[0]):(REC?("أهلاً يا "+REC.n.split(" ")[0]):defaultWelcome));
   $("#hero-student").innerHTML=(S.name?'<span>👤 '+esc(S.name)+'</span>':"")+(S.school?'<span>🏫 '+esc(S.school)+'</span>':"")+(S.grade?'<span>📚 '+esc(S.grade)+'</span>':"");
   $("#news").innerHTML=INFO.news.map(function(n){return '<div class="card news"><b>📢 '+esc(n.title)+'</b>'+(n.text?'<p class="sub" style="line-height:1.8;white-space:pre-wrap">'+esc(n.text)+"</p>":"")+(n.image?'<img src="'+esc(n.image)+'" alt="" loading="lazy" decoding="async">':"")+"</div>"}).join("");
   var m=null;INFO.exams.forEach(function(e){var n=daysTo(e.d);if(n>=0&&(m===null||n<m))m=n});
@@ -2120,10 +2150,12 @@ function showProfileGate(force){
 
 /* التشغيل */
 async function boot(){
+  var cmsPromise=fetch("/api/site-settings",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).catch(function(cmsError){console.warn("Site settings unavailable",cmsError);return null});
   try{INFO=await jget("info")}catch(e){$("#boot").innerHTML='تعذر الاتصال بالخادم.<br><button id="rb" style="margin-top:10px">إعادة المحاولة</button>';$("#rb").onclick=function(){location.reload()};return}
   if(S.me){try{REC=await jpost("result",{code:S.me});S.grade=REC.g}catch(e){if(e===404){S.me="";save()}}}
   var gs=Object.keys(INFO.grades);if(!INFO.grades[S.grade])S.grade=gs[0]||"";
   $("#boot").classList.add("hide");build();go("home");
+  cmsPromise.then(function(config){if(config){SITE_CFG=config;rHome()}});
   showProfileGate(false);
 }
 boot();
@@ -2132,5 +2164,6 @@ boot();
 <script src="/track.js" defer></script>
 </body>
 </html>
+ 
  
  
