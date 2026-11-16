@@ -1,5 +1,6 @@
 // واجهة المنصة الدراسية: الطلاب والنتائج والملازم والمحاضرات وأسئلة الامتحانات والإعلانات
 const { ObjectId, Binary } = require("mongodb");
+const PHYSICS_PAPER_BANK = require("./public/physics-paper-exams.json");
 
 module.exports = function (app, db, express) {
   app.set("trust proxy", 1);
@@ -643,8 +644,9 @@ module.exports = function (app, db, express) {
   app.post("/api/study/paper/grade", async (req, res) => {
     if (tooMany("pr" + (req.ip || "x"), 6, 600000)) return res.sendStatus(429);
     try {
-      const grade = S(req.body && req.body.grade, 80);
-      const subject = S(req.body && req.body.subject, 80);
+      const requestedGrade = S(req.body && req.body.grade, 80);
+      const requestedSubject = S(req.body && req.body.subject, 80);
+      const groupKey = S(req.body && req.body.groupKey, 120);
       const imgRe = /^data:image\/(jpeg|jpg|png|webp);base64,/;
       let images = [];
       if (Array.isArray(req.body && req.body.images)) {
@@ -655,21 +657,36 @@ module.exports = function (app, db, express) {
         if (imgRe.test(one)) images = [one];
       }
 
-      need(grade && subject, "الصف والمادة مطلوبان");
       need(images.length, "أضف صورة واحدة على الأقل");
 
-      const doc = await (await col("st_paper")).findOne({ grade, subject });
-      need(doc && Array.isArray(doc.questions) && doc.questions.length >= 3, "لا يوجد امتحان ورقي لهذه المادة");
-
-      const items = doc.questions.map((item) => {
-        if (item && typeof item === "object") {
-          return { q: String(item.q || "").trim(), a: String(item.a || "").trim() };
-        }
-        return { q: String(item || "").trim(), a: "" };
-      }).filter((x) => x.q).slice(0, 20);
+      let grade = requestedGrade;
+      let subject = requestedSubject;
+      let items = [];
+      let questionLimit = 20;
+      if (groupKey) {
+        const group = PHYSICS_PAPER_BANK.find((g) => String(g.key || "") === groupKey);
+        need(group && Array.isArray(group.questions), "نموذج الفيزياء غير موجود");
+        grade = String(group.grade || "السادس الإعدادي (علمي)");
+        subject = String(group.subject || "الفيزياء");
+        questionLimit = 30;
+        items = group.questions.map((item) => ({
+          q: String(item && item.q || "").trim(),
+          a: String(item && item.a || "").trim()
+        })).filter((x) => x.q).slice(0, questionLimit);
+      } else {
+        need(grade && subject, "الصف والمادة مطلوبان");
+        const doc = await (await col("st_paper")).findOne({ grade, subject });
+        need(doc && Array.isArray(doc.questions) && doc.questions.length >= 3, "لا يوجد امتحان ورقي لهذه المادة");
+        items = doc.questions.map((item) => {
+          if (item && typeof item === "object") {
+            return { q: String(item.q || "").trim(), a: String(item.a || "").trim() };
+          }
+          return { q: String(item || "").trim(), a: "" };
+        }).filter((x) => x.q).slice(0, questionLimit);
+      }
 
       need(items.length >= 3, "الأسئلة ناقصة");
-      need(items.every((x) => x.a), "أجوبة النموذج غير مكتملة في الإدارة");
+      need(items.every((x) => x.a), "أجوبة النموذج غير مكتملة");
 
       const qList = items.map((x, i) => `${i + 1}. السؤال: ${x.q}\n   الجواب النموذجي: ${x.a}`).join("\n");
       const totalQ = items.length;
@@ -725,17 +742,22 @@ module.exports = function (app, db, express) {
       }
 
       const total = totalQ;
-      const details = (Array.isArray(result.details) ? result.details : []).slice(0, 20).map((d) => ({
-        n: Number(d.n) || 0,
-        ok: !!d.ok,
-        student: String(d.student || "").slice(0, 400),
-        note: String(d.note || "").slice(0, 300)
-      }));
+      const details = (Array.isArray(result.details) ? result.details : []).slice(0, questionLimit).map((d) => {
+        const n = Number(d.n) || 0;
+        const ok = !!d.ok;
+        const item = { n, ok, student: String(d.student || "").slice(0, 400) };
+        item.note = ok ? "إجابة صحيحة" : "إجابة خاطئة";
+        // إظهار الجواب النموذجي بعد التصحيح فقط، ولكل المواد الورقية
+        if (!ok && n >= 1 && n <= items.length) item.correctAnswer = items[n - 1].a;
+        return item;
+      });
       // تأكد من وجود تفصيل لكل سؤال
       if (details.length < total) {
         for (let i = 1; i <= total; i++) {
           if (!details.some((d) => d.n === i)) {
-            details.push({ n: i, ok: false, student: "", note: "تعذر قراءة إجابة هذا السؤال من الورقة" });
+            const missing = { n: i, ok: false, student: "", note: "تعذر قراءة إجابة هذا السؤال من الورقة" };
+            if (items[i - 1] && items[i - 1].a) missing.correctAnswer = items[i - 1].a;
+            details.push(missing);
           }
         }
         details.sort((a, b) => a.n - b.n);
@@ -753,6 +775,87 @@ module.exports = function (app, db, express) {
         percent,
         summary: String(result.summary || "").slice(0, 400),
         details
+      });
+    } catch (e) { fail(res, e); }
+  });
+
+  // تصحيح حلّ الطالب المكتوب بخط اليد لسؤال واحد، بالاعتماد على الجواب الأصلي من الخادم.
+  app.post("/api/study/handwriting/grade", async (req, res) => {
+    if (tooMany("hw" + (req.ip || "x"), 8, 600000)) return res.status(429).json({ error: "وصلت للحد المؤقت من محاولات التصحيح. حاول بعد قليل." });
+    try {
+      const image = String((req.body && req.body.image) || "");
+      const imgRe = /^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+      need(imgRe.test(image), "صوّر الحل أو اختر صورة واضحة من المعرض.");
+      need(image.length <= 1200000, "حجم الصورة كبير. اختر صورة أصغر أو التقط صورة جديدة.");
+
+      let question = null;
+      const groupKey = S(req.body && req.body.groupKey, 120);
+      const questionIndex = Number(req.body && req.body.questionIndex);
+      const questionId = S(req.body && req.body.questionId, 80);
+
+      if (groupKey) {
+        need(Number.isInteger(questionIndex) && questionIndex >= 0, "رقم السؤال غير صحيح.");
+        const group = PHYSICS_PAPER_BANK.find((g) => String(g.key || "") === groupKey);
+        need(group && Array.isArray(group.questions), "نموذج الفيزياء غير موجود.", 404);
+        const item = group.questions[questionIndex];
+        need(item && item.q && item.a, "السؤال أو جوابه النموذجي غير متوفر.", 404);
+        question = {
+          q: String(item.q), a: String(item.a),
+          subject: String(group.subject || "الفيزياء"),
+          grade: String(group.grade || "السادس الإعدادي (علمي)"),
+          chapter: String(group.chapter || "")
+        };
+      } else {
+        const id = oid(questionId);
+        need(id, "السؤال غير معروف. أعد فتح الاختبار وحاول مرة ثانية.", 404);
+        const saved = await (await col("st_questions")).findOne({ _id: id });
+        need(saved && saved.q && saved.a, "السؤال أو جوابه النموذجي غير موجود.", 404);
+        question = {
+          q: String(saved.q), a: String(saved.a),
+          subject: String(saved.subject || ""), grade: String(saved.grade || ""),
+          chapter: String(saved.chapter || "")
+        };
+      }
+
+      const system = `أنت مصحح تربوي دقيق لدفاتر الطلاب العراقيين. ستصلك صورة لحل مكتوب بخط اليد لسؤال واحد، ومعها نص السؤال والجواب النموذجي من المنصة.
+المطلوب أن تقرأ ما كتبه الطالب من الصورة، ثم تقارنه بالجواب النموذجي لهذا السؤال فقط.
+قواعد مهمة:
+- لا تخمّن أي كتابة غير واضحة، ولا تعتبر عدم وضوح الصورة خطأ؛ في هذه الحالة status="unclear".
+- status="correct" فقط إذا كان الحل أو الجواب صحيحاً في المعنى والحساب، مع قبول الصياغة المكافئة والخطوات الصحيحة والوحدات المكافئة.
+- status="incorrect" إذا كانت الإجابة مقروءة لكنها تخالف المطلوب أو تتضمن خطأ علمياً/حسابياً جوهرياً.
+- في المسائل الحسابية افحص القانون والتعويض والحساب والوحدات بقدر ما تسمح به الصورة، ولا تعتمد على تطابق رقم نهائي وحده إذا كانت الخطوات خاطئة بوضوح.
+- إذا كانت الصورة لا تحتوي حلاً للسؤال أو لا يمكن تمييز جواب الطالب، استخدم unclear.
+- لا تضف معلومات إلى الجواب النموذجي، ولا تغيّره.
+أخرج JSON صالحاً فقط دون markdown وبالمفاتيح التالية حصراً:
+{"status":"correct|incorrect|unclear","studentAnswer":"ما تمكنت من قراءته من الورقة أو فارغ","feedback":"تعليق قصير باللهجة العراقية الواضحة، يوضح سبب النتيجة دون إطالة"}`;
+
+      const userContent = [
+        { type: "text", text: `الصف: ${question.grade}\nالمادة: ${question.subject}\nالفصل: ${question.chapter}\nالسؤال: ${question.q}\nالجواب النموذجي المعتمد: ${question.a}\n\nاقرأ حل الطالب من الصورة وصحّح هذا السؤال فقط. أرجع JSON حسب التعليمات.` },
+        { type: "image_url", image_url: { url: image, detail: "high" } }
+      ];
+      const raw = String(await callAI([
+        { role: "system", content: system },
+        { role: "user", content: userContent }
+      ], 900) || "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+
+      let result;
+      try {
+        result = JSON.parse(raw);
+      } catch (_) {
+        const match = raw.match(/\{[\s\S]*\}/);
+        if (match) { try { result = JSON.parse(match[0]); } catch (_) {} }
+      }
+      if (!result || typeof result !== "object") throw bad("تعذر قراءة نتيجة التصحيح. أعد تصوير الحل بصورة أوضح.", 502);
+
+      const allowed = ["correct", "incorrect", "unclear"];
+      const status = allowed.includes(String(result.status || "").toLowerCase()) ? String(result.status).toLowerCase() : "unclear";
+      res.set("Cache-Control", "no-store");
+      res.json({
+        ok: true,
+        status,
+        studentAnswer: S(result.studentAnswer, 700),
+        feedback: S(result.feedback, 500) || (status === "correct" ? "إجابتك صحيحة، عاشت إيدك!" : status === "incorrect" ? "إجابتك تحتاج مراجعة." : "الصورة غير واضحة، جرّب تصويرها مرة ثانية."),
+        modelAnswer: question.a
       });
     } catch (e) { fail(res, e); }
   });
