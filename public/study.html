@@ -550,67 +550,6 @@ function compressImage(file,maxSide,maxBytes){
     reader.readAsDataURL(file);
   });
 }
-function handwritingControls(prefix){
-  var k="hw"+prefix;
-  return '<div style="margin-top:14px;padding:12px;border:1px dashed var(--bd);border-radius:14px;background:rgba(0,0,0,.025)">'+
-    '<b>✍️ حلّ بخط إيدك وصوّره</b><p class="sub" style="line-height:1.7;margin:5px 0 10px">اكتب الحل على ورقة، صوّره، والذكاء الاصطناعي يقارنه بالجواب النموذجي ويكلك صح أو خطأ.</p>'+
-    '<div class="row" style="gap:8px">'+
-      '<label for="'+k+'Cam" style="flex:1;text-align:center;background:var(--pri);color:#fff;border-radius:12px;padding:10px 8px;font-weight:800;cursor:pointer">📷 تصوير الحل</label>'+
-      '<label for="'+k+'Gal" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 8px;font-weight:800;cursor:pointer">🖼️ من المعرض</label>'+
-    '</div>'+
-    '<input type="file" id="'+k+'Cam" accept="image/*" capture="environment" style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0">'+
-    '<input type="file" id="'+k+'Gal" accept="image/*" style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0">'+
-    '<div id="'+k+'Preview" class="hide" style="margin-top:10px"></div>'+
-    '<button type="button" id="'+k+'Grade" style="width:100%;margin-top:10px" disabled>صحّح الحل بالذكاء الاصطناعي</button>'+
-    '<div id="'+k+'Result" style="margin-top:10px"></div></div>';
-}
-function bindHandwritingControls(prefix,target,onResult){
-  var k="hw"+prefix,cam=$("#"+k+"Cam"),gal=$("#"+k+"Gal"),preview=$("#"+k+"Preview"),btn=$("#"+k+"Grade"),result=$("#"+k+"Result");
-  if(!cam||!gal||!preview||!btn||!result)return;
-  var imageData="",finished=false,busy=false;
-  async function take(file){
-    if(!file)return;
-    if(!/^image\//.test(file.type||"")){result.innerHTML='<div class="sub">اختر صورة فقط.</div>';return;}
-    imageData="";btn.disabled=true;btn.textContent="جاري تجهيز الصورة...";result.innerHTML="";
-    try{
-      imageData=await compressImage(file,1500,700000);
-      preview.classList.remove("hide");
-      preview.innerHTML='<img src="'+imageData+'" alt="صورة الحل" style="display:block;max-width:100%;max-height:260px;margin:auto;border-radius:12px;border:1px solid var(--bd)">';
-      btn.disabled=false;btn.textContent="صحّح الحل بالذكاء الاصطناعي";
-    }catch(e){btn.disabled=true;btn.textContent="تعذر تجهيز الصورة";result.innerHTML='<div class="sub">تعذر قراءة الصورة. جرّب صورة ثانية.</div>';}
-  }
-  cam.onchange=function(){var f=cam.files&&cam.files[0];cam.value="";take(f);};
-  gal.onchange=function(){var f=gal.files&&gal.files[0];gal.value="";take(f);};
-  btn.onclick=async function(){
-    if(!imageData||busy||finished)return;
-    busy=true;btn.disabled=true;btn.textContent="جاري قراءة الحل وتصحيحه...";
-    result.innerHTML='<div class="sub" style="text-align:center">الذكاء الاصطناعي يقرأ خطك ويقارن الحل بالجواب النموذجي ⏳</div>';
-    try{
-      var payload={image:imageData};
-      Object.keys(target||{}).forEach(function(key){payload[key]=target[key];});
-      var r=await jpost("handwriting/grade",payload);
-      var status=r.status||"unclear",title=status==="correct"?"✅ صح، حلك صحيح":status==="incorrect"?"❌ خطأ، يحتاج مراجعة":"⚠️ الصورة مو واضحة";
-      var border=status==="correct"?"#219653":status==="incorrect"?"#dc4545":"#c58a20";
-      var html='<div style="border:1px solid '+border+';border-radius:12px;padding:11px;line-height:1.8"><b>'+title+'</b>';
-      if(r.studentAnswer)html+='<div class="sub" style="margin-top:6px"><b>اللي قرأه من ورقتك:</b> '+esc(r.studentAnswer)+'</div>';
-      if(r.feedback)html+='<div style="margin-top:6px">'+esc(r.feedback)+'</div>';
-      if(status!=="unclear"&&r.modelAnswer)html+='<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bd)"><b>الجواب النموذجي:</b><div>'+esc(r.modelAnswer)+'</div></div>';
-      if(status==="unclear")html+='<div class="sub" style="margin-top:6px">قرّب الكاميرا، وخلي الورقة بإضاءة واضحة، ثم جرّب من جديد.</div>';
-      html+='</div>';result.innerHTML=html;
-      if(status==="unclear"){
-        busy=false;btn.disabled=false;btn.textContent="إعادة تصحيح الصورة";
-      }else{
-        finished=true;btn.textContent="تم تصحيح هذا الحل";
-        cam.disabled=true;gal.disabled=true;
-        if(typeof onResult==="function")onResult(r);
-      }
-    }catch(e){
-      busy=false;btn.disabled=false;btn.textContent="إعادة محاولة التصحيح";
-      result.innerHTML='<div class="sub" style="color:#dc4545">'+esc(e.message||"تعذر التصحيح. حاول مرة ثانية.")+'</div>';
-    }
-  };
-}
-
 function subs(){return INFO.grades[S.grade]||[]}
 function daysTo(d){return Math.ceil((new Date(d+"T00:00:00")-new Date())/864e5)}
 function sz(n){return n>1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/1024))+" KB"}
@@ -904,9 +843,9 @@ async function rQuiz(){
         var bank=await fetch("/physics-paper-exams.json",{cache:"no-cache"}).then(function(r){if(!r.ok)throw new Error("bank");return r.json()});
         var seen={};
         QZ.qs.forEach(function(q){seen[String(q.q||"").trim()+"|"+String(q.a||"").trim()]=1});
-        bank.forEach(function(group){(group.questions||[]).forEach(function(item,questionIndex){
+        bank.forEach(function(group){(group.questions||[]).forEach(function(item){
           var key=String(item.q||"").trim()+"|"+String(item.a||"").trim();
-          if(!seen[key]){QZ.qs.push({id:group.key+"-"+QZ.qs.length,grade:group.grade||S.grade,subject:group.subject||"الفيزياء",chapter:group.chapter||"",q:item.q,a:item.a,o:[],paperSource:true,paperTitle:group.title,paperGroupKey:group.key,paperQuestionIndex:questionIndex});seen[key]=1;}
+          if(!seen[key]){QZ.qs.push({id:group.key+"-"+QZ.qs.length,grade:group.grade||S.grade,subject:group.subject||"الفيزياء",chapter:group.chapter||"",q:item.q,a:item.a,o:[],paperSource:true,paperTitle:group.title});seen[key]=1;}
         })});
       }
     }catch(e){if(!QZ.qs)return errBox(b,rQuiz)}
@@ -934,8 +873,7 @@ function drawQuiz(){
     }else{
       var x=l[QZ.i];
       var hasChoices=Array.isArray(x.o)&&x.o.length===3;
-      var questionBody=hasChoices?shuf([[x.a,1]].concat(x.o.map(function(o){return[o,0]}))).map(function(c){return '<button class="ch" data-ok="'+c[1]+'">'+esc(c[0])+"</button>"}).join(""):'<button type="button" class="opt" id="revealA">إظهار الجواب فقط</button><div id="answerA" class="hide" style="margin-top:12px;padding:12px;border-radius:12px;background:var(--pri2);line-height:1.9"><b>الجواب:</b> '+esc(x.a)+'</div><div id="selfMark" class="hide" style="margin-top:10px"><div class="sub">قيّم إجابتك:</div><div class="row"><button type="button" id="selfYes">أجبت بشكل صحيح</button><button type="button" class="ghost" id="selfNo">أخطأت</button></div></div>';
-      questionBody+=handwritingControls("Quiz");
+      var questionBody=hasChoices?shuf([[x.a,1]].concat(x.o.map(function(o){return[o,0]}))).map(function(c){return '<button class="ch" data-ok="'+c[1]+'">'+esc(c[0])+"</button>"}).join(""):'<button type="button" class="opt" id="revealA">إظهار الجواب</button><div id="answerA" class="hide" style="margin-top:12px;padding:12px;border-radius:12px;background:var(--pri2);line-height:1.9"><b>الجواب:</b> '+esc(x.a)+'</div><div id="selfMark" class="hide" style="margin-top:10px"><div class="sub">قيّم إجابتك:</div><div class="row"><button type="button" id="selfYes">أجبت بشكل صحيح</button><button type="button" class="ghost" id="selfNo">أخطأت</button></div></div>';
       h='<div class="sub" style="margin-bottom:6px">السؤال '+(QZ.i+1)+" من "+l.length+'</div><div class="bar2"><i style="width:'+Math.round(QZ.i/l.length*100)+'%"></i></div><div class="card q"><b>'+esc(x.q)+"</b>"+questionBody+'<div class="msg"></div></div><button id="nx" class="hide" style="width:100%;margin-top:4px">'+(QZ.i===l.length-1?"عرض النتيجة":"السؤال التالي")+"</button>";
     }
   }
@@ -943,26 +881,6 @@ function drawQuiz(){
   b.querySelectorAll("[data-s]").forEach(function(e){e.onclick=function(){QZ.sub=(function(){var a=subs().slice();qs.forEach(function(q){if(q.subject&&a.indexOf(q.subject)<0)a.push(q.subject)});return a[+e.dataset.s]})();QZ.ch=null;drawQuiz();window.scrollTo(0,0)}});
   b.querySelectorAll("[data-c]").forEach(function(e){e.onclick=function(){QZ.ch=QZ.chs[+e.dataset.c];QZ.i=0;QZ.sc=0;QZ.wrong=[];drawQuiz();window.scrollTo(0,0)}});
   var q=b.querySelector(".q");
-  if(q&&QZ.ch){
-    var currentList=qs.filter(function(item){return item.subject===QZ.sub&&item.chapter===QZ.ch});
-    var currentQuestion=currentList[QZ.i];
-    if(currentQuestion){
-      var gradeTarget=currentQuestion.paperSource
-        ? {groupKey:currentQuestion.paperGroupKey,questionIndex:currentQuestion.paperQuestionIndex}
-        : {questionId:currentQuestion.id};
-      bindHandwritingControls("Quiz",gradeTarget,function(result){
-        if(q.classList.contains("done"))return;
-        q.classList.add("done");
-        var correct=result.status==="correct";
-        if(correct)QZ.sc++;
-        else if(currentQuestion)QZ.wrong.push({q:currentQuestion.q,a:currentQuestion.a,subject:currentQuestion.subject||QZ.sub,chapter:currentQuestion.chapter||QZ.ch});
-        q.querySelectorAll(".ch").forEach(function(choice){choice.disabled=true;});
-        var answerBox=$("#answerA");if(answerBox)answerBox.classList.remove("hide");
-        var reveal=$("#revealA");if(reveal)reveal.disabled=true;
-        var nx=$("#nx");if(nx)nx.classList.remove("hide");
-      });
-    }
-  }
   if(q)q.querySelectorAll(".ch").forEach(function(c){c.onclick=function(){
     if(q.classList.contains("done"))return;q.classList.add("done");
     var ok=c.dataset.ok==="1";if(ok)QZ.sc++;
@@ -973,12 +891,11 @@ function drawQuiz(){
     }
     q.querySelectorAll(".ch").forEach(function(d){if(d.dataset.ok==="1")d.classList.add("good")});
     if(!ok)c.classList.add("bad");
-    ["hwQuizGrade","hwQuizCam","hwQuizGal"].forEach(function(id){var el=$("#"+id);if(el)el.disabled=true;});
     q.querySelector(".msg").textContent=ok?"✅ إجابة صحيحة":"❌ إجابة خاطئة، والجواب الصحيح مظلّل بالأخضر";
     $("#nx").classList.remove("hide");
   }});
   var revealA=$("#revealA");if(revealA)revealA.onclick=function(){var ans=$("#answerA"),mark=$("#selfMark");if(ans)ans.classList.remove("hide");if(mark)mark.classList.remove("hide");revealA.disabled=true;};
-  function selfRate(correct){if(q)q.classList.add("done");["hwQuizGrade","hwQuizCam","hwQuizGal"].forEach(function(id){var el=$("#"+id);if(el)el.disabled=true;});var cur=l[QZ.i];if(correct)QZ.sc++;else if(cur)QZ.wrong.push({q:cur.q,a:cur.a,subject:cur.subject||QZ.sub,chapter:cur.chapter||QZ.ch});var msg=$(".q .msg");if(msg)msg.textContent=correct?"✅ ممتاز، احتسبناها صحيحة":"📘 راجع الجواب، لم تُحتسب نقطة";var mark=$("#selfMark");if(mark)mark.querySelectorAll("button").forEach(function(z){z.disabled=true});var nx=$("#nx");if(nx)nx.classList.remove("hide");}
+  function selfRate(correct){var cur=l[QZ.i];if(correct)QZ.sc++;else if(cur)QZ.wrong.push({q:cur.q,a:cur.a,subject:cur.subject||QZ.sub,chapter:cur.chapter||QZ.ch});var msg=$(".q .msg");if(msg)msg.textContent=correct?"✅ ممتاز، احتسبناها صحيحة":"📘 راجع الجواب، لم تُحتسب نقطة";var mark=$("#selfMark");if(mark)mark.querySelectorAll("button").forEach(function(z){z.disabled=true});var nx=$("#nx");if(nx)nx.classList.remove("hide");}
   var selfYes=$("#selfYes"),selfNo=$("#selfNo");if(selfYes)selfYes.onclick=function(){selfRate(true)};if(selfNo)selfNo.onclick=function(){selfRate(false)};
   var nx=$("#nx");if(nx)nx.onclick=function(){QZ.i++;QZ.keep=true;drawQuiz();window.scrollTo(0,0)};
   var ag=$("#again");if(ag)ag.onclick=function(){QZ.i=0;QZ.sc=0;QZ.wrong=[];QZ._logged=false;drawQuiz()};
@@ -1000,14 +917,12 @@ function loginCard(b,after){
 
 /* الامتحانات الورقية — أسئلة من الأدمن + تصحيح بالصورة */
 var PAPER = { step: "pick", subject: "", questions: [], result: null, busy: false, lastKey: "" };
-function paperKey(){return "paperRes:"+(S.grade||"")+"|"+(PAPER.subject||"")+"|"+(PAPER.groupKey||"")}
+function paperKey(){return "paperRes:"+(S.grade||"")+"|"+(PAPER.subject||"")}
 function savePaperRes(){
   try{
     if(PAPER.result){
       localStorage.setItem(paperKey(), JSON.stringify({
         subject: PAPER.subject,
-        groupKey: PAPER.groupKey || "",
-        paperTitle: PAPER.paperTitle || "",
         questions: PAPER.questions,
         result: PAPER.result,
         at: Date.now()
@@ -1016,8 +931,6 @@ function savePaperRes(){
       localStorage.setItem("paperLast", JSON.stringify({
         grade: S.grade,
         subject: PAPER.subject,
-        groupKey: PAPER.groupKey || "",
-        paperTitle: PAPER.paperTitle || "",
         questions: PAPER.questions,
         result: PAPER.result,
         at: Date.now()
@@ -1027,7 +940,7 @@ function savePaperRes(){
 }
 function loadPaperRes(subject){
   try{
-    var raw=localStorage.getItem("paperRes:"+(S.grade||"")+"|"+(subject||"")+"|");
+    var raw=localStorage.getItem("paperRes:"+(S.grade||"")+"|"+(subject||""));
     if(!raw)return null;
     return JSON.parse(raw);
   }catch(e){return null}
@@ -1079,8 +992,6 @@ function drawPaperPick() {
       var last=JSON.parse(localStorage.getItem("paperLast")||"null");
       if(!last||!last.result)return;
       PAPER.subject=last.subject||"";
-      PAPER.groupKey=last.groupKey||"";
-      PAPER.paperTitle=last.paperTitle||"";
       PAPER.questions=last.questions||[];
       PAPER.result=last.result;
       PAPER.step="result";
@@ -1092,8 +1003,6 @@ function drawPaperPick() {
       if (PAPER.busy) return;
       PAPER.busy = true;
       PAPER.subject = list[+btn.dataset.s];
-      PAPER.groupKey = "";
-      PAPER.paperTitle = "";
       PAPER.questions = [];
       PAPER.result = null;
       loading(b);
@@ -1118,7 +1027,7 @@ async function drawPhysicsPaperBank(){
   try{
     if(!PHYSICS_PAPER_BANK.length)PHYSICS_PAPER_BANK=await fetch("/physics-paper-exams.json",{cache:"no-cache"}).then(function(r){if(!r.ok)throw new Error("bank");return r.json()});
   }catch(e){b.innerHTML='<div class="card">تعذر تحميل نماذج الفيزياء. تأكد من وجود الملف physics-paper-exams.json داخل مجلد public.</div><button id="backPhysicsBank" class="ghost" style="width:100%">رجوع</button>';var back=$("#backPhysicsBank");if(back)back.onclick=drawPaperPick;return;}
-  var h='<div class="card" style="margin-bottom:12px"><b>📚 نماذج الفيزياء الورقية</b><p class="sub" style="line-height:1.8">السادس الإعدادي العلمي · ١٣ نموذجاً · ٣٢٥ سؤالاً. اختَر نموذجاً لتحلّه على ورقة وترفع صورته للتصحيح، أو اعرض جواب كل سؤال مباشرة.</p><button id="backPhysicsBank" class="ghost" style="width:100%">رجوع</button></div>';
+  var h='<div class="card" style="margin-bottom:12px"><b>📚 نماذج الفيزياء الورقية</b><p class="sub" style="line-height:1.8">السادس الإعدادي العلمي · ١٣ نموذجاً · ٣٢٥ سؤالاً. اضغط على النموذج لعرض الأسئلة، ويمكنك إظهار جواب كل سؤال.</p><button id="backPhysicsBank" class="ghost" style="width:100%">رجوع</button></div>';
   PHYSICS_PAPER_BANK.forEach(function(g,i){h+='<button class="opt" data-paper-group="'+i+'" style="width:100%;text-align:right;margin-bottom:8px"><span>'+esc(g.title)+'</span><span class="sub">'+ar((g.questions||[]).length)+' سؤال ‹</span></button>';});
   b.innerHTML=h;
   var back=$("#backPhysicsBank");if(back)back.onclick=drawPaperPick;
@@ -1126,19 +1035,10 @@ async function drawPhysicsPaperBank(){
 }
 function drawPhysicsPaperGroup(index){
   var b=$("#b-paper"),g=PHYSICS_PAPER_BANK[index];if(!g)return drawPhysicsPaperBank();
-  var h='<div class="card" style="margin-bottom:12px"><b>'+esc(g.title)+'</b><p class="sub" style="margin-top:6px">'+esc(g.chapter||"")+' · '+esc(g.part||"")+' · '+ar((g.questions||[]).length)+' سؤال</p><button id="solvePhysicsPaper" style="width:100%;margin-top:10px">📝 حلّ النموذج كاملاً وصوّر ورقتك للتصحيح</button><button id="backPhysicsGroups" class="ghost" style="width:100%;margin-top:8px">كل النماذج</button><p class="sub" style="line-height:1.7;margin:9px 0 0">تقدر أيضاً تعرض جواب كل سؤال وحده بدون كتابة أو تصوير.</p></div>';
-  (g.questions||[]).forEach(function(q,i){h+='<div class="card" style="margin-bottom:10px"><div style="display:flex;gap:8px;align-items:flex-start"><b style="color:var(--pri)">'+ar(i+1)+'.</b><div style="line-height:1.9;flex:1">'+esc(q.q)+'</div></div><button type="button" class="opt" data-answer-index="'+i+'" style="width:100%;margin-top:10px">إظهار الجواب فقط</button><div class="hide" id="paperAnswer'+i+'" style="margin-top:10px;padding:12px;border-radius:12px;background:var(--pri2);line-height:1.9"><b>الجواب النموذجي:</b> '+esc(q.a)+'</div></div>';});
-  b.innerHTML=h;
-  var back=$("#backPhysicsGroups");if(back)back.onclick=drawPhysicsPaperBank;
-  var solve=$("#solvePhysicsPaper");if(solve)solve.onclick=function(){
-    PAPER.subject=String(g.subject||"الفيزياء");
-    PAPER.groupKey=String(g.key||"");
-    PAPER.paperTitle=String(g.title||"");
-    PAPER.questions=(g.questions||[]).map(function(q){return String(q.q||"");});
-    PAPER.result=null;PAPER.step="exam";PAPER.busy=false;
-    drawPaperExam();
-  };
-  b.querySelectorAll('[data-answer-index]').forEach(function(btn){btn.onclick=function(){var ans=$("#paperAnswer"+btn.dataset.answerIndex);if(ans)ans.classList.toggle("hide");btn.textContent=ans&&!ans.classList.contains("hide")?"إخفاء الجواب":"إظهار الجواب فقط";};});
+  var h='<div class="card" style="margin-bottom:12px"><b>'+esc(g.title)+'</b><p class="sub" style="margin-top:6px">'+esc(g.chapter||"")+' · '+esc(g.part||"")+' · '+ar((g.questions||[]).length)+' سؤال</p><button id="backPhysicsGroups" class="ghost" style="width:100%;margin-top:10px">كل النماذج</button></div>';
+  (g.questions||[]).forEach(function(q,i){h+='<div class="card" style="margin-bottom:10px"><div style="display:flex;gap:8px;align-items:flex-start"><b style="color:var(--pri)">'+ar(i+1)+'.</b><div style="line-height:1.9;flex:1">'+esc(q.q)+'</div></div><button type="button" class="opt" data-answer-index="'+i+'" style="width:100%;margin-top:10px">إظهار الجواب</button><div class="hide" id="paperAnswer'+i+'" style="margin-top:10px;padding:12px;border-radius:12px;background:var(--pri2);line-height:1.9"><b>الجواب:</b> '+esc(q.a)+'</div></div>';});
+  b.innerHTML=h;var back=$("#backPhysicsGroups");if(back)back.onclick=drawPhysicsPaperBank;
+  b.querySelectorAll('[data-answer-index]').forEach(function(btn){btn.onclick=function(){var ans=$("#paperAnswer"+btn.dataset.answerIndex);if(ans)ans.classList.toggle("hide");btn.textContent=ans&&!ans.classList.contains("hide")?"إخفاء الجواب":"إظهار الجواب";};});
 }
 
 function drawPaperExam() {
@@ -1149,7 +1049,7 @@ function drawPaperExam() {
     return String(q || "").trim();
   }).filter(Boolean);
   PAPER.questions = qs;
-  var h = '<div class="card" style="margin-bottom:12px"><div class="sub">المادة</div><b style="font-size:18px">' + esc(PAPER.paperTitle || PAPER.subject) + '</b><div class="sub" style="margin-top:6px">' + ar(qs.length) + ' أسئلة · حلّها على ورقة ثم صوّر إجابتك</div></div>';
+  var h = '<div class="card" style="margin-bottom:12px"><div class="sub">المادة</div><b style="font-size:18px">' + esc(PAPER.subject) + '</b><div class="sub" style="margin-top:6px">' + ar(qs.length) + ' أسئلة · حلّها على ورقة ثم صوّر إجابتك</div></div>';
 
   h += '<div class="card" style="margin-bottom:14px"><b style="font-size:17px">📋 الأسئلة</b>';
   if(!qs.length){
@@ -1278,7 +1178,6 @@ function drawPaperExam() {
       var r = await jpost("paper/grade", {
         grade: S.grade,
         subject: PAPER.subject,
-        groupKey: PAPER.groupKey || "",
         images: selectedImages,
         image: selectedImages[0]
       });
@@ -1307,15 +1206,13 @@ function drawPaperExam() {
       PAPER.busy = false;
       refreshPrev();
       var msg = (e && e.message) ? e.message : "تعذر التصحيح";
-      alert(msg + "\nتأكد من وضوح الصور وتفعيل خدمة الذكاء الاصطناعي واستخدام موديل يدعم الصور.");
+      alert(msg + "\nتأكد أن الصور واضحة، وأن الأجوبة مضافة في الإدارة، والموديل يدعم الصور.");
     }
   };
 
   $("#pBack").onclick = function() {
     PAPER.step = "pick";
     PAPER.subject = "";
-    PAPER.groupKey = "";
-    PAPER.paperTitle = "";
     PAPER.questions = [];
     PAPER.result = null;
     rPaper();
@@ -1354,8 +1251,6 @@ function drawPaperResult() {
   $("#pAgain").onclick = function() {
     PAPER.step = "pick";
     PAPER.subject = "";
-    PAPER.groupKey = "";
-    PAPER.paperTitle = "";
     PAPER.questions = [];
     // لا نمسح النتيجة المحفوظة — تبقى في آخر نتيجة
     PAPER.result = null;
@@ -2312,7 +2207,6 @@ boot();
 <script src="/track.js" defer></script>
 </body>
 </html>
- 
  
  
  
