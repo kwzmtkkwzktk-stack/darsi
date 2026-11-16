@@ -1125,7 +1125,7 @@ async function drawPhysicsPaperBank(){
 }
 function drawPhysicsPaperGroup(index){
   var b=$("#b-paper"),g=PHYSICS_PAPER_BANK[index];if(!g)return drawPhysicsPaperBank();
-  var h='<div class="card" style="margin-bottom:12px"><b>'+esc(g.title)+'</b><p class="sub" style="margin-top:6px">'+esc(g.chapter||"")+' · '+esc(g.part||"")+' · '+ar((g.questions||[]).length)+' سؤال</p><button id="solvePhysicsPaper" style="width:100%;margin-top:10px">📝 حلّ النموذج كاملاً وصوّر ورقتك للتصحيح</button><button id="backPhysicsGroups" class="ghost" style="width:100%;margin-top:8px">كل النماذج</button><p class="sub" style="line-height:1.7;margin:9px 0 0">الأجوبة تبقى مخفية تماماً؛ راح تظهر لك نتيجة صح أو خطأ بعد التصحيح فقط.</p></div>';
+  var h='<div class="card" style="margin-bottom:12px"><b>'+esc(g.title)+'</b><p class="sub" style="margin-top:6px">'+esc(g.chapter||"")+' · '+esc(g.part||"")+' · '+ar((g.questions||[]).length)+' سؤال</p><button id="solvePhysicsPaper" style="width:100%;margin-top:10px">📝 لحل هذة النموذج اضغط هنا   </button><button id="backPhysicsGroups" class="ghost" style="width:100%;margin-top:8px">كل النماذج</button><p class="sub" style="line-height:1.7;margin:9px 0 0">الأجوبة تبقى مخفية تماماً؛ راح تظهر لك نتيجة صح أو خطأ بعد التصحيح فقط.</p></div>';
   (g.questions||[]).forEach(function(q,i){h+='<div class="card" style="margin-bottom:10px"><div style="display:flex;gap:8px;align-items:flex-start"><b style="color:var(--pri)">'+ar(i+1)+'.</b><div style="line-height:1.9;flex:1">'+esc(q.q)+'</div></div></div>';});
   b.innerHTML=h;
   var back=$("#backPhysicsGroups");if(back)back.onclick=drawPhysicsPaperBank;
