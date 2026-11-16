@@ -834,13 +834,28 @@ var QZ={qs:null,sub:null,ch:null,i:0,sc:0,wrong:[],_logged:false};
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 async function rQuiz(){
   var b=$("#b-quiz");
-  if(!QZ.qs||!QZ.keep){QZ.sub=null;QZ.ch=null;loading(b);try{QZ.qs=await jget("questions?grade="+encodeURIComponent(S.grade))}catch(e){return errBox(b,rQuiz)}}
+  if(!QZ.qs||!QZ.keep){
+    QZ.sub=null;QZ.ch=null;loading(b);
+    try{
+      QZ.qs=await jget("questions?grade="+encodeURIComponent(S.grade));
+      // إضافة بنك الفيزياء الورقي إلى اختبر نفسك دون اختراع خيارات خاطئة.
+      if(S.grade==="السادس الإعدادي (علمي)"){
+        var bank=await fetch("/physics-paper-exams.json",{cache:"no-cache"}).then(function(r){if(!r.ok)throw new Error("bank");return r.json()});
+        var seen={};
+        QZ.qs.forEach(function(q){seen[String(q.q||"").trim()+"|"+String(q.a||"").trim()]=1});
+        bank.forEach(function(group){(group.questions||[]).forEach(function(item){
+          var key=String(item.q||"").trim()+"|"+String(item.a||"").trim();
+          if(!seen[key]){QZ.qs.push({id:group.key+"-"+QZ.qs.length,grade:group.grade||S.grade,subject:group.subject||"الفيزياء",chapter:group.chapter||"",q:item.q,a:item.a,o:[],paperSource:true,paperTitle:group.title});seen[key]=1;}
+        })});
+      }
+    }catch(e){if(!QZ.qs)return errBox(b,rQuiz)}
+  }
   QZ.keep=false;drawQuiz();
 }
 function drawQuiz(){
-  var b=$("#b-quiz"),h="",qs=QZ.qs;$("#t-quiz").textContent=QZ.ch||QZ.sub||"امتحاناتي";
+  var b=$("#b-quiz"),h="",qs=QZ.qs,subjects=subs().slice();qs.forEach(function(q){if(q.subject&&subjects.indexOf(q.subject)<0)subjects.push(q.subject)});$("#t-quiz").textContent=QZ.ch||QZ.sub||"امتحاناتي";
   if(!QZ.sub){
-    h=subs().map(function(s,i){var n=qs.filter(function(q){return q.subject===s}).length;return '<button class="opt" data-s="'+i+'"><span>'+esc(s)+'</span><span class="sub">'+(n?ar(n)+" سؤال ":"")+"‹</span></button>"}).join("")||'<div class="card">لا توجد مواد.</div>';
+    h=subjects.map(function(s,i){var n=qs.filter(function(q){return q.subject===s}).length;return '<button class="opt" data-s="'+i+'"><span>'+esc(s)+'</span><span class="sub">'+(n?ar(n)+" سؤال ":"")+"‹</span></button>"}).join("")||'<div class="card">لا توجد مواد.</div>';
   }else if(!QZ.ch){
     var chs=[];qs.forEach(function(q){if(q.subject===QZ.sub&&chs.indexOf(q.chapter)<0)chs.push(q.chapter)});
     h=chs.length?chs.map(function(c,i){var n=qs.filter(function(q){return q.subject===QZ.sub&&q.chapter===c}).length;return '<button class="opt" data-c="'+i+'"><span>'+esc(c)+'</span><span class="sub">'+ar(n)+" أسئلة ‹</span></button>"}).join(""):'<div class="card">لا توجد أسئلة لهذه المادة بعد.</div>';
@@ -857,11 +872,13 @@ function drawQuiz(){
       h='<div class="card" style="text-align:center"><div style="font-size:44px">'+(pc>=50?"🎉":"💪")+'</div><b style="font-size:22px">نتيجتك: '+QZ.sc+" من "+l.length+'</b><div class="sub" style="margin:6px 0 16px">'+pc+'%</div><div class="row"><button id="again">إعادة الأسئلة</button><button class="ghost" id="toCh">الفصول</button></div></div>';
     }else{
       var x=l[QZ.i];
-      h='<div class="sub" style="margin-bottom:6px">السؤال '+(QZ.i+1)+" من "+l.length+'</div><div class="bar2"><i style="width:'+Math.round(QZ.i/l.length*100)+'%"></i></div><div class="card q"><b>'+esc(x.q)+"</b>"+shuf([[x.a,1]].concat(x.o.map(function(o){return[o,0]}))).map(function(c){return '<button class="ch" data-ok="'+c[1]+'">'+esc(c[0])+"</button>"}).join("")+'<div class="msg"></div></div><button id="nx" class="hide" style="width:100%;margin-top:4px">'+(QZ.i===l.length-1?"عرض النتيجة":"السؤال التالي")+"</button>";
+      var hasChoices=Array.isArray(x.o)&&x.o.length===3;
+      var questionBody=hasChoices?shuf([[x.a,1]].concat(x.o.map(function(o){return[o,0]}))).map(function(c){return '<button class="ch" data-ok="'+c[1]+'">'+esc(c[0])+"</button>"}).join(""):'<button type="button" class="opt" id="revealA">إظهار الجواب</button><div id="answerA" class="hide" style="margin-top:12px;padding:12px;border-radius:12px;background:var(--pri2);line-height:1.9"><b>الجواب:</b> '+esc(x.a)+'</div><div id="selfMark" class="hide" style="margin-top:10px"><div class="sub">قيّم إجابتك:</div><div class="row"><button type="button" id="selfYes">أجبت بشكل صحيح</button><button type="button" class="ghost" id="selfNo">أخطأت</button></div></div>';
+      h='<div class="sub" style="margin-bottom:6px">السؤال '+(QZ.i+1)+" من "+l.length+'</div><div class="bar2"><i style="width:'+Math.round(QZ.i/l.length*100)+'%"></i></div><div class="card q"><b>'+esc(x.q)+"</b>"+questionBody+'<div class="msg"></div></div><button id="nx" class="hide" style="width:100%;margin-top:4px">'+(QZ.i===l.length-1?"عرض النتيجة":"السؤال التالي")+"</button>";
     }
   }
   b.innerHTML=h;
-  b.querySelectorAll("[data-s]").forEach(function(e){e.onclick=function(){QZ.sub=subs()[+e.dataset.s];QZ.ch=null;drawQuiz();window.scrollTo(0,0)}});
+  b.querySelectorAll("[data-s]").forEach(function(e){e.onclick=function(){QZ.sub=(function(){var a=subs().slice();qs.forEach(function(q){if(q.subject&&a.indexOf(q.subject)<0)a.push(q.subject)});return a[+e.dataset.s]})();QZ.ch=null;drawQuiz();window.scrollTo(0,0)}});
   b.querySelectorAll("[data-c]").forEach(function(e){e.onclick=function(){QZ.ch=QZ.chs[+e.dataset.c];QZ.i=0;QZ.sc=0;QZ.wrong=[];drawQuiz();window.scrollTo(0,0)}});
   var q=b.querySelector(".q");
   if(q)q.querySelectorAll(".ch").forEach(function(c){c.onclick=function(){
@@ -877,6 +894,9 @@ function drawQuiz(){
     q.querySelector(".msg").textContent=ok?"✅ إجابة صحيحة":"❌ إجابة خاطئة، والجواب الصحيح مظلّل بالأخضر";
     $("#nx").classList.remove("hide");
   }});
+  var revealA=$("#revealA");if(revealA)revealA.onclick=function(){var ans=$("#answerA"),mark=$("#selfMark");if(ans)ans.classList.remove("hide");if(mark)mark.classList.remove("hide");revealA.disabled=true;};
+  function selfRate(correct){var cur=l[QZ.i];if(correct)QZ.sc++;else if(cur)QZ.wrong.push({q:cur.q,a:cur.a,subject:cur.subject||QZ.sub,chapter:cur.chapter||QZ.ch});var msg=$(".q .msg");if(msg)msg.textContent=correct?"✅ ممتاز، احتسبناها صحيحة":"📘 راجع الجواب، لم تُحتسب نقطة";var mark=$("#selfMark");if(mark)mark.querySelectorAll("button").forEach(function(z){z.disabled=true});var nx=$("#nx");if(nx)nx.classList.remove("hide");}
+  var selfYes=$("#selfYes"),selfNo=$("#selfNo");if(selfYes)selfYes.onclick=function(){selfRate(true)};if(selfNo)selfNo.onclick=function(){selfRate(false)};
   var nx=$("#nx");if(nx)nx.onclick=function(){QZ.i++;QZ.keep=true;drawQuiz();window.scrollTo(0,0)};
   var ag=$("#again");if(ag)ag.onclick=function(){QZ.i=0;QZ.sc=0;QZ.wrong=[];QZ._logged=false;drawQuiz()};
   var tc=$("#toCh");if(tc)tc.onclick=function(){QZ.ch=null;drawQuiz()};
@@ -947,6 +967,7 @@ function drawPaperPick() {
   var b = $("#b-paper");
   var list = subs();
   var h = '<div class="card" style="margin-bottom:14px"><b>📝 الامتحانات الورقية</b><p class="sub" style="line-height:1.8;margin:8px 0 0">اختر المادة، تظهر لك الأسئلة اللي حضّرها المعلم. حلّها على ورقة، صوّر الورقة، وارفع الصورة ليصحّحها الذكاء الاصطناعي (يحلل الورقة سؤالاً بسؤال).</p></div>';
+  if(S.grade==="السادس الإعدادي (علمي)") h += '<div class="card" style="margin-bottom:12px"><b>📚 بنك نماذج الفيزياء الوزارية</b><p class="sub" style="line-height:1.8;margin:6px 0 10px">١٣ نموذجاً، ٣٢٥ سؤالاً مع الأجوبة، مرتبة حسب الفصول والأجزاء.</p><button id="openPhysicsPaperBank" style="width:100%">عرض نماذج الفيزياء</button></div>';
   try{
     var last=JSON.parse(localStorage.getItem("paperLast")||"null");
     if(last&&last.result&&last.grade===S.grade){
@@ -963,6 +984,8 @@ function drawPaperPick() {
     }).join("");
   }
   b.innerHTML = h;
+  var physicsBankBtn=$("#openPhysicsPaperBank");
+  if(physicsBankBtn)physicsBankBtn.onclick=function(){drawPhysicsPaperBank();};
   var pl=$("#pLast");
   if(pl)pl.onclick=function(){
     try{
@@ -996,6 +1019,26 @@ function drawPaperPick() {
       }
     };
   });
+}
+
+var PHYSICS_PAPER_BANK=[];
+async function drawPhysicsPaperBank(){
+  var b=$("#b-paper");loading(b);
+  try{
+    if(!PHYSICS_PAPER_BANK.length)PHYSICS_PAPER_BANK=await fetch("/physics-paper-exams.json",{cache:"no-cache"}).then(function(r){if(!r.ok)throw new Error("bank");return r.json()});
+  }catch(e){b.innerHTML='<div class="card">تعذر تحميل نماذج الفيزياء. تأكد من وجود الملف physics-paper-exams.json داخل مجلد public.</div><button id="backPhysicsBank" class="ghost" style="width:100%">رجوع</button>';var back=$("#backPhysicsBank");if(back)back.onclick=drawPaperPick;return;}
+  var h='<div class="card" style="margin-bottom:12px"><b>📚 نماذج الفيزياء الورقية</b><p class="sub" style="line-height:1.8">السادس الإعدادي العلمي · ١٣ نموذجاً · ٣٢٥ سؤالاً. اضغط على النموذج لعرض الأسئلة، ويمكنك إظهار جواب كل سؤال.</p><button id="backPhysicsBank" class="ghost" style="width:100%">رجوع</button></div>';
+  PHYSICS_PAPER_BANK.forEach(function(g,i){h+='<button class="opt" data-paper-group="'+i+'" style="width:100%;text-align:right;margin-bottom:8px"><span>'+esc(g.title)+'</span><span class="sub">'+ar((g.questions||[]).length)+' سؤال ‹</span></button>';});
+  b.innerHTML=h;
+  var back=$("#backPhysicsBank");if(back)back.onclick=drawPaperPick;
+  b.querySelectorAll('[data-paper-group]').forEach(function(btn){btn.onclick=function(){drawPhysicsPaperGroup(+btn.dataset.paperGroup);};});
+}
+function drawPhysicsPaperGroup(index){
+  var b=$("#b-paper"),g=PHYSICS_PAPER_BANK[index];if(!g)return drawPhysicsPaperBank();
+  var h='<div class="card" style="margin-bottom:12px"><b>'+esc(g.title)+'</b><p class="sub" style="margin-top:6px">'+esc(g.chapter||"")+' · '+esc(g.part||"")+' · '+ar((g.questions||[]).length)+' سؤال</p><button id="backPhysicsGroups" class="ghost" style="width:100%;margin-top:10px">كل النماذج</button></div>';
+  (g.questions||[]).forEach(function(q,i){h+='<div class="card" style="margin-bottom:10px"><div style="display:flex;gap:8px;align-items:flex-start"><b style="color:var(--pri)">'+ar(i+1)+'.</b><div style="line-height:1.9;flex:1">'+esc(q.q)+'</div></div><button type="button" class="opt" data-answer-index="'+i+'" style="width:100%;margin-top:10px">إظهار الجواب</button><div class="hide" id="paperAnswer'+i+'" style="margin-top:10px;padding:12px;border-radius:12px;background:var(--pri2);line-height:1.9"><b>الجواب:</b> '+esc(q.a)+'</div></div>';});
+  b.innerHTML=h;var back=$("#backPhysicsGroups");if(back)back.onclick=drawPhysicsPaperBank;
+  b.querySelectorAll('[data-answer-index]').forEach(function(btn){btn.onclick=function(){var ans=$("#paperAnswer"+btn.dataset.answerIndex);if(ans)ans.classList.toggle("hide");btn.textContent=ans&&!ans.classList.contains("hide")?"إخفاء الجواب":"إظهار الجواب";};});
 }
 
 function drawPaperExam() {
