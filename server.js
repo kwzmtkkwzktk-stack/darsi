@@ -62,9 +62,12 @@ app.get("/", (req, res) => {
   );
 });
 
-// لوحة المدير
+// لوحات الإدارة
 app.get("/admin", (req, res) => {
   res.redirect("/study-admin.html");
+});
+app.get("/site-editor", (req, res) => {
+  res.redirect("/site-editor.html");
 });
 
 // جلب بيانات الطالب حسب الكود
@@ -293,6 +296,46 @@ app.post("/api/admin", async (req, res) => {
     return res.status(500).json({
       error: "حدث خطأ أثناء تنفيذ العملية"
     });
+  }
+});
+
+// إعدادات الموقع التي يتحكم بها محرر الموقع الشامل
+const { DEFAULT_SITE_SETTINGS, sanitizeSiteSettings } = require("./site-settings");
+app.get("/api/site-settings", async (req, res) => {
+  try {
+    const saved = await (await db()).collection("site_settings").findOne({ _id: "global" });
+    const settings = sanitizeSiteSettings(saved && saved.settings ? saved.settings : DEFAULT_SITE_SETTINGS);
+    res.set("Cache-Control", "no-store");
+    return res.json(settings);
+  } catch (error) {
+    console.error("Site settings read error:", error.message);
+    return res.status(503).json({ error: "تعذر تحميل إعدادات الموقع" });
+  }
+});
+
+app.post("/api/site-settings", async (req, res) => {
+  const b = req.body || {};
+  if (!process.env.ADMIN_CODE || String(b.pass || "") !== process.env.ADMIN_CODE) {
+    return res.sendStatus(401);
+  }
+  try {
+    if (b.action === "get") {
+      const saved = await (await db()).collection("site_settings").findOne({ _id: "global" });
+      return res.json(sanitizeSiteSettings(saved && saved.settings ? saved.settings : DEFAULT_SITE_SETTINGS));
+    }
+    if (b.action === "save") {
+      const settings = sanitizeSiteSettings(b.settings || {});
+      await (await db()).collection("site_settings").updateOne(
+        { _id: "global" },
+        { $set: { settings, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
+        { upsert: true }
+      );
+      return res.json({ ok: true, settings });
+    }
+    return res.status(400).json({ error: "طلب غير معروف" });
+  } catch (error) {
+    console.error("Site settings save error:", error.message);
+    return res.status(500).json({ error: "تعذر حفظ إعدادات الموقع" });
   }
 });
 
