@@ -202,5 +202,14 @@ async function submit(e){
 }
 </script>
 <script src="/track.js" defer></script>
+<script>
+(function(){
+  fetch("/api/site-settings",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(c){
+    if(!c||!c.theme)return;var t=c.theme,root=document.documentElement;
+    var map={bg:"--bg",card:"--surface",text:"--ink",muted:"--muted",primary:"--primary",primarySoft:"--primary2",dark:"--dark",border:"--line"};
+    Object.keys(map).forEach(function(k){if(t[k])root.style.setProperty(map[k],t[k])});
+  }).catch(function(){});
+})();
+</script>
 </body>
 </html>
