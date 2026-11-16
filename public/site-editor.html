@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#102033"><title>محرر الموقع الشامل · دليني</title>
+<style>
+:root{--bg:#f3f6fb;--card:#fff;--ink:#17243a;--muted:#68778c;--green:#13785a;--line:#e2e8f0;--red:#b8323a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Tahoma,Arial,sans-serif}header{background:#102033;color:#fff;padding:18px max(16px,calc((100% - 1100px)/2));display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}header h1{font-size:20px;margin:0}header p{font-size:12px;color:#b7c8d9;margin:5px 0 0}header a{color:#a9e6ce;text-decoration:none;font-size:13px}
+main{max-width:1100px;margin:22px auto;padding:0 14px 60px}.panel{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:18px;margin-bottom:16px;box-shadow:0 8px 25px #17243a0a}.login{max-width:460px;margin:55px auto}.hidden{display:none!important}.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.field{min-width:0}.field label,.field-label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}input:not([type=checkbox]),textarea,select{width:100%;padding:11px 12px;border:1px solid #ccd6e2;border-radius:10px;background:#fff;color:var(--ink);font:inherit;min-width:0}textarea{min-height:88px;resize:vertical;line-height:1.7}input[type=color]{width:100%;height:46px;padding:4px;border:1px solid #ccd6e2;border-radius:10px;background:white}button{border:0;border-radius:10px;padding:11px 15px;background:var(--green);color:#fff;font:inherit;font-weight:700;cursor:pointer}button.secondary{background:#e8eef5;color:#24364c}button.danger{background:#b8323a}button:disabled{opacity:.5;cursor:wait}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}.tabs button{background:#e5edf4;color:#24364c}.tabs button.active{background:var(--green);color:white}.tab-page{display:none}.tab-page.active{display:block}.muted{color:var(--muted);font-size:12px;line-height:1.8}.subheading{margin:20px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);font-size:16px}.group-card,.tool-card,.block-card{border:1px solid var(--line);border-radius:13px;padding:13px;margin:10px 0}.card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.card-top strong{font-size:14px}.toggle{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}.toggle input{width:19px;height:19px;accent-color:var(--green)}.grid-colors{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:12px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.notice{padding:11px 13px;border-radius:10px;background:#edf8f2;color:#176144;margin:12px 0;font-size:13px}.notice.error{background:#fff0f0;color:#a1262d}.block-card{background:#fbfcfe}.block-card textarea{min-height:80px}.block-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:10px}.login input{margin-top:6px}
+@media(max-width:560px){header{padding:15px}main{margin-top:14px}.panel{padding:14px}.tabs button{flex:1 1 42%;font-size:13px}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div><h1>محرر الموقع الشامل</h1><p>تحكّم بمحتوى الصفحة الرئيسية وأقسامها وألوانها</p></div><div style="display:flex;gap:14px;flex-wrap:wrap"><a href="/admin.html">لوحة الإدارة</a><a href="/">عرض الموقع</a></div></header>
+<main>
+<section id="login" class="panel login"><h2 style="margin-top:0">دخول المدير</h2><label for="pass">الرمز السري</label><input id="pass" type="password" autocomplete="current-password" placeholder="رمز المدير"><div class="actions"><button id="loginBtn">دخول إلى المحرر</button></div><div id="loginMsg" class="muted"></div></section>
+<section id="editor" class="hidden">
+  <div class="panel"><div class="card-top"><div><h2 style="margin:0">إدارة الموقع</h2><p class="muted" style="margin:5px 0 0">كل التغييرات تُحفظ في قاعدة البيانات وتظهر للزوار بعد تحديث الموقع.</p></div><button id="saveAll">حفظ كل التغييرات</button></div><div id="notice" class="notice hidden"></div>
+    <div class="tabs" id="tabs"><button class="active" data-tab="general">المعلومات والنصوص</button><button data-tab="colors">الألوان والمظهر</button><button data-tab="sections">الأقسام والأدوات</button><button data-tab="custom">أقسام جديدة</button></div>
+    <div id="tab-general" class="tab-page active">
+      <h3 class="subheading">هوية الموقع</h3><div class="row">
+        <div class="field"><label>اسم الموقع</label><input data-site="name" maxlength="180"></div>
+        <div class="field"><label>الوصف المختصر بجانب الشعار</label><input data-site="tagline" maxlength="180"></div>
+        <div class="field"><label>رمز الشعار (حرف أو رمز)</label><input data-site="symbol" maxlength="8"></div>
+        <div class="field"><label>عنوان صفحة المتصفح</label><input data-site="pageTitle" maxlength="180"></div>
+        <div class="field"><label>وصف الموقع لمحركات البحث</label><textarea data-site="metaDescription" maxlength="300"></textarea></div>
+        <div class="field"><label>صورة خلفية الصفحة (رابط اختياري)</label><input data-site="backgroundImage" placeholder="https://..."></div>
+      </div>
+      <h3 class="subheading">واجهة الترحيب</h3><div class="row">
+        <div class="field"><label>الجملة الصغيرة فوق العنوان</label><input data-hero="eyebrow"></div>
+        <div class="field"><label>عنوان الترحيب</label><input data-hero="title"></div>
+        <div class="field"><label>وصف الواجهة</label><textarea data-hero="description"></textarea></div>
+        <div class="field"><label>نص الزر الأول</label><input data-hero="primaryLabel"></div>
+        <div class="field"><label>نص الزر الثاني</label><input data-hero="secondaryLabel"></div>
+      </div>
+      <h3 class="subheading">النصوص السفلية وشريط التنقل</h3><div class="row">
+        <div class="field"><label>عنوان النصيحة اليومية</label><input data-footer="tipTitle"></div>
+        <div class="field"><label>نص تذييل الصفحة</label><input data-footer="text"></div>
+        <div class="field"><label>زر الرئيسية</label><input data-nav="home"></div>
+        <div class="field"><label>زر خطة اليوم</label><input data-nav="plan"></div>
+        <div class="field"><label>زر الملازم</label><input data-nav="files"></div>
+        <div class="field"><label>زر الامتحانات</label><input data-nav="quiz"></div>
+        <div class="field"><label>زر إنجازي</label><input data-nav="report"></div>
+      </div>
+    </div>
+    <div id="tab-colors" class="tab-page">
+      <p class="muted">اختَر اللون من المربع أو أدخل قيمته. التغييرات تطبق على ألوان الواجهة الرئيسية.</p><div class="grid-colors" id="colorFields"></div>
+    </div>
+    <div id="tab-sections" class="tab-page">
+      <h3 class="subheading">أقسام الصفحة الرئيسية</h3><div id="groupFields"></div>
+      <h3 class="subheading">الأدوات والبطاقات الموجودة</h3><p class="muted">تگدر تغيّر اسم ووصف أي أداة أو تخفيها من الصفحة الرئيسية. إخفاؤها لا يحذف بياناتها.</p><div id="toolFields"></div>
+    </div>
+    <div id="tab-custom" class="tab-page">
+      <div class="card-top"><div><h3 style="margin:0">الأقسام التي تضيفها بنفسك</h3><p class="muted">تظهر هذه الأقسام أسفل واجهة الترحيب. تگدر تضيف عنواناً ووصفاً ورابطاً.</p></div><button id="addBlock">＋ إضافة قسم</button></div>
+      <div id="customFields"></div>
+    </div>
+    <div class="actions"><button id="saveBottom">حفظ كل التغييرات</button><button class="secondary" id="reload">إعادة تحميل الإعدادات</button><span class="muted" id="saveState" style="align-self:center"></span></div>
+  </div>
+</section>
+</main>
+<script>
+(function(){
+  var pass="",settings=null;
+  var $=function(s,root){return (root||document).querySelector(s)};
+  var $$=function(s,root){return Array.from((root||document).querySelectorAll(s))};
+  var tools=[
+    ["ai","المساعد الذكي","اسأل كتابةً أو بالصوت وخذ شرحاً فورياً"],["explain","شرح الذكي","شرح المسألة وكتابتها على السبورة"],["experiments","تجاربي · الشخصية الهولوغرامية","شاهد الشخصية تكتب وتشرح"],["law3d","مختبر القوانين 3D","قوانين تفاعلية"],["videos","المحاضرات","شروحات الدروس بالفيديو"],["files","الملازم والملخصات","ملفات مرتبة حسب صفك ومادتك"],["quiz","اختبر نفسك","أسئلة تدريبية"],["paper","الامتحان الورقي","صوّر إجابتك واحصل على تحليلها"],["challenge","تحديات يومية","اجمع النقاط وارفع مستواك"],["path","مراجعة أخطائي","راجع الأسئلة التي أخطأت بها"],["phys","لعبة الفيزياء","تعلّم بطريقة تفاعلية"],["plan","خطة مذاكرتي","وزّع وقتك وتابع إنجازك"],["timer","مؤقّت التركيز","جلسات تركيز واستراحات"],["dates","مواعيد الامتحانات","رتّب مواعيد الامتحانات"],["report","تقريري الأسبوعي","اعرف تقدمك الدراسي"],["res","درجاتي وغيابي","تابع النتائج والغياب"],["notes","دفتر ملاحظاتي","احفظ الملاحظات"],["calc","حاسبة المعدل","احسب معدلك"],["wheel","اختيار مادة عشوائياً","اختر مادة للدراسة"]
+  ];
+  var colorNames={bg:"خلفية الموقع",card:"لون البطاقات",glass:"سطح البطاقات",text:"لون النص الأساسي",muted:"لون النص الثانوي",primary:"اللون الرئيسي",primarySoft:"خلفية اللون الرئيسي",accent:"لون التمييز",border:"لون الحدود",dark:"لون الخلفية الداكنة"};
+  function api(body){return fetch("/api/site-settings",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(Object.assign({pass:pass},body))}).then(async function(r){var j={};try{j=await r.json()}catch(e){}if(!r.ok)throw Error(j.error||"تعذر تنفيذ الطلب");return j})}
+  function notice(t,error){var n=$("#notice");n.textContent=t;n.classList.toggle("error",!!error);n.classList.remove("hidden");}
+  function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+  function fillInputs(){
+    $$('[data-site]').forEach(function(e){e.value=settings.site[e.dataset.site]||""});
+    $$('[data-hero]').forEach(function(e){e.value=settings.hero[e.dataset.hero]||""});
+    $$('[data-footer]').forEach(function(e){e.value=settings.footer[e.dataset.footer]||""});
+    $$('[data-nav]').forEach(function(e){e.value=(settings.nav&&settings.nav[e.dataset.nav])||""});
+    $("#colorFields").innerHTML=Object.keys(colorNames).map(function(k){return '<div class="field"><label>'+colorNames[k]+'</label><input type="color" data-color="'+k+'" value="'+esc(settings.theme[k]||"#ffffff")+'"><small class="muted">'+esc(settings.theme[k]||"")+'</small></div>'}).join("");
+    $$('[data-color]').forEach(function(e){e.addEventListener("input",function(){e.nextElementSibling.textContent=e.value})});
+    drawGroups();drawTools();drawBlocks();
+  }
+  function drawGroups(){
+    var names={learn:"تعلّم وافهم",practice:"تدرّب وامتحن",organize:"خطّط وتابع",stats:"لوحة الإنجاز"};
+    $("#groupFields").innerHTML=Object.keys(names).map(function(k){var g=settings.groups[k];return '<div class="group-card" data-group="'+k+'"><div class="card-top"><strong>'+names[k]+'</strong><label class="toggle"><input type="checkbox" data-group-enabled '+(g.enabled?'checked':'')+'> إظهار القسم</label></div><div class="row"><div class="field"><label>الكلمة الصغيرة</label><input data-group-kicker value="'+esc(g.kicker)+'"></div><div class="field"><label>عنوان القسم</label><input data-group-title value="'+esc(g.title)+'"></div><div class="field"><label>الوصف</label><input data-group-description value="'+esc(g.description)+'"></div></div></div>'}).join("");
+  }
+  function drawTools(){
+    $("#toolFields").innerHTML=tools.map(function(t){var x=settings.tools[t[0]]||{};return '<div class="tool-card" data-tool="'+t[0]+'"><div class="card-top"><strong>'+t[1]+'</strong><label class="toggle"><input type="checkbox" data-tool-visible '+(x.visible===false?'':'checked')+'> إظهار</label></div><div class="row"><div class="field"><label>الاسم الظاهر</label><input data-tool-title placeholder="'+esc(t[1])+'" value="'+esc(x.title||'')+'"></div><div class="field"><label>الوصف</label><input data-tool-description placeholder="'+esc(t[2])+'" value="'+esc(x.description||'')+'"></div></div></div>'}).join("");
+  }
+  function drawBlocks(){
+    $("#customFields").innerHTML=(settings.customSections||[]).map(function(b,i){return '<div class="block-card" data-block-index="'+i+'"><div class="card-top"><strong>قسم مخصص '+(i+1)+'</strong><label class="toggle"><input type="checkbox" data-block-enabled '+(b.enabled===false?'':'checked')+'> إظهار للزوار</label></div><div class="row"><div class="field"><label>الرمز</label><input data-block-icon maxlength="8" value="'+esc(b.icon||'✦')+'"></div><div class="field"><label>عنوان القسم</label><input data-block-title value="'+esc(b.title||'')+'"></div><div class="field"><label>العنوان الصغير</label><input data-block-kicker value="'+esc(b.kicker||'')+'"></div><div class="field"><label>لون خلفية القسم</label><input type="color" data-block-background value="'+esc(b.background||'#ffffff')+'"></div><div class="field"><label>نص الزر (اختياري)</label><input data-block-button value="'+esc(b.buttonText||'')+'"></div><div class="field"><label>الرابط (اختياري)</label><input data-block-url value="'+esc(b.url||'')+'" placeholder="https://..."></div></div><div class="field" style="margin-top:10px"><label>النص داخل القسم</label><textarea data-block-body>'+esc(b.body||'')+'</textarea></div><div class="block-actions"><button class="danger" type="button" data-block-delete>حذف القسم</button></div></div>'}).join("")||'<p class="muted">ما أضفت أي قسم بعد. اضغط «إضافة قسم» حتى تنشئ أول قسم.</p>';
+    $$("[data-block-delete]").forEach(function(b){b.onclick=function(){readInputs();var i=Number(b.closest("[data-block-index]").dataset.blockIndex);settings.customSections.splice(i,1);drawBlocks()}});
+  }
+  function readInputs(){
+    $$('[data-site]').forEach(function(e){settings.site[e.dataset.site]=e.value.trim()});
+    $$('[data-hero]').forEach(function(e){settings.hero[e.dataset.hero]=e.value.trim()});
+    $$('[data-footer]').forEach(function(e){settings.footer[e.dataset.footer]=e.value.trim()});
+    settings.nav=settings.nav||{};$$('[data-nav]').forEach(function(e){settings.nav[e.dataset.nav]=e.value.trim()});
+    $$('[data-color]').forEach(function(e){settings.theme[e.dataset.color]=e.value});
+    $$("[data-group]").forEach(function(card){var k=card.dataset.group,g=settings.groups[k];g.enabled=$("[data-group-enabled]",card).checked;g.kicker=$("[data-group-kicker]",card).value.trim();g.title=$("[data-group-title]",card).value.trim();g.description=$("[data-group-description]",card).value.trim()});
+    $$("[data-tool]").forEach(function(card){var id=card.dataset.tool;settings.tools[id]={visible:$("[data-tool-visible]",card).checked,title:$("[data-tool-title]",card).value.trim(),description:$("[data-tool-description]",card).value.trim()}});
+    settings.customSections=$$("[data-block-index]").map(function(card,i){return {id:(settings.customSections[i]&&settings.customSections[i].id)||("block-"+(Date.now()+i)),enabled:$("[data-block-enabled]",card).checked,icon:$("[data-block-icon]",card).value.trim(),title:$("[data-block-title]",card).value.trim(),kicker:$("[data-block-kicker]",card).value.trim(),background:$("[data-block-background]",card).value,buttonText:$("[data-block-button]",card).value.trim(),url:$("[data-block-url]",card).value.trim(),body:$("[data-block-body]",card).value.trim()}});
+  }
+  async function save(){try{readInputs();$("#saveAll").disabled=true;$("#saveBottom").disabled=true;$("#saveState").textContent="جارٍ الحفظ…";var r=await api({action:"save",settings:settings});settings=r.settings||settings;fillInputs();notice("تم حفظ التغييرات بنجاح. افتح الموقع أو حدّثه لمشاهدة النتيجة.");$("#saveState").textContent="تم الحفظ"}catch(e){notice(e.message,true);$("#saveState").textContent="تعذر الحفظ"}finally{$("#saveAll").disabled=false;$("#saveBottom").disabled=false}}
+  async function load(){try{settings=await api({action:"get"});fillInputs();$("#login").classList.add("hidden");$("#editor").classList.remove("hidden")}catch(e){$("#loginMsg").textContent=e.message}}
+  $("#loginBtn").onclick=async function(){pass=$("#pass").value;$("#loginMsg").textContent="جارٍ التحقق…";await load()};
+  $("#saveAll").onclick=save;$("#saveBottom").onclick=save;
+  $("#reload").onclick=async function(){await load();notice("تمت إعادة تحميل الإعدادات المحفوظة")};
+  $("#addBlock").onclick=function(){readInputs();if(settings.customSections.length>=25){notice("وصلت للحد الأعلى: 25 قسماً",true);return}settings.customSections.push({id:"block-"+Date.now(),enabled:true,icon:"✦",kicker:"",title:"قسم جديد",body:"اكتب وصف القسم هنا",buttonText:"",url:"",background:"#ffffff"});drawBlocks()};
+  $$("#tabs button").forEach(function(b){b.onclick=function(){$$("#tabs button").forEach(function(x){x.classList.toggle("active",x===b)});$$(".tab-page").forEach(function(x){x.classList.toggle("active",x.id==="tab-"+b.dataset.tab)})}});
+})();
+</script>
+</body></html>
