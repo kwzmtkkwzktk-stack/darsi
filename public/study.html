@@ -888,20 +888,33 @@ async function rVideos(){
   });
 }
 
-/* خل الأسئلة مع الأغاني: تبدأ الأغنية فور دخول القسم */
+/* مشغل أغنية ثابت داخل «اختبر نفسك»؛ عنصر صوت واحد لتجنب تكرار الصوت والصدى */
 var solveSongAudio=null;
-function playSolveSong(){
-  if(!solveSongAudio){solveSongAudio=$("#solveSongPlayer")||new Audio("/solve-song.mp3");solveSongAudio.preload="auto";}
-  try{solveSongAudio.pause();solveSongAudio.currentTime=0;var promise=solveSongAudio.play();if(promise&&promise.catch)promise.catch(function(){var note=$("#solveSongNote");if(note)note.textContent="اضغط تشغيل الأغنية إذا منع المتصفح التشغيل التلقائي.";});}catch(e){}
+function getSolveSongAudio(){
+  if(!solveSongAudio){solveSongAudio=new Audio("/solve-song.mp3");solveSongAudio.preload="auto";solveSongAudio.volume=1;}
+  return solveSongAudio;
+}
+function solveSongPlayerMarkup(){
+  return '<div class="card" style="margin-bottom:12px;text-align:center"><b style="font-size:18px">🎵 حل الأسئلة مع الأغاني</b><p class="sub" style="line-height:1.8;margin:7px 0">حبيبي بعيني لك دمعة — قاسم سلطان</p><div class="row" style="justify-content:center;gap:8px"><button type="button" id="solveSongToggle">▶ تشغيل الأغنية</button><label class="sub" for="solveSongVolume">مستوى الصوت</label><input id="solveSongVolume" aria-label="مستوى الصوت" type="range" min="0" max="1" step="0.05" value="1" style="max-width:130px"></div><p id="solveSongNote" class="sub" style="margin:7px 0 0">اضغط تشغيل للاستماع بصوت واضح، ويمكنك تعديل مستوى الصوت.</p></div>';
+}
+function bindSolveSongPlayer(){
+  var audio=getSolveSongAudio(),btn=$("#solveSongToggle"),vol=$("#solveSongVolume"),note=$("#solveSongNote");
+  if(vol)vol.oninput=function(){audio.volume=Number(vol.value);};
+  if(btn)btn.onclick=function(){
+    if(audio.paused){var p=audio.play();if(p&&p.catch)p.catch(function(){if(note)note.textContent="تعذر التشغيل؛ جرّب الضغط على تشغيل مرة ثانية.";});}
+    else audio.pause();
+    btn.textContent=audio.paused?"▶ تشغيل الأغنية":"⏸ إيقاف مؤقت";
+  };
+  audio.onplay=function(){var x=$("#solveSongToggle");if(x)x.textContent="⏸ إيقاف مؤقت";};
+  audio.onpause=function(){var x=$("#solveSongToggle");if(x)x.textContent="▶ تشغيل الأغنية";};
+  audio.onerror=function(){var x=$("#solveSongNote");if(x)x.textContent="تعذر تحميل ملف الأغنية. تأكد من رفع solve-song.mp3 داخل مجلد public.";};
 }
 /* امتحاناتي: المواد ← الفصول ← سؤال واحد كل مرة */
 var QZ={qs:null,sub:null,ch:null,i:0,sc:0,wrong:[],_logged:false};
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 async function rQuiz(){
   var b=$("#b-quiz");
-  // يبدأ التشغيل مباشرة من ضغطة الطالب على القسم، قبل أي تحميل غير متزامن.
-  if(!solveSongAudio){solveSongAudio=new Audio("/solve-song.mp3");solveSongAudio.preload="auto";}
-  try{solveSongAudio.pause();solveSongAudio.currentTime=0;var startPromise=solveSongAudio.play();if(startPromise&&startPromise.catch)startPromise.catch(function(){});}catch(e){}
+  // التشغيل يدوي من مشغل واحد لتجنب تداخل نسختين من الأغنية.
   if(!QZ.qs||!QZ.keep){
     QZ.sub=null;QZ.ch=null;loading(b);
     try{
@@ -923,7 +936,7 @@ async function rQuiz(){
 function drawQuiz(){
   var b=$("#b-quiz"),h="",qs=QZ.qs,subjects=subs().slice();qs.forEach(function(q){if(q.subject&&subjects.indexOf(q.subject)<0)subjects.push(q.subject)});$("#t-quiz").textContent=QZ.ch||QZ.sub||"خل الأسئلة مع الأغاني";
   if(!QZ.sub){
-    h='<div class="card" style="margin-bottom:12px;text-align:center"><b style="font-size:18px">🎵 خل الأسئلة مع الأغاني</b><p class="sub" style="line-height:1.8;margin:7px 0 0">🎶 الأغنية تشتغل من أول ما تدخل للقسم، وتكدر تسمعها وأنت تحل الأسئلة.</p><p class="sub" style="margin:8px 0 0">حبيبي بعيني لك دمعة — قاسم سلطان</p><audio controls autoplay preload="auto" style="width:100%;margin-top:8px"><source src="/solve-song.mp3" type="audio/mpeg"></audio></div>'+subjects.map(function(s,i){var n=qs.filter(function(q){return q.subject===s}).length;return '<button class="opt" data-s="'+i+'"><span>'+esc(s)+'</span><span class="sub">'+(n?ar(n)+" سؤال ":"")+"‹</span></button>"}).join("")||'<div class="card">لا توجد مواد.</div>';
+    h=subjects.map(function(s,i){var n=qs.filter(function(q){return q.subject===s}).length;return '<button class="opt" data-s="'+i+'"><span>'+esc(s)+'</span><span class="sub">'+(n?ar(n)+" سؤال ":"")+"‹</span></button>"}).join("")||'<div class="card">لا توجد مواد.</div>';
   }else if(!QZ.ch){
     var chs=[];qs.forEach(function(q){if(q.subject===QZ.sub&&chs.indexOf(q.chapter)<0)chs.push(q.chapter)});
     h=chs.length?chs.map(function(c,i){var n=qs.filter(function(q){return q.subject===QZ.sub&&q.chapter===c}).length;return '<button class="opt" data-c="'+i+'"><span>'+esc(c)+'</span><span class="sub">'+ar(n)+" أسئلة ‹</span></button>"}).join(""):'<div class="card">لا توجد أسئلة لهذه المادة بعد.</div>';
@@ -938,7 +951,7 @@ function drawQuiz(){
         logActivity("quiz",QZ.sub,QZ.sc,l.length,QZ.ch||"");
         if(QZ.wrong&&QZ.wrong.length&&!(S.grade==="السادس الإعدادي (علمي)"&&QZ.sub==="الفيزياء"))addReviewItems(QZ.wrong,"quiz");
       }
-      h='<div class="card" style="text-align:center"><div style="font-size:44px">'+(pc>=50?"🎉":"💪")+'</div><b style="font-size:22px">نتيجتك: '+QZ.sc+" من "+l.length+'</b><div class="sub" style="margin:6px 0 10px">'+pc+'%</div><div class="card" style="margin:10px 0 14px;text-align:center"><b>🎶 خلصت الأسئلة، هاي أغنيتك!</b><p id="solveSongNote" class="sub" style="margin:6px 0 8px">حبيبي بعيني لك دمعة — قاسم سلطان</p><audio id="solveSongPlayer" controls preload="auto" style="width:100%"><source src="/solve-song.mp3" type="audio/mpeg"></audio></div><div class="row"><button id="again">إعادة الأسئلة</button><button class="ghost" id="toCh">الفصول</button></div></div>';
+      h='<div class="card" style="text-align:center"><div style="font-size:44px">'+(pc>=50?"🎉":"💪")+'</div><b style="font-size:22px">نتيجتك: '+QZ.sc+" من "+l.length+'</b><div class="sub" style="margin:6px 0 10px">'+pc+'%</div><div class="sub" style="margin:10px 0 14px;text-align:center">🎶 تگدر تسمع الأغنية من المشغل الموجود بالأعلى.</div><div class="row"><button id="again">إعادة الأسئلة</button><button class="ghost" id="toCh">الفصول</button></div></div>';
     }else{
       var x=l[QZ.i];
       var isPhysicsHandwriting=(S.grade==="السادس الإعدادي (علمي)"&&x.subject==="الفيزياء");
@@ -948,7 +961,8 @@ function drawQuiz(){
       h='<div class="sub" style="margin-bottom:6px">السؤال '+(QZ.i+1)+" من "+l.length+'</div><div class="bar2"><i style="width:'+Math.round(QZ.i/l.length*100)+'%"></i></div><div class="card q"><b>'+esc(x.q)+"</b>"+questionBody+'<div class="msg"></div></div><button id="nx" class="hide" style="width:100%;margin-top:4px">'+(QZ.i===l.length-1?"عرض النتيجة":"السؤال التالي")+"</button>";
     }
   }
-  b.innerHTML=h;
+  b.innerHTML=solveSongPlayerMarkup()+h;
+  bindSolveSongPlayer();
   b.querySelectorAll("[data-s]").forEach(function(e){e.onclick=function(){QZ.sub=(function(){var a=subs().slice();qs.forEach(function(q){if(q.subject&&a.indexOf(q.subject)<0)a.push(q.subject)});return a[+e.dataset.s]})();QZ.ch=null;drawQuiz();window.scrollTo(0,0)}});
   b.querySelectorAll("[data-c]").forEach(function(e){e.onclick=function(){QZ.ch=QZ.chs[+e.dataset.c];QZ.i=0;QZ.sc=0;QZ.wrong=[];QZ._songPlayed=false;drawQuiz();window.scrollTo(0,0)}});
   var q=b.querySelector(".q");
@@ -990,7 +1004,7 @@ function drawQuiz(){
   function selfRate(correct){if(q)q.classList.add("done");["hwQuizGrade","hwQuizCam","hwQuizGal"].forEach(function(id){var el=$("#"+id);if(el)el.disabled=true;});var cur=l[QZ.i];if(correct)QZ.sc++;else if(cur)QZ.wrong.push({q:cur.q,a:cur.a,subject:cur.subject||QZ.sub,chapter:cur.chapter||QZ.ch});var msg=$(".q .msg");if(msg)msg.textContent=correct?"✅ ممتاز، احتسبناها صحيحة":"📘 راجع الجواب، لم تُحتسب نقطة";var mark=$("#selfMark");if(mark)mark.querySelectorAll("button").forEach(function(z){z.disabled=true});var nx=$("#nx");if(nx)nx.classList.remove("hide");}
   var selfYes=$("#selfYes"),selfNo=$("#selfNo");if(selfYes)selfYes.onclick=function(){selfRate(true)};if(selfNo)selfNo.onclick=function(){selfRate(false)};
   var nx=$("#nx");if(nx)nx.onclick=function(){QZ.i++;QZ.keep=true;drawQuiz();window.scrollTo(0,0)};
-  var ag=$("#again");if(ag)ag.onclick=function(){QZ.i=0;QZ.sc=0;QZ.wrong=[];QZ._logged=false;QZ._songPlayed=false;if(solveSongAudio){solveSongAudio.pause();solveSongAudio.currentTime=0;}drawQuiz()};
+  var ag=$("#again");if(ag)ag.onclick=function(){QZ.i=0;QZ.sc=0;QZ.wrong=[];QZ._logged=false;QZ._songPlayed=false;drawQuiz()};
   var tc=$("#toCh");if(tc)tc.onclick=function(){QZ.ch=null;drawQuiz()};
 }
 function quizBack(){if(QZ.ch){QZ.ch=null;drawQuiz();return true}if(QZ.sub){QZ.sub=null;drawQuiz();return true}return false}
@@ -2320,6 +2334,7 @@ boot();
 <script src="/track.js" defer></script>
 </body>
 </html>
+ 
  
  
  
