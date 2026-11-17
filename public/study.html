@@ -593,7 +593,8 @@ function bindHandwritingControls(prefix,target,onResult){
       var border=status==="correct"?"#219653":status==="incorrect"?"#dc4545":"#c58a20";
       var html='<div style="border:1px solid '+border+';border-radius:12px;padding:11px;line-height:1.8"><b>'+title+'</b>';
       if(status==="unclear")html+='<div class="sub" style="margin-top:6px">الصورة مو واضحة أو الحل ما انقرا. صوّر الورقة بإضاءة أوضح وحاول مرة ثانية.</div>';
-      if(status==="incorrect" && target && (target.subject==="الفيزياء" || target.groupKey) && r.modelAnswer)html+='<div style="margin-top:10px;padding:10px;border-radius:10px;background:var(--pri2);line-height:1.9"><b>الجواب الصحيح:</b><div>'+esc(r.modelAnswer)+'</div></div>';
+      if(r.feedback)html+='<div class="sub" style="margin-top:7px">'+esc(r.feedback)+'</div>';
+      if(status==="incorrect" && target && (target.subject==="الفيزياء" || target.groupKey || target.chemistryGroupKey) && r.modelAnswer)html+='<div style="margin-top:10px;padding:10px;border-radius:10px;background:var(--pri2);line-height:1.9"><b>الجواب الصحيح:</b><div>'+esc(r.modelAnswer)+'</div></div>';
       html+='</div>';result.innerHTML=html;
       if(status==="unclear"){
         busy=false;btn.disabled=false;btn.textContent="إعادة تصحيح الصورة";
@@ -888,35 +889,22 @@ async function rVideos(){
   });
 }
 
-/* مشغل أغنية ثابت داخل «اختبر نفسك»؛ عنصر صوت واحد لتجنب تكرار الصوت والصدى */
+/* خل الأسئلة مع الأغاني: تبدأ الأغنية فور دخول القسم */
 var solveSongAudio=null;
-function getSolveSongAudio(){
-  if(!solveSongAudio){solveSongAudio=new Audio("/solve-song.mp3");solveSongAudio.preload="auto";solveSongAudio.volume=1;}
-  return solveSongAudio;
-}
-function solveSongPlayerMarkup(){
-  return '<div class="card" style="margin-bottom:12px;text-align:center"><b style="font-size:18px">🎵 حل الأسئلة مع الأغاني</b><p class="sub" style="line-height:1.8;margin:7px 0">حبيبي بعيني لك دمعة — قاسم سلطان</p><div class="row" style="justify-content:center;gap:8px"><button type="button" id="solveSongToggle">▶ تشغيل الأغنية</button><label class="sub" for="solveSongVolume">مستوى الصوت</label><input id="solveSongVolume" aria-label="مستوى الصوت" type="range" min="0" max="1" step="0.05" value="1" style="max-width:130px"></div><p id="solveSongNote" class="sub" style="margin:7px 0 0">اضغط تشغيل للاستماع بصوت واضح، ويمكنك تعديل مستوى الصوت.</p></div>';
-}
-function bindSolveSongPlayer(){
-  var audio=getSolveSongAudio(),btn=$("#solveSongToggle"),vol=$("#solveSongVolume"),note=$("#solveSongNote");
-  if(vol)vol.oninput=function(){audio.volume=Number(vol.value);};
-  if(btn)btn.onclick=function(){
-    if(audio.paused){var p=audio.play();if(p&&p.catch)p.catch(function(){if(note)note.textContent="تعذر التشغيل؛ جرّب الضغط على تشغيل مرة ثانية.";});}
-    else audio.pause();
-    btn.textContent=audio.paused?"▶ تشغيل الأغنية":"⏸ إيقاف مؤقت";
-  };
-  audio.onplay=function(){var x=$("#solveSongToggle");if(x)x.textContent="⏸ إيقاف مؤقت";};
-  audio.onpause=function(){var x=$("#solveSongToggle");if(x)x.textContent="▶ تشغيل الأغنية";};
-  audio.onerror=function(){var x=$("#solveSongNote");if(x)x.textContent="تعذر تحميل ملف الأغنية. تأكد من رفع solve-song.mp3 داخل مجلد public.";};
+function playSolveSong(){
+  if(!solveSongAudio){solveSongAudio=$("#solveSongPlayer")||new Audio("/solve-song.mp3");solveSongAudio.preload="auto";}
+  try{solveSongAudio.pause();solveSongAudio.currentTime=0;var promise=solveSongAudio.play();if(promise&&promise.catch)promise.catch(function(){var note=$("#solveSongNote");if(note)note.textContent="اضغط تشغيل الأغنية إذا منع المتصفح التشغيل التلقائي.";});}catch(e){}
 }
 /* امتحاناتي: المواد ← الفصول ← سؤال واحد كل مرة */
-var QZ={qs:null,sub:null,ch:null,i:0,sc:0,wrong:[],_logged:false};
+var QZ={qs:null,sub:null,ch:null,part:null,parts:[],i:0,sc:0,wrong:[],_logged:false};
 function shuf(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
 async function rQuiz(){
   var b=$("#b-quiz");
-  // التشغيل يدوي من مشغل واحد لتجنب تداخل نسختين من الأغنية.
+  // يبدأ التشغيل مباشرة من ضغطة الطالب على القسم، قبل أي تحميل غير متزامن.
+  if(!solveSongAudio){solveSongAudio=new Audio("/solve-song.mp3");solveSongAudio.preload="auto";}
+  try{solveSongAudio.pause();solveSongAudio.currentTime=0;var startPromise=solveSongAudio.play();if(startPromise&&startPromise.catch)startPromise.catch(function(){});}catch(e){}
   if(!QZ.qs||!QZ.keep){
-    QZ.sub=null;QZ.ch=null;loading(b);
+    QZ.sub=null;QZ.ch=null;QZ.part=null;loading(b);
     try{
       QZ.qs=await jget("questions?grade="+encodeURIComponent(S.grade));
       // إضافة بنك الفيزياء الورقي إلى اختبر نفسك دون اختراع خيارات خاطئة.
@@ -928,51 +916,65 @@ async function rQuiz(){
           var key=String(item.q||"").trim()+"|"+String(item.a||"").trim();
           if(!seen[key]){QZ.qs.push({id:group.key+"-"+QZ.qs.length,grade:group.grade||S.grade,subject:group.subject||"الفيزياء",chapter:group.chapter||"",q:item.q,a:item.a,o:[],paperSource:true,paperTitle:group.title,paperGroupKey:group.key,paperQuestionIndex:questionIndex});seen[key]=1;}
         })});
+        // بنك كيمياء السادس العلمي: ثمانية فصول، وكل فصل مقسوم إلى جزأين.
+        var chemistryBank=await fetch("/chemistry-sixth-scientific.json",{cache:"no-cache"}).then(function(r){if(!r.ok)throw new Error("chemistry-bank");return r.json()});
+        chemistryBank.forEach(function(group){(group.questions||[]).forEach(function(item,questionIndex){
+          var key=String(item.q||"").trim()+"|"+String(item.a||"").trim();
+          if(!seen[key]){QZ.qs.push({id:group.key+"-"+QZ.qs.length,grade:group.grade||S.grade,subject:group.subject||"الكيمياء",chapter:group.chapter||"",part:group.part||"",q:item.q,a:item.a,o:[],chemistrySource:true,chemistryGroupKey:group.key,chemistryQuestionIndex:questionIndex});seen[key]=1;}
+        })});
       }
     }catch(e){if(!QZ.qs)return errBox(b,rQuiz)}
   }
   QZ.keep=false;drawQuiz();
 }
 function drawQuiz(){
-  var b=$("#b-quiz"),h="",qs=QZ.qs,subjects=subs().slice();qs.forEach(function(q){if(q.subject&&subjects.indexOf(q.subject)<0)subjects.push(q.subject)});$("#t-quiz").textContent=QZ.ch||QZ.sub||"خل الأسئلة مع الأغاني";
+  var b=$("#b-quiz"),h="",qs=QZ.qs,subjects=subs().slice();qs.forEach(function(q){if(q.subject&&subjects.indexOf(q.subject)<0)subjects.push(q.subject)});$("#t-quiz").textContent=QZ.part||QZ.ch||QZ.sub||"خل الأسئلة مع الأغاني";
   if(!QZ.sub){
-    h=subjects.map(function(s,i){var n=qs.filter(function(q){return q.subject===s}).length;return '<button class="opt" data-s="'+i+'"><span>'+esc(s)+'</span><span class="sub">'+(n?ar(n)+" سؤال ":"")+"‹</span></button>"}).join("")||'<div class="card">لا توجد مواد.</div>';
+    h='<div class="card" style="margin-bottom:12px;text-align:center"><b style="font-size:18px">🎵 خل الأسئلة مع الأغاني</b><p class="sub" style="line-height:1.8;margin:7px 0 0">🎶 الأغنية تشتغل من أول ما تدخل للقسم، وتكدر تسمعها وأنت تحل الأسئلة.</p><p class="sub" style="margin:8px 0 0">حبيبي بعيني لك دمعة — قاسم سلطان</p><audio controls autoplay preload="auto" style="width:100%;margin-top:8px"><source src="/solve-song.mp3" type="audio/mpeg"></audio></div>'+subjects.map(function(s,i){var n=qs.filter(function(q){return q.subject===s}).length;return '<button class="opt" data-s="'+i+'"><span>'+esc(s)+'</span><span class="sub">'+(n?ar(n)+" سؤال ":"")+"‹</span></button>"}).join("")||'<div class="card">لا توجد مواد.</div>';
   }else if(!QZ.ch){
     var chs=[];qs.forEach(function(q){if(q.subject===QZ.sub&&chs.indexOf(q.chapter)<0)chs.push(q.chapter)});
-    h=chs.length?chs.map(function(c,i){var n=qs.filter(function(q){return q.subject===QZ.sub&&q.chapter===c}).length;return '<button class="opt" data-c="'+i+'"><span>'+esc(c)+'</span><span class="sub">'+ar(n)+" أسئلة ‹</span></button>"}).join(""):'<div class="card">لا توجد أسئلة لهذه المادة بعد.</div>';
+    h=chs.length?chs.map(function(c,i){var n=qs.filter(function(q){return q.subject===QZ.sub&&q.chapter===c}).length;return '<button class="opt" data-c="'+i+'"><span>'+esc(c)+'</span><span class="sub">'+ar(n)+" سؤال · جزآن ‹</span></button>"}).join(""):'<div class="card">لا توجد أسئلة لهذه المادة بعد.</div>';
     QZ.chs=chs;
+  }else if(QZ.sub==="الكيمياء"&&!QZ.part){
+    var parts=[];qs.forEach(function(q){if(q.subject===QZ.sub&&q.chapter===QZ.ch&&q.part&&parts.indexOf(q.part)<0)parts.push(q.part)});
+    QZ.parts=parts;
+    h=parts.length?parts.map(function(p,i){var n=qs.filter(function(q){return q.subject===QZ.sub&&q.chapter===QZ.ch&&q.part===p}).length;return '<button class="opt" data-p="'+i+'"><span>🧪 '+esc(p)+'</span><span class="sub">'+ar(n)+' أسئلة ‹</span></button>'}).join(""):'<div class="card">لا توجد أجزاء لهذا الفصل حالياً.</div>';
   }else{
-    var l=qs.filter(function(q){return q.subject===QZ.sub&&q.chapter===QZ.ch});
+    var l=qs.filter(function(q){return q.subject===QZ.sub&&q.chapter===QZ.ch&&(QZ.sub!=="الكيمياء"||q.part===QZ.part)});
     if(QZ.i>=l.length){
       var pc=Math.round(QZ.sc/l.length*100);
       if(!QZ._songPlayed){QZ._songPlayed=true;}
       if(!QZ._logged){
         QZ._logged=true;
-        logActivity("quiz",QZ.sub,QZ.sc,l.length,QZ.ch||"");
+        logActivity("quiz",QZ.sub,QZ.sc,l.length,QZ.ch+(QZ.part?" - "+QZ.part:""));
         if(QZ.wrong&&QZ.wrong.length&&!(S.grade==="السادس الإعدادي (علمي)"&&QZ.sub==="الفيزياء"))addReviewItems(QZ.wrong,"quiz");
       }
-      h='<div class="card" style="text-align:center"><div style="font-size:44px">'+(pc>=50?"🎉":"💪")+'</div><b style="font-size:22px">نتيجتك: '+QZ.sc+" من "+l.length+'</b><div class="sub" style="margin:6px 0 10px">'+pc+'%</div><div class="sub" style="margin:10px 0 14px;text-align:center">🎶 تگدر تسمع الأغنية من المشغل الموجود بالأعلى.</div><div class="row"><button id="again">إعادة الأسئلة</button><button class="ghost" id="toCh">الفصول</button></div></div>';
+      h='<div class="card" style="text-align:center"><div style="font-size:44px">'+(pc>=50?"🎉":"💪")+'</div><b style="font-size:22px">نتيجتك: '+QZ.sc+" من "+l.length+'</b><div class="sub" style="margin:6px 0 10px">'+pc+'%</div><div class="card" style="margin:10px 0 14px;text-align:center"><b>🎶 خلصت الأسئلة، هاي أغنيتك!</b><p id="solveSongNote" class="sub" style="margin:6px 0 8px">حبيبي بعيني لك دمعة — قاسم سلطان</p><audio id="solveSongPlayer" controls preload="auto" style="width:100%"><source src="/solve-song.mp3" type="audio/mpeg"></audio></div><div class="row"><button id="again">إعادة الأسئلة</button><button class="ghost" id="toCh">الفصول</button></div></div>';
     }else{
       var x=l[QZ.i];
       var isPhysicsHandwriting=(S.grade==="السادس الإعدادي (علمي)"&&x.subject==="الفيزياء");
+      var isChemistryHandwriting=(S.grade==="السادس الإعدادي (علمي)"&&x.subject==="الكيمياء"&&x.chemistrySource===true);
+      var useHandwriting=isPhysicsHandwriting||isChemistryHandwriting;
       var hasChoices=Array.isArray(x.o)&&x.o.length===3;
-      var questionBody=isPhysicsHandwriting?handwritingControls("Quiz"):(hasChoices?shuf([[x.a,1]].concat(x.o.map(function(o){return[o,0]}))).map(function(c){return '<button class="ch" data-ok="'+c[1]+'">'+esc(c[0])+"</button>"}).join(""):'<button type="button" class="opt" id="revealA">إظهار الجواب فقط</button><div id="answerA" class="hide" style="margin-top:12px;padding:12px;border-radius:12px;background:var(--pri2);line-height:1.9"><b>الجواب:</b> '+esc(x.a)+'</div><div id="selfMark" class="hide" style="margin-top:10px"><div class="sub">قيّم إجابتك:</div><div class="row"><button type="button" id="selfYes">أجبت بشكل صحيح</button><button type="button" class="ghost" id="selfNo">أخطأت</button></div></div>');
-      if(!isPhysicsHandwriting)questionBody+=handwritingControls("Quiz");
+      var questionBody=useHandwriting?handwritingControls("Quiz"):(hasChoices?shuf([[x.a,1]].concat(x.o.map(function(o){return[o,0]}))).map(function(c){return '<button class="ch" data-ok="'+c[1]+'">'+esc(c[0])+"</button>"}).join(""):'<button type="button" class="opt" id="revealA">إظهار الجواب فقط</button><div id="answerA" class="hide" style="margin-top:12px;padding:12px;border-radius:12px;background:var(--pri2);line-height:1.9"><b>الجواب:</b> '+esc(x.a)+'</div><div id="selfMark" class="hide" style="margin-top:10px"><div class="sub">قيّم إجابتك:</div><div class="row"><button type="button" id="selfYes">أجبت بشكل صحيح</button><button type="button" class="ghost" id="selfNo">أخطأت</button></div></div>');
+      if(!useHandwriting)questionBody+=handwritingControls("Quiz");
       h='<div class="sub" style="margin-bottom:6px">السؤال '+(QZ.i+1)+" من "+l.length+'</div><div class="bar2"><i style="width:'+Math.round(QZ.i/l.length*100)+'%"></i></div><div class="card q"><b>'+esc(x.q)+"</b>"+questionBody+'<div class="msg"></div></div><button id="nx" class="hide" style="width:100%;margin-top:4px">'+(QZ.i===l.length-1?"عرض النتيجة":"السؤال التالي")+"</button>";
     }
   }
-  b.innerHTML=solveSongPlayerMarkup()+h;
-  bindSolveSongPlayer();
-  b.querySelectorAll("[data-s]").forEach(function(e){e.onclick=function(){QZ.sub=(function(){var a=subs().slice();qs.forEach(function(q){if(q.subject&&a.indexOf(q.subject)<0)a.push(q.subject)});return a[+e.dataset.s]})();QZ.ch=null;drawQuiz();window.scrollTo(0,0)}});
-  b.querySelectorAll("[data-c]").forEach(function(e){e.onclick=function(){QZ.ch=QZ.chs[+e.dataset.c];QZ.i=0;QZ.sc=0;QZ.wrong=[];QZ._songPlayed=false;drawQuiz();window.scrollTo(0,0)}});
+  b.innerHTML=h;
+  b.querySelectorAll("[data-s]").forEach(function(e){e.onclick=function(){QZ.sub=(function(){var a=subs().slice();qs.forEach(function(q){if(q.subject&&a.indexOf(q.subject)<0)a.push(q.subject)});return a[+e.dataset.s]})();QZ.ch=null;QZ.part=null;drawQuiz();window.scrollTo(0,0)}});
+  b.querySelectorAll("[data-c]").forEach(function(e){e.onclick=function(){QZ.ch=QZ.chs[+e.dataset.c];QZ.part=null;QZ.i=0;QZ.sc=0;QZ.wrong=[];QZ._songPlayed=false;drawQuiz();window.scrollTo(0,0)}});
+  b.querySelectorAll("[data-p]").forEach(function(e){e.onclick=function(){QZ.part=QZ.parts[+e.dataset.p];QZ.i=0;QZ.sc=0;QZ.wrong=[];QZ._logged=false;drawQuiz();window.scrollTo(0,0)}});
   var q=b.querySelector(".q");
   if(q&&QZ.ch){
-    var currentList=qs.filter(function(item){return item.subject===QZ.sub&&item.chapter===QZ.ch});
+    var currentList=qs.filter(function(item){return item.subject===QZ.sub&&item.chapter===QZ.ch&&(QZ.sub!=="الكيمياء"||item.part===QZ.part)});
     var currentQuestion=currentList[QZ.i];
     if(currentQuestion){
-      var gradeTarget=currentQuestion.paperSource
-        ? {groupKey:currentQuestion.paperGroupKey,questionIndex:currentQuestion.paperQuestionIndex,subject:currentQuestion.subject||QZ.sub}
-        : {questionId:currentQuestion.id,subject:currentQuestion.subject||QZ.sub};
+      var gradeTarget=currentQuestion.chemistrySource
+        ? {chemistryGroupKey:currentQuestion.chemistryGroupKey,questionIndex:currentQuestion.chemistryQuestionIndex,subject:currentQuestion.subject||QZ.sub}
+        : currentQuestion.paperSource
+          ? {groupKey:currentQuestion.paperGroupKey,questionIndex:currentQuestion.paperQuestionIndex,subject:currentQuestion.subject||QZ.sub}
+          : {questionId:currentQuestion.id,subject:currentQuestion.subject||QZ.sub};
       bindHandwritingControls("Quiz",gradeTarget,function(result){
         if(q.classList.contains("done"))return;
         q.classList.add("done");
@@ -1004,10 +1006,10 @@ function drawQuiz(){
   function selfRate(correct){if(q)q.classList.add("done");["hwQuizGrade","hwQuizCam","hwQuizGal"].forEach(function(id){var el=$("#"+id);if(el)el.disabled=true;});var cur=l[QZ.i];if(correct)QZ.sc++;else if(cur)QZ.wrong.push({q:cur.q,a:cur.a,subject:cur.subject||QZ.sub,chapter:cur.chapter||QZ.ch});var msg=$(".q .msg");if(msg)msg.textContent=correct?"✅ ممتاز، احتسبناها صحيحة":"📘 راجع الجواب، لم تُحتسب نقطة";var mark=$("#selfMark");if(mark)mark.querySelectorAll("button").forEach(function(z){z.disabled=true});var nx=$("#nx");if(nx)nx.classList.remove("hide");}
   var selfYes=$("#selfYes"),selfNo=$("#selfNo");if(selfYes)selfYes.onclick=function(){selfRate(true)};if(selfNo)selfNo.onclick=function(){selfRate(false)};
   var nx=$("#nx");if(nx)nx.onclick=function(){QZ.i++;QZ.keep=true;drawQuiz();window.scrollTo(0,0)};
-  var ag=$("#again");if(ag)ag.onclick=function(){QZ.i=0;QZ.sc=0;QZ.wrong=[];QZ._logged=false;QZ._songPlayed=false;drawQuiz()};
-  var tc=$("#toCh");if(tc)tc.onclick=function(){QZ.ch=null;drawQuiz()};
+  var ag=$("#again");if(ag)ag.onclick=function(){QZ.i=0;QZ.sc=0;QZ.wrong=[];QZ._logged=false;QZ._songPlayed=false;if(solveSongAudio){solveSongAudio.pause();solveSongAudio.currentTime=0;}drawQuiz()};
+  var tc=$("#toCh");if(tc)tc.onclick=function(){QZ.ch=null;QZ.part=null;drawQuiz()};
 }
-function quizBack(){if(QZ.ch){QZ.ch=null;drawQuiz();return true}if(QZ.sub){QZ.sub=null;drawQuiz();return true}return false}
+function quizBack(){if(QZ.part){QZ.part=null;drawQuiz();return true}if(QZ.ch){QZ.ch=null;QZ.part=null;drawQuiz();return true}if(QZ.sub){QZ.sub=null;QZ.ch=null;QZ.part=null;drawQuiz();return true}return false}
 
 /* نتيجتي + الغياب */
 var curEx=0;
