@@ -1,6 +1,7 @@
 // واجهة المنصة الدراسية: الطلاب والنتائج والملازم والمحاضرات وأسئلة الامتحانات والإعلانات
 const { ObjectId, Binary } = require("mongodb");
 const PHYSICS_PAPER_BANK = require("./public/physics-paper-exams.json");
+const CHEMISTRY_SIXTH_BANK = require("./public/chemistry-sixth-scientific.json");
 
 module.exports = function (app, db, express) {
   app.set("trust proxy", 1);
@@ -790,6 +791,7 @@ module.exports = function (app, db, express) {
 
       let question = null;
       const groupKey = S(req.body && req.body.groupKey, 120);
+      const chemistryGroupKey = S(req.body && req.body.chemistryGroupKey, 120);
       const questionIndex = Number(req.body && req.body.questionIndex);
       const questionId = S(req.body && req.body.questionId, 80);
 
@@ -802,6 +804,18 @@ module.exports = function (app, db, express) {
         question = {
           q: String(item.q), a: String(item.a),
           subject: String(group.subject || "الفيزياء"),
+          grade: String(group.grade || "السادس الإعدادي (علمي)"),
+          chapter: String(group.chapter || "")
+        };
+      } else if (chemistryGroupKey) {
+        need(Number.isInteger(questionIndex) && questionIndex >= 0, "رقم السؤال غير صحيح.");
+        const group = CHEMISTRY_SIXTH_BANK.find((g) => String(g.key || "") === chemistryGroupKey);
+        need(group && Array.isArray(group.questions), "مجموعة أسئلة الكيمياء غير موجودة.", 404);
+        const item = group.questions[questionIndex];
+        need(item && item.q && item.a, "السؤال أو جوابه النموذجي غير متوفر.", 404);
+        question = {
+          q: String(item.q), a: String(item.a),
+          subject: String(group.subject || "الكيمياء"),
           grade: String(group.grade || "السادس الإعدادي (علمي)"),
           chapter: String(group.chapter || "")
         };
@@ -1134,6 +1148,7 @@ module.exports = function (app, db, express) {
     try { res.json(await h(req.body || {})); } catch (e) { fail(res, e); }
   });
 };
+ 
  
  
  
