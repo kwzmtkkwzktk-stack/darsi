@@ -939,6 +939,12 @@ function drawQuiz(){
     var parts=[];qs.forEach(function(q){if(q.subject===QZ.sub&&q.chapter===QZ.ch&&q.part&&parts.indexOf(q.part)<0)parts.push(q.part)});
     QZ.parts=parts;
     h=parts.length?parts.map(function(p,i){var n=qs.filter(function(q){return q.subject===QZ.sub&&q.chapter===QZ.ch&&q.part===p}).length;return '<button class="opt" data-p="'+i+'"><span>🧪 '+esc(p)+'</span><span class="sub">'+ar(n)+' أسئلة ‹</span></button>'}).join(""):'<div class="card">لا توجد أجزاء لهذا الفصل حالياً.</div>';
+  }else if(QZ.sub==="الكيمياء"&&QZ.part){
+    // اعرض أسئلة الجزء الثمانية دفعة واحدة، ثم صحّحها كلها من صورة واحدة.
+    var chemistryPartQuestions=qs.filter(function(q){return q.subject===QZ.sub&&q.chapter===QZ.ch&&q.part===QZ.part});
+    h='<div class="card" style="margin-bottom:12px;text-align:center"><b style="font-size:18px">🧪 '+esc(QZ.ch)+' · '+esc(QZ.part)+'</b><p class="sub" style="line-height:1.8;margin:7px 0 0">حلّ الأسئلة الثمانية كلها على ورقة، واكتب رقم كل سؤال بوضوح، وبعدها صوّر الورقة مرة واحدة وارفع الصورة للتصحيح.</p><div class="bar2" style="margin-top:12px"><i style="width:100%"></i></div><b style="display:block;margin-top:7px">'+ar(chemistryPartQuestions.length)+' أسئلة كاملة</b></div>';
+    h+=chemistryPartQuestions.map(function(x,i){return '<div class="card q" style="margin-bottom:10px"><div class="sub" style="margin-bottom:6px">السؤال '+ar(i+1)+' من '+ar(chemistryPartQuestions.length)+'</div><b>'+esc(x.q)+'</b></div>'}).join("");
+    h+='<div class="card" style="margin-top:12px"><b>📷 صوّر ورقة الحل كاملة</b><p class="sub" style="line-height:1.8;margin:7px 0 10px">تأكد أن أرقام الأسئلة وإجاباتك الثمانية ظاهرة بالصورة. تقدر تصور مباشرة أو تختار صورة من المعرض.</p><div class="row" style="gap:8px"><label for="chemBatchCam" style="flex:1;text-align:center;background:var(--pri);color:#fff;border-radius:12px;padding:11px 8px;font-weight:800;cursor:pointer">📷 تصوير الحل</label><label for="chemBatchGal" style="flex:1;text-align:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:11px 8px;font-weight:800;cursor:pointer">🖼️ من المعرض</label></div><input type="file" id="chemBatchCam" accept="image/*" capture="environment" style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0"><input type="file" id="chemBatchGal" accept="image/*" style="position:fixed;left:-9999px;width:1px;height:1px;opacity:0"><div id="chemBatchPreview" class="hide" style="margin-top:10px"></div><button type="button" id="chemBatchGrade" style="width:100%;margin-top:10px" disabled>صحّح الأسئلة الثمانية</button><div id="chemBatchStatus" class="sub" role="status" aria-live="polite" style="margin-top:10px"></div><div id="chemBatchResults" style="margin-top:10px"></div></div>';
   }else{
     var l=qs.filter(function(q){return q.subject===QZ.sub&&q.chapter===QZ.ch&&(QZ.sub!=="الكيمياء"||q.part===QZ.part)});
     if(QZ.i>=l.length){
@@ -965,6 +971,44 @@ function drawQuiz(){
   b.querySelectorAll("[data-s]").forEach(function(e){e.onclick=function(){QZ.sub=(function(){var a=subs().slice();qs.forEach(function(q){if(q.subject&&a.indexOf(q.subject)<0)a.push(q.subject)});return a[+e.dataset.s]})();QZ.ch=null;QZ.part=null;drawQuiz();window.scrollTo(0,0)}});
   b.querySelectorAll("[data-c]").forEach(function(e){e.onclick=function(){QZ.ch=QZ.chs[+e.dataset.c];QZ.part=null;QZ.i=0;QZ.sc=0;QZ.wrong=[];QZ._songPlayed=false;drawQuiz();window.scrollTo(0,0)}});
   b.querySelectorAll("[data-p]").forEach(function(e){e.onclick=function(){QZ.part=QZ.parts[+e.dataset.p];QZ.i=0;QZ.sc=0;QZ.wrong=[];QZ._logged=false;drawQuiz();window.scrollTo(0,0)}});
+  var chemCam=$("#chemBatchCam"),chemGal=$("#chemBatchGal"),chemPreview=$("#chemBatchPreview"),chemGrade=$("#chemBatchGrade"),chemStatus=$("#chemBatchStatus"),chemResults=$("#chemBatchResults");
+  if(chemCam&&chemGal&&chemPreview&&chemGrade&&chemStatus&&chemResults){
+    var chemistryImage="",chemBusy=false;
+    async function setChemistryPhoto(file){
+      if(!file)return;
+      if(!/^image\//.test(file.type||"")){chemStatus.textContent="اختَر صورة صحيحة.";return;}
+      chemGrade.disabled=true;chemGrade.textContent="جاري تجهيز الصورة...";chemStatus.textContent="";chemResults.innerHTML="";
+      try{chemistryImage=await compressImage(file,1800,900000);chemPreview.classList.remove("hide");chemPreview.innerHTML='<img src="'+chemistryImage+'" alt="صورة حلول الكيمياء" style="display:block;max-width:100%;max-height:420px;margin:auto;border-radius:12px;border:1px solid var(--bd)">';chemGrade.disabled=false;chemGrade.textContent="صحّح الأسئلة الثمانية";}
+      catch(e){chemGrade.disabled=true;chemGrade.textContent="تعذر تجهيز الصورة";chemStatus.textContent="جرّب صورة ثانية أوضح.";}
+    }
+    chemCam.onchange=function(){var f=chemCam.files&&chemCam.files[0];chemCam.value="";setChemistryPhoto(f);};
+    chemGal.onchange=function(){var f=chemGal.files&&chemGal.files[0];chemGal.value="";setChemistryPhoto(f);};
+    chemGrade.onclick=async function(){
+      if(!chemistryImage||chemBusy)return;chemBusy=true;chemGrade.disabled=true;chemGrade.textContent="جاري تصحيح الحلول...";
+      var list=qs.filter(function(x){return x.subject===QZ.sub&&x.chapter===QZ.ch&&x.part===QZ.part}),score=0,done=0;
+      chemResults.innerHTML="";chemStatus.textContent="راح نصحح كل سؤال وحده بعد الثاني. لا تغلق الصفحة.";
+      for(var ci=0;ci<list.length;ci++){
+        var item=list[ci],target={chemistryGroupKey:item.chemistryGroupKey,questionIndex:item.chemistryQuestionIndex,subject:item.subject||QZ.sub};
+        chemStatus.textContent="جاري تصحيح السؤال "+(ci+1)+" من "+list.length+"...";
+        var row=document.createElement("div");row.style.cssText="border:1px solid var(--bd);border-radius:12px;padding:10px;margin-top:8px;line-height:1.8";row.innerHTML='<b>السؤال '+ar(ci+1)+'</b><div class="sub">جاري التصحيح...</div>';chemResults.appendChild(row);
+        try{
+          var payload={image:chemistryImage};Object.keys(target).forEach(function(k){payload[k]=target[k];});
+          var result=await jpost("handwriting/grade",payload),status=result.status||"unclear";
+          if(status==="correct")score++;
+          var label=status==="correct"?"✅ صحيح":status==="incorrect"?"❌ خطأ":"⚠️ الصورة غير واضحة";
+          var html='<b>'+label+'</b>'+(result.feedback?'<div class="sub" style="margin-top:5px">'+esc(result.feedback)+'</div>':'');
+          if(status==="incorrect"&&result.modelAnswer)html+='<div style="margin-top:7px;padding:8px;border-radius:9px;background:var(--pri2)"><b>الجواب النموذجي:</b><div>'+esc(result.modelAnswer)+'</div></div>';
+          if(status==="unclear")html+='<div class="sub">تأكد من وضوح مكان جواب هذا السؤال في الصورة.</div>';
+          row.innerHTML='<b>السؤال '+ar(ci+1)+' · '+label+'</b>'+html.replace('<b>'+label+'</b>','');
+        }catch(e){row.innerHTML='<b>السؤال '+ar(ci+1)+' · ⚠️ تعذر التصحيح</b><div class="sub">'+esc(e.message||"حاول مرة ثانية")+'</div>';}
+        done++;
+      }
+      QZ.sc=score;QZ.i=list.length;QZ._logged=false;
+      chemStatus.textContent="اكتمل تصحيح "+done+" أسئلة. نتيجتك: "+score+" من "+list.length+".";
+      chemGrade.textContent="إعادة تصحيح الصورة";chemGrade.disabled=false;chemBusy=false;
+      if(!QZ._logged){QZ._logged=true;logActivity("quiz",QZ.sub,score,list.length,QZ.ch+" - "+QZ.part);}
+    };
+  }
   var q=b.querySelector(".q");
   if(q&&QZ.ch){
     var currentList=qs.filter(function(item){return item.subject===QZ.sub&&item.chapter===QZ.ch&&(QZ.sub!=="الكيمياء"||item.part===QZ.part)});
