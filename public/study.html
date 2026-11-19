@@ -876,6 +876,20 @@ async function downloadStudyFile(btn){
   var id=btn.dataset.id,title=btn.dataset.title||"الملزمة";
   btn.disabled=true;state.hidden=false;state.innerHTML='<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:7px"><b>جاري تحميل '+esc(title)+'</b><strong class="file-pct">0%</strong></div><div style="height:9px;border-radius:20px;background:var(--bd);overflow:hidden"><div class="file-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#18a987,#4285e8);transition:width .15s"></div></div><small class="file-status sub" style="display:block;margin-top:6px">بدء الاتصال...</small></div>';
   var pct=state.querySelector(".file-pct"),bar=state.querySelector(".file-bar"),msg=state.querySelector(".file-status");
+  /* داخل تطبيق Median استخدم مدير التنزيل الأصلي لإظهار نافذة Android "فتح باستخدام". */
+  var fileUrl=new URL("/api/study/file/"+encodeURIComponent(id)+"?dl=1",window.location.origin).href;
+  if(window.median&&window.median.share&&typeof window.median.share.downloadFile==="function"){
+    msg.textContent="سيتم تنزيل الملزمة ثم إظهار التطبيقات المتاحة لفتحها...";
+    pct.textContent="⏳";bar.style.width="100%";
+    try{
+      await window.median.share.downloadFile({url:fileUrl,open:true});
+      msg.textContent="تم إرسال الملزمة إلى مدير التنزيل. اختر التطبيق المناسب عند ظهور القائمة.";
+      btn.textContent="تم إرسال الطلب";
+      return;
+    }catch(nativeErr){
+      msg.textContent="تعذر الفتح بالطريقة المباشرة، جارٍ استخدام طريقة بديلة...";
+    }
+  }
   try{
     var res=await fetch("/api/study/file/"+encodeURIComponent(id)+"?dl=1",{credentials:"same-origin",cache:"no-store"});
     if(!res.ok)throw new Error("تعذر تنزيل الملزمة ("+res.status+")");
