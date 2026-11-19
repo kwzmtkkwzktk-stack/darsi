@@ -102,9 +102,10 @@ module.exports = function (app, db, express) {
       const b = await (await col("st_blobs")).findOne({ _id: id });
       if (!f || !b) return res.sendStatus(404);
       const buf = Buffer.from(b.data.buffer);
+      const safeName = String(f.name || "study-file").replace(/[\\"\r\n]/g, "_");
       res.set({
-        "Content-Type": f.type,
-        "Content-Disposition": (req.query.dl ? "attachment" : "inline") + "; filename*=UTF-8''" + encodeURIComponent(f.name),
+        "Content-Type": f.type || "application/octet-stream",
+        "Content-Disposition": (req.query.dl ? "attachment" : "inline") + `; filename="${safeName.replace(/[^\x20-\x7E]/g, "_")}"; filename*=UTF-8''${encodeURIComponent(safeName)}`,
         "Content-Length": String(buf.length),
         "X-Content-Type-Options": "nosniff",
         "Content-Security-Policy": "sandbox",
@@ -1148,6 +1149,7 @@ module.exports = function (app, db, express) {
     try { res.json(await h(req.body || {})); } catch (e) { fail(res, e); }
   });
 };
+ 
  
  
  
