@@ -863,51 +863,89 @@ async function rFiles(){
     var img=/^image/.test(x.type),c=/pdf/.test(x.type)?["#fde4e4","#d64545"]:img?["#dff2e4","#2e9e5b"]:["#e1e9f6","#7c3aed"];
     return '<div class="card study-file" data-file-id="'+esc(x.id)+'"><div class="fi"><div class="ic2" style="background:'+c[0]+";color:"+c[1]+'">'+ico(img?"books":"doc")+'</div><div class="t"><b>'+esc(x.title)+'</b><span class="sub">'+esc(x.subject)+(x.subject?" · ":"")+sz(x.size)+'</span></div></div><div class="acts"><button class="btn file-download" type="button" data-id="'+esc(x.id)+'" data-title="'+esc(x.title)+'">تحميل</button></div><div class="file-download-state" hidden aria-live="polite"></div></div>'
   },"لا توجد ملازم لصفك حالياً، تابعنا قريباً 📚",function(box){
-    box.querySelectorAll(".file-download").forEach(function(btn){btn.onclick=function(){downloadStudyFile(btn)}});
+    box.querySelectorAll(".file-download").forEach(async function(btn){
+      btn.onclick=function(){downloadStudyFile(btn)};
+      try{if(await getCachedStudyFile(btn.dataset.id)){btn.textContent="📖 فتح الملزمة";btn.classList.add("is-cached")}}catch(e){}
+    });
   });
 }
 
-
-/* تنزيل الملزمة مع نسبة تقدم وزر فتح بعد الاكتمال */
+/* حفظ الملازم في ذاكرة الجهاز (IndexedDB) حتى لا يعاد تنزيلها */
+var studyFileDbPromise=null,studyFileObjectUrls={};
+function studyFileDB(){
+  if(studyFileDbPromise)return studyFileDbPromise;
+  studyFileDbPromise=new Promise(function(resolve,reject){
+    if(!window.indexedDB)return reject(new Error("التخزين المحلي غير مدعوم"));
+    var req=indexedDB.open("darsi-study-files",1);
+    req.onupgradeneeded=function(){var db=req.result;if(!db.objectStoreNames.contains("files"))db.createObjectStore("files",{keyPath:"id"})};
+    req.onsuccess=function(){resolve(req.result)};req.onerror=function(){reject(req.error||new Error("تعذر فتح التخزين المحلي"))};
+  });
+  return studyFileDbPromise;
+}
+async function getCachedStudyFile(id){
+  var db=await studyFileDB();
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction("files","readonly"),req=tx.objectStore("files").get(String(id));
+    req.onsuccess=function(){resolve(req.result||null)};req.onerror=function(){reject(req.error)};
+  });
+}
+async function saveCachedStudyFile(id,blob,title){
+  var db=await studyFileDB();
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction("files","readwrite");
+    tx.objectStore("files").put({id:String(id),blob:blob,title:title||"الملزمة",savedAt:Date.now()});
+    tx.oncomplete=function(){resolve(true)};tx.onerror=function(){reject(tx.error||new Error("تعذر حفظ الملزمة على الجهاز"))};
+  });
+}
+function openCachedStudyFile(item){
+  if(!item||!item.blob)throw new Error("الملزمة غير موجودة في الجهاز");
+  var id=String(item.id),url=studyFileObjectUrls[id];
+  if(!url){url=URL.createObjectURL(item.blob);studyFileObjectUrls[id]=url}
+  var win=window.open(url,"_blank");
+  if(!win){
+    var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.click();
+  }
+}
 async function downloadStudyFile(btn){
   if(btn.disabled)return;
   var card=btn.closest(".study-file"),state=card&&card.querySelector(".file-download-state");
   if(!card||!state)return;
   var id=btn.dataset.id,title=btn.dataset.title||"الملزمة";
-  btn.disabled=true;state.hidden=false;state.innerHTML='<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:7px"><b>جاري تحميل '+esc(title)+'</b><strong class="file-pct">0%</strong></div><div style="height:9px;border-radius:20px;background:var(--bd);overflow:hidden"><div class="file-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#18a987,#4285e8);transition:width .15s"></div></div><small class="file-status sub" style="display:block;margin-top:6px">بدء الاتصال...</small></div>';
-  var pct=state.querySelector(".file-pct"),bar=state.querySelector(".file-bar"),msg=state.querySelector(".file-status");
-  /* داخل تطبيق Median استخدم مدير التنزيل الأصلي لإظهار نافذة Android "فتح باستخدام". */
-  var fileUrl=new URL("/api/study/file/"+encodeURIComponent(id)+"?dl=1",window.location.origin).href;
-  if(window.median&&window.median.share&&typeof window.median.share.downloadFile==="function"){
-    msg.textContent="سيتم تنزيل الملزمة ثم إظهار التطبيقات المتاحة لفتحها...";
-    pct.textContent="⏳";bar.style.width="100%";
-    try{
-      await window.median.share.downloadFile({url:fileUrl,open:true});
-      msg.textContent="تم إرسال الملزمة إلى مدير التنزيل. اختر التطبيق المناسب عند ظهور القائمة.";
-      btn.textContent="تم إرسال الطلب";
-      return;
-    }catch(nativeErr){
-      msg.textContent="تعذر الفتح بالطريقة المباشرة، جارٍ استخدام طريقة بديلة...";
+  btn.disabled=true;state.hidden=false;
+  try{
+    var cached=await getCachedStudyFile(id);
+    if(cached){
+      openCachedStudyFile(cached);
+      state.innerHTML='<small class="file-status sub" style="display:block;margin-top:8px;color:var(--green,#18a987)">هذه الملزمة محفوظة على جهازك — لم يتم تنزيلها مرة ثانية.</small>';
+      btn.textContent="📖 فتح الملزمة";btn.disabled=false;return;
     }
-  }
+  }catch(cacheErr){}
+  state.innerHTML='<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:7px"><b>جاري تحميل '+esc(title)+'</b><strong class="file-pct">0%</strong></div><div style="height:9px;border-radius:20px;background:var(--bd);overflow:hidden"><div class="file-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#18a987,#4285e8);transition:width .15s"></div></div><small class="file-status sub" style="display:block;margin-top:6px">بدء الاتصال...</small></div>';
+  var pct=state.querySelector(".file-pct"),bar=state.querySelector(".file-bar"),msg=state.querySelector(".file-status");
   try{
     var res=await fetch("/api/study/file/"+encodeURIComponent(id)+"?dl=1",{credentials:"same-origin",cache:"no-store"});
     if(!res.ok)throw new Error("تعذر تنزيل الملزمة ("+res.status+")");
     var total=Number(res.headers.get("content-length"))||0,blob;
     if(res.body&&res.body.getReader){
       var reader=res.body.getReader(),chunks=[],loaded=0;
-      while(true){var part=await reader.read();if(part.done)break;chunks.push(part.value);loaded+=part.value.byteLength;
+      while(true){
+        var part=await reader.read();if(part.done)break;
+        chunks.push(part.value);loaded+=part.value.byteLength;
         if(total){var n=Math.min(99,Math.round(loaded/total*100));pct.textContent=n+"%";bar.style.width=n+"%";msg.textContent="تم تنزيل "+formatFileBytes(loaded)+" من "+formatFileBytes(total)}
-        else{pct.textContent=formatFileBytes(loaded);msg.textContent="جارٍ استلام الملف..."}
+        else{pct.textContent=formatFileBytes(loaded);msg.textContent="تم استلام "+formatFileBytes(loaded)}
       }
       blob=new Blob(chunks,{type:res.headers.get("content-type")||"application/octet-stream"});
     }else{blob=await res.blob();pct.textContent="99%";bar.style.width="99%"}
-    var url=URL.createObjectURL(blob);pct.textContent="100%";bar.style.width="100%";msg.textContent="اكتمل التحميل بنجاح";
-    state.insertAdjacentHTML("beforeend",'<button type="button" class="btn" style="margin-top:10px;width:100%">📖 فتح الملزمة</button>');
-    var openBtn=state.querySelector("button");openBtn.onclick=function(){var w=window.open(url,"_blank");if(!w){var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.click()}};
-    btn.textContent="تم التحميل";
-    setTimeout(function(){URL.revokeObjectURL(url)},30*60*1000);
-  }catch(err){msg.textContent=err&&err.message?err.message:"حدث خطأ أثناء التحميل";msg.style.color="var(--red)";btn.disabled=false;btn.textContent="إعادة المحاولة"}
+    await saveCachedStudyFile(id,blob,title);
+    var item={id:String(id),blob:blob,title:title};openCachedStudyFile(item);
+    pct.textContent="100%";bar.style.width="100%";
+    msg.textContent="اكتمل التحميل وحُفظت الملزمة على جهازك.";
+    state.insertAdjacentHTML("beforeend",'<small class="sub" style="display:block;margin-top:7px;color:var(--green,#18a987)">لن تحتاج إلى تنزيلها مرة ثانية. اضغط «فتح الملزمة» لفتح النسخة المحفوظة.</small>');
+    btn.textContent="📖 فتح الملزمة";
+  }catch(err){
+    msg.textContent=err&&err.message?err.message:"حدث خطأ أثناء التحميل";msg.style.color="var(--red)";
+    btn.textContent="إعادة المحاولة";
+  }finally{btn.disabled=false}
 }
 function formatFileBytes(n){if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(1)+" KB";return (n/1048576).toFixed(1)+" MB"}
 
@@ -2426,6 +2464,7 @@ boot();
 <script src="/track.js" defer></script>
 </body>
 </html>
+ 
  
  
  
