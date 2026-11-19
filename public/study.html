@@ -371,7 +371,7 @@ nav{left:50%;right:auto;transform:translateX(-50%);bottom:10px;width:min(680px,c
 </head>
 <body>
 <div class="wrap">
-  <div id="boot" class="card" role="status" aria-live="polite" style="margin-top:30px;text-align:center"><div style="font-size:28px;margin-bottom:8px">🎓</div><b>جاري فتح منصة دَرسي</b><div class="sub" style="margin-top:6px">يرجى الانتظار قليلاً...</div></div>
+  <div id="boot" class="card" style="margin-top:30px;text-align:center">جاري التحميل... إذا كان الموقع نايم قد يتأخر قليلاً ⏳</div>
   <main id="app"></main>
 </div>
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
@@ -2367,66 +2367,47 @@ function showProfileGate(force){
 /* التشغيل */
 async function boot(){
   var cmsPromise=fetch("/api/site-settings",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).catch(function(cmsError){console.warn("Site settings unavailable",cmsError);return null});
-  try{INFO=await jget("info")}catch(e){
-    $("#boot").innerHTML='<div style="font-size:28px;margin-bottom:8px">⚠️</div><b>تعذر الاتصال بالخادم حالياً</b><div class="sub" style="margin-top:6px">قد يحتاج الموقع إلى لحظات حتى يستجيب. حاول مرة ثانية.</div><button id="rb" style="margin-top:12px">إعادة المحاولة</button>';
-    $("#rb").onclick=function(){location.reload()};
-    return;
-  }
+  try{INFO=await jget("info")}catch(e){$("#boot").innerHTML='تعذر الاتصال بالخادم.<br><button id="rb" style="margin-top:10px">إعادة المحاولة</button>';$("#rb").onclick=function(){location.reload()};return}
+  if(S.me){try{REC=await jpost("result",{code:S.me});S.grade=REC.g}catch(e){if(e===404){S.me="";save()}}}
   var gs=Object.keys(INFO.grades);if(!INFO.grades[S.grade])S.grade=gs[0]||"";
   $("#boot").classList.add("hide");build();go("home");
   cmsPromise.then(function(config){if(config){SITE_CFG=config;rHome()}});
   showProfileGate(false);
-
-  // لا نؤخر ظهور المنصة بسبب استرجاع نتيجة الطالب؛ يتم ذلك بالخلفية بعد فتح الصفحة.
-  if(S.me){
-    jpost("result",{code:S.me}).then(function(record){
-      REC=record;
-      if(record&&record.g&&INFO.grades[record.g]){
-        S.grade=record.g;save();
-        if(typeof rHome==="function"&&$("#hi"))rHome();
-      }
-    }).catch(function(e){
-      if(e===404||e.status===404){S.me="";save()}
-      else console.warn("Student result could not be refreshed",e);
-    });
-  }
 }
 boot();
+</script>
 
-/* Median: إذا سبق رفض إذن الكاميرا، افتح إعدادات التطبيق ليتمكن المستخدم من السماح به.
-   في الحالة الطبيعية يظل اختيار/تصوير الصورة عبر input[type=file] الأصلي الذي يدعمه Median. */
-(function setupMedianCameraPermissionHelp(){
-  var cameraPermission="unknown";
-  function refreshCameraPermission(){
-    try{
-      if(window.median&&median.permissions&&typeof median.permissions.status==="function"){
-        median.permissions.status(["Camera"]).then(function(status){
-          cameraPermission=status&&status.Camera?String(status.Camera).toLowerCase():"unknown";
-        }).catch(function(){cameraPermission="unknown"});
-      }
-    }catch(e){cameraPermission="unknown"}
+<script>
+/* طلب إذن الكاميرا عند ضغط الطالب على زر التصوير فقط */
+(function(){
+  var cameraBusy=false;
+  function stopCamera(stream){try{if(stream)stream.getTracks().forEach(function(t){t.stop()})}catch(e){}}
+  function showCameraHelp(message){
+    var old=document.getElementById('cameraPermissionHelp');if(old)old.remove();
+    var box=document.createElement('div');box.id='cameraPermissionHelp';
+    box.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:20px;direction:rtl';
+    box.innerHTML='<div style="max-width:360px;width:100%;background:#fff;color:#172033;border-radius:18px;padding:22px;text-align:center;font-family:inherit"><div style="font-size:34px">📷</div><h3 style="margin:8px 0">إذن استخدام الكاميرا</h3><p style="line-height:1.8">'+message+'</p><button id="cameraPermissionClose" type="button" style="border:0;border-radius:12px;padding:11px 22px;background:#167dce;color:#fff;font-weight:800">حسناً</button></div>';
+    document.body.appendChild(box);document.getElementById('cameraPermissionClose').onclick=function(){box.remove()};
   }
-  refreshCameraPermission();
-  document.addEventListener("visibilitychange",function(){
-    if(!document.hidden)refreshCameraPermission();
-  });
-  document.addEventListener("click",function(e){
-    var label=e.target&&e.target.closest?e.target.closest('label[for$="Cam"]'):null;
-    if(!label||cameraPermission!=="denied")return;
-    e.preventDefault();
-    e.stopPropagation();
-    var goSettings=confirm("إذن الكاميرا مرفوض حالياً. افتح إعدادات التطبيق واسمح باستخدام الكاميرا، ثم ارجع واضغط تصوير مرة ثانية.");
-    if(goSettings){
-      try{
-        if(window.median&&typeof median.open==="object"&&typeof median.open.appSettings==="function"){
-          median.open.appSettings();
-        }else{
-          alert("افتح إعدادات الهاتف > التطبيقات > دَرسي > الأذونات > الكاميرا، ثم اختر سماح.");
-        }
-      }catch(err){
-        alert("افتح إعدادات الهاتف > التطبيقات > دَرسي > الأذونات > الكاميرا، ثم اختر سماح.");
-      }
-    }
+  document.addEventListener('click',async function(e){
+    var label=e.target.closest&&e.target.closest('label[for]');
+    if(!label)return;
+    var input=document.getElementById(label.getAttribute('for'));
+    if(!input||input.type!=='file'||!input.hasAttribute('capture'))return;
+    if(cameraBusy){e.preventDefault();return;}
+    /* إذا كان المتصفح لا يدعم طلب الإذن البرمجي، اترك منتقي الكاميرا الأصلي يعمل */
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return;
+    e.preventDefault();e.stopPropagation();cameraBusy=true;
+    try{
+      var stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+      stopCamera(stream);
+      input.click();
+    }catch(err){
+      var msg=(err&&err.name==='NotAllowedError')
+        ?'لم يتم السماح للكاميرا بعد. اضغط على معلومات التطبيق في هاتفك ثم الأذونات ثم الكاميرا واختر سماح، وبعدها ارجع واضغط تصوير.'
+        :(err&&err.name==='NotFoundError')?'لم يتم العثور على كاميرا في هذا الجهاز.':'تعذر تشغيل الكاميرا. تأكد من اتصال التطبيق بالإنترنت ومن تفعيل إذن الكاميرا في إعدادات Android.';
+      showCameraHelp(msg);
+    }finally{cameraBusy=false;}
   },true);
 })();
 </script>
