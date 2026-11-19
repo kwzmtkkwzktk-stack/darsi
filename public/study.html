@@ -368,6 +368,7 @@ nav{left:50%;right:auto;transform:translateX(-50%);bottom:10px;width:min(680px,c
 @media(max-width:760px){.exp-layout{grid-template-columns:1fr}.exp-tutor-stage{min-height:132px;padding:10px}.exp-avatar-wrap{width:100px;height:105px;flex-basis:100px}.exp-avatar-svg{width:83px;height:96px}.exp-board{min-height:350px}}@media(max-width:420px){.exp-talk p{font-size:11px}.exp-talk{padding:9px}.exp-avatar-wrap{width:84px;flex-basis:84px}.exp-avatar-svg{width:76px}.exp-work{font-size:24px}.exp-explain{font-size:18px}}
 @media(prefers-reduced-motion:reduce){.exp-board:after,.exp-char,.exp-char-body,.exp-char-mouth,.exp-char-arm-right,.exp-char-hand,.exp-char-p1,.exp-char-p2,.exp-char-p3,.exp-char-p4,.exp-step.written .exp-work,.exp-step.written .exp-work:after,.exp-final.show{animation:none!important}.exp-step{transition:none}}
 </style>
+<style>@keyframes fileLoading{from{width:18%}to{width:88%}}</style>
 </head>
 <body>
 <div class="wrap">
@@ -863,92 +864,40 @@ async function rFiles(){
     var img=/^image/.test(x.type),c=/pdf/.test(x.type)?["#fde4e4","#d64545"]:img?["#dff2e4","#2e9e5b"]:["#e1e9f6","#7c3aed"];
     return '<div class="card study-file" data-file-id="'+esc(x.id)+'"><div class="fi"><div class="ic2" style="background:'+c[0]+";color:"+c[1]+'">'+ico(img?"books":"doc")+'</div><div class="t"><b>'+esc(x.title)+'</b><span class="sub">'+esc(x.subject)+(x.subject?" · ":"")+sz(x.size)+'</span></div></div><div class="acts"><button class="btn file-download" type="button" data-id="'+esc(x.id)+'" data-title="'+esc(x.title)+'">تحميل</button></div><div class="file-download-state" hidden aria-live="polite"></div></div>'
   },"لا توجد ملازم لصفك حالياً، تابعنا قريباً 📚",function(box){
-    box.querySelectorAll(".file-download").forEach(async function(btn){
-      btn.onclick=function(){downloadStudyFile(btn)};
-      try{if(await getCachedStudyFile(btn.dataset.id)){btn.textContent="📖 فتح الملزمة";btn.classList.add("is-cached")}}catch(e){}
-    });
+    box.querySelectorAll(".file-download").forEach(function(btn){btn.onclick=function(){downloadStudyFile(btn)}});
   });
 }
 
-/* حفظ الملازم في ذاكرة الجهاز (IndexedDB) حتى لا يعاد تنزيلها */
-var studyFileDbPromise=null,studyFileObjectUrls={};
-function studyFileDB(){
-  if(studyFileDbPromise)return studyFileDbPromise;
-  studyFileDbPromise=new Promise(function(resolve,reject){
-    if(!window.indexedDB)return reject(new Error("التخزين المحلي غير مدعوم"));
-    var req=indexedDB.open("darsi-study-files",1);
-    req.onupgradeneeded=function(){var db=req.result;if(!db.objectStoreNames.contains("files"))db.createObjectStore("files",{keyPath:"id"})};
-    req.onsuccess=function(){resolve(req.result)};req.onerror=function(){reject(req.error||new Error("تعذر فتح التخزين المحلي"))};
-  });
-  return studyFileDbPromise;
-}
-async function getCachedStudyFile(id){
-  var db=await studyFileDB();
-  return new Promise(function(resolve,reject){
-    var tx=db.transaction("files","readonly"),req=tx.objectStore("files").get(String(id));
-    req.onsuccess=function(){resolve(req.result||null)};req.onerror=function(){reject(req.error)};
-  });
-}
-async function saveCachedStudyFile(id,blob,title){
-  var db=await studyFileDB();
-  return new Promise(function(resolve,reject){
-    var tx=db.transaction("files","readwrite");
-    tx.objectStore("files").put({id:String(id),blob:blob,title:title||"الملزمة",savedAt:Date.now()});
-    tx.oncomplete=function(){resolve(true)};tx.onerror=function(){reject(tx.error||new Error("تعذر حفظ الملزمة على الجهاز"))};
-  });
-}
-function openCachedStudyFile(item){
-  if(!item||!item.blob)throw new Error("الملزمة غير موجودة في الجهاز");
-  var id=String(item.id),url=studyFileObjectUrls[id];
-  if(!url){url=URL.createObjectURL(item.blob);studyFileObjectUrls[id]=url}
-  var win=window.open(url,"_blank");
-  if(!win){
-    var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.click();
-  }
-}
+
+/* تنزيل وفتح الملزمة عبر نظام Android بدلاً من Blob داخل WebView */
 async function downloadStudyFile(btn){
   if(btn.disabled)return;
   var card=btn.closest(".study-file"),state=card&&card.querySelector(".file-download-state");
   if(!card||!state)return;
   var id=btn.dataset.id,title=btn.dataset.title||"الملزمة";
+  var fileUrl=new URL("/api/study/file/"+encodeURIComponent(id)+"?dl=1",window.location.origin).href;
   btn.disabled=true;state.hidden=false;
+  state.innerHTML='<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px"><b>جاري تجهيز '+esc(title)+'</b><strong class="file-pct">⏳</strong></div><div style="height:9px;border-radius:20px;background:var(--bd);overflow:hidden"><div class="file-bar" style="height:100%;width:35%;background:linear-gradient(90deg,#18a987,#4285e8);animation:fileLoading 1.2s ease-in-out infinite alternate"></div></div><small class="file-status sub" style="display:block;margin-top:7px">سيتم فتح قائمة التطبيقات بعد اكتمال التنزيل</small></div>';
+  var msg=state.querySelector(".file-status"),pct=state.querySelector(".file-pct");
   try{
-    var cached=await getCachedStudyFile(id);
-    if(cached){
-      openCachedStudyFile(cached);
-      state.innerHTML='<small class="file-status sub" style="display:block;margin-top:8px;color:var(--green,#18a987)">هذه الملزمة محفوظة على جهازك — لم يتم تنزيلها مرة ثانية.</small>';
-      btn.textContent="📖 فتح الملزمة";btn.disabled=false;return;
+    /* Median ينزّل الرابط الحقيقي ثم يسلّمه إلى Android Open with.
+       لا نستخدم Blob URL لأنه يسبب شاشة سوداء في بعض إصدارات WebView. */
+    if(window.median&&window.median.share&&typeof window.median.share.downloadFile==="function"){
+      await window.median.share.downloadFile({url:fileUrl,open:true});
+      pct.textContent="✓";msg.textContent="تم إرسال الملزمة إلى Android. اختر قارئ PDF أو التطبيق المناسب من القائمة.";
+      btn.textContent="تم إرسال الملزمة";
+      return;
     }
-  }catch(cacheErr){}
-  state.innerHTML='<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:7px"><b>جاري تحميل '+esc(title)+'</b><strong class="file-pct">0%</strong></div><div style="height:9px;border-radius:20px;background:var(--bd);overflow:hidden"><div class="file-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#18a987,#4285e8);transition:width .15s"></div></div><small class="file-status sub" style="display:block;margin-top:6px">بدء الاتصال...</small></div>';
-  var pct=state.querySelector(".file-pct"),bar=state.querySelector(".file-bar"),msg=state.querySelector(".file-status");
-  try{
-    var res=await fetch("/api/study/file/"+encodeURIComponent(id)+"?dl=1",{credentials:"same-origin",cache:"no-store"});
-    if(!res.ok)throw new Error("تعذر تنزيل الملزمة ("+res.status+")");
-    var total=Number(res.headers.get("content-length"))||0,blob;
-    if(res.body&&res.body.getReader){
-      var reader=res.body.getReader(),chunks=[],loaded=0;
-      while(true){
-        var part=await reader.read();if(part.done)break;
-        chunks.push(part.value);loaded+=part.value.byteLength;
-        if(total){var n=Math.min(99,Math.round(loaded/total*100));pct.textContent=n+"%";bar.style.width=n+"%";msg.textContent="تم تنزيل "+formatFileBytes(loaded)+" من "+formatFileBytes(total)}
-        else{pct.textContent=formatFileBytes(loaded);msg.textContent="تم استلام "+formatFileBytes(loaded)}
-      }
-      blob=new Blob(chunks,{type:res.headers.get("content-type")||"application/octet-stream"});
-    }else{blob=await res.blob();pct.textContent="99%";bar.style.width="99%"}
-    await saveCachedStudyFile(id,blob,title);
-    var item={id:String(id),blob:blob,title:title};openCachedStudyFile(item);
-    pct.textContent="100%";bar.style.width="100%";
-    msg.textContent="اكتمل التحميل وحُفظت الملزمة على جهازك.";
-    state.insertAdjacentHTML("beforeend",'<small class="sub" style="display:block;margin-top:7px;color:var(--green,#18a987)">لن تحتاج إلى تنزيلها مرة ثانية. اضغط «فتح الملزمة» لفتح النسخة المحفوظة.</small>');
-    btn.textContent="📖 فتح الملزمة";
+    /* خارج Median: استخدم رابط الملف الأصلي مع Content-Disposition: attachment */
+    var a=document.createElement("a");a.href=fileUrl;a.target="_blank";a.rel="noopener";a.download="";
+    document.body.appendChild(a);a.click();a.remove();
+    pct.textContent="↗";msg.textContent="بدأ تنزيل الملف. افتحه من إشعار التنزيلات أو مجلد Downloads واختر التطبيق المناسب.";
+    btn.textContent="تم بدء التنزيل";
   }catch(err){
-    msg.textContent=err&&err.message?err.message:"حدث خطأ أثناء التحميل";msg.style.color="var(--red)";
-    btn.textContent="إعادة المحاولة";
-  }finally{btn.disabled=false}
+    msg.textContent="تعذر فتح نافذة التطبيقات. جرّب تنزيل الملزمة ثم فتحها من مجلد التنزيلات.";
+    msg.style.color="var(--red)";btn.disabled=false;btn.textContent="إعادة المحاولة";
+  }
 }
-function formatFileBytes(n){if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(1)+" KB";return (n/1048576).toFixed(1)+" MB"}
-
 /* محاضراتي */
 function embed(u){
   var m;
