@@ -371,7 +371,7 @@ nav{left:50%;right:auto;transform:translateX(-50%);bottom:10px;width:min(680px,c
 </head>
 <body>
 <div class="wrap">
-  <div id="boot" class="card" style="margin-top:30px;text-align:center">جاري التحميل... إذا كان الموقع نايم قد يتأخر قليلاً ⏳</div>
+  <div id="boot" class="card" style="margin-top:30px;text-align:center">جاري تجهيز المنصة... ⏳</div>
   <main id="app"></main>
 </div>
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
@@ -861,9 +861,41 @@ async function rFiles(){
   try{l=await jget("files?grade="+encodeURIComponent(S.grade))}catch(e){return errBox(b,rFiles)}
   listWithChips(b,l,function(x){
     var img=/^image/.test(x.type),c=/pdf/.test(x.type)?["#fde4e4","#d64545"]:img?["#dff2e4","#2e9e5b"]:["#e1e9f6","#7c3aed"];
-    return '<div class="card"><div class="fi"><div class="ic2" style="background:'+c[0]+";color:"+c[1]+'">'+ico(img?"books":"doc")+'</div><div class="t"><b>'+esc(x.title)+'</b><span class="sub">'+esc(x.subject)+(x.subject?" · ":"")+sz(x.size)+'</span></div></div><div class="acts"><a class="btn g" target="_blank" rel="noopener" href="/api/study/file/'+x.id+'">عرض</a><a class="btn" href="/api/study/file/'+x.id+'?dl=1">تحميل</a></div></div>'
-  },"لا توجد ملازم لصفك حالياً، تابعنا قريباً 📚");
+    return '<div class="card study-file" data-file-id="'+esc(x.id)+'"><div class="fi"><div class="ic2" style="background:'+c[0]+";color:"+c[1]+'">'+ico(img?"books":"doc")+'</div><div class="t"><b>'+esc(x.title)+'</b><span class="sub">'+esc(x.subject)+(x.subject?" · ":"")+sz(x.size)+'</span></div></div><div class="acts"><button class="btn file-download" type="button" data-id="'+esc(x.id)+'" data-title="'+esc(x.title)+'">تحميل</button></div><div class="file-download-state" hidden aria-live="polite"></div></div>'
+  },"لا توجد ملازم لصفك حالياً، تابعنا قريباً 📚",function(box){
+    box.querySelectorAll(".file-download").forEach(function(btn){btn.onclick=function(){downloadStudyFile(btn)}});
+  });
 }
+
+
+/* تنزيل الملزمة مع نسبة تقدم وزر فتح بعد الاكتمال */
+async function downloadStudyFile(btn){
+  if(btn.disabled)return;
+  var card=btn.closest(".study-file"),state=card&&card.querySelector(".file-download-state");
+  if(!card||!state)return;
+  var id=btn.dataset.id,title=btn.dataset.title||"الملزمة";
+  btn.disabled=true;state.hidden=false;state.innerHTML='<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:7px"><b>جاري تحميل '+esc(title)+'</b><strong class="file-pct">0%</strong></div><div style="height:9px;border-radius:20px;background:var(--bd);overflow:hidden"><div class="file-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#18a987,#4285e8);transition:width .15s"></div></div><small class="file-status sub" style="display:block;margin-top:6px">بدء الاتصال...</small></div>';
+  var pct=state.querySelector(".file-pct"),bar=state.querySelector(".file-bar"),msg=state.querySelector(".file-status");
+  try{
+    var res=await fetch("/api/study/file/"+encodeURIComponent(id)+"?dl=1",{credentials:"same-origin",cache:"no-store"});
+    if(!res.ok)throw new Error("تعذر تنزيل الملزمة ("+res.status+")");
+    var total=Number(res.headers.get("content-length"))||0,blob;
+    if(res.body&&res.body.getReader){
+      var reader=res.body.getReader(),chunks=[],loaded=0;
+      while(true){var part=await reader.read();if(part.done)break;chunks.push(part.value);loaded+=part.value.byteLength;
+        if(total){var n=Math.min(99,Math.round(loaded/total*100));pct.textContent=n+"%";bar.style.width=n+"%";msg.textContent="تم تنزيل "+formatFileBytes(loaded)+" من "+formatFileBytes(total)}
+        else{pct.textContent=formatFileBytes(loaded);msg.textContent="جارٍ استلام الملف..."}
+      }
+      blob=new Blob(chunks,{type:res.headers.get("content-type")||"application/octet-stream"});
+    }else{blob=await res.blob();pct.textContent="99%";bar.style.width="99%"}
+    var url=URL.createObjectURL(blob);pct.textContent="100%";bar.style.width="100%";msg.textContent="اكتمل التحميل بنجاح";
+    state.insertAdjacentHTML("beforeend",'<button type="button" class="btn" style="margin-top:10px;width:100%">📖 فتح الملزمة</button>');
+    var openBtn=state.querySelector("button");openBtn.onclick=function(){var w=window.open(url,"_blank");if(!w){var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.click()}};
+    btn.textContent="تم التحميل";
+    setTimeout(function(){URL.revokeObjectURL(url)},30*60*1000);
+  }catch(err){msg.textContent=err&&err.message?err.message:"حدث خطأ أثناء التحميل";msg.style.color="var(--red)";btn.disabled=false;btn.textContent="إعادة المحاولة"}
+}
+function formatFileBytes(n){if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(1)+" KB";return (n/1048576).toFixed(1)+" MB"}
 
 /* محاضراتي */
 function embed(u){
@@ -2367,7 +2399,7 @@ function showProfileGate(force){
 /* التشغيل */
 async function boot(){
   var cmsPromise=fetch("/api/site-settings",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).catch(function(cmsError){console.warn("Site settings unavailable",cmsError);return null});
-  try{INFO=await jget("info")}catch(e){$("#boot").innerHTML='تعذر الاتصال بالخادم.<br><button id="rb" style="margin-top:10px">إعادة المحاولة</button>';$("#rb").onclick=function(){location.reload()};return}
+  try{INFO=await jget("info")}catch(e){$("#boot").innerHTML='تعذر الاتصال بالمنصة حالياً.<br><button id="rb" style="margin-top:10px">إعادة المحاولة</button>';$("#rb").onclick=function(){location.reload()};return}
   if(S.me){try{REC=await jpost("result",{code:S.me});S.grade=REC.g}catch(e){if(e===404){S.me="";save()}}}
   var gs=Object.keys(INFO.grades);if(!INFO.grades[S.grade])S.grade=gs[0]||"";
   $("#boot").classList.add("hide");build();go("home");
@@ -2375,41 +2407,6 @@ async function boot(){
   showProfileGate(false);
 }
 boot();
-</script>
-
-<script>
-/* طلب إذن الكاميرا عند ضغط الطالب على زر التصوير فقط */
-(function(){
-  var cameraBusy=false;
-  function stopCamera(stream){try{if(stream)stream.getTracks().forEach(function(t){t.stop()})}catch(e){}}
-  function showCameraHelp(message){
-    var old=document.getElementById('cameraPermissionHelp');if(old)old.remove();
-    var box=document.createElement('div');box.id='cameraPermissionHelp';
-    box.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:20px;direction:rtl';
-    box.innerHTML='<div style="max-width:360px;width:100%;background:#fff;color:#172033;border-radius:18px;padding:22px;text-align:center;font-family:inherit"><div style="font-size:34px">📷</div><h3 style="margin:8px 0">إذن استخدام الكاميرا</h3><p style="line-height:1.8">'+message+'</p><button id="cameraPermissionClose" type="button" style="border:0;border-radius:12px;padding:11px 22px;background:#167dce;color:#fff;font-weight:800">حسناً</button></div>';
-    document.body.appendChild(box);document.getElementById('cameraPermissionClose').onclick=function(){box.remove()};
-  }
-  document.addEventListener('click',async function(e){
-    var label=e.target.closest&&e.target.closest('label[for]');
-    if(!label)return;
-    var input=document.getElementById(label.getAttribute('for'));
-    if(!input||input.type!=='file'||!input.hasAttribute('capture'))return;
-    if(cameraBusy){e.preventDefault();return;}
-    /* إذا كان المتصفح لا يدعم طلب الإذن البرمجي، اترك منتقي الكاميرا الأصلي يعمل */
-    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return;
-    e.preventDefault();e.stopPropagation();cameraBusy=true;
-    try{
-      var stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
-      stopCamera(stream);
-      input.click();
-    }catch(err){
-      var msg=(err&&err.name==='NotAllowedError')
-        ?'لم يتم السماح للكاميرا بعد. اضغط على معلومات التطبيق في هاتفك ثم الأذونات ثم الكاميرا واختر سماح، وبعدها ارجع واضغط تصوير.'
-        :(err&&err.name==='NotFoundError')?'لم يتم العثور على كاميرا في هذا الجهاز.':'تعذر تشغيل الكاميرا. تأكد من اتصال التطبيق بالإنترنت ومن تفعيل إذن الكاميرا في إعدادات Android.';
-      showCameraHelp(msg);
-    }finally{cameraBusy=false;}
-  },true);
-})();
 </script>
 
 <script src="/track.js" defer></script>
