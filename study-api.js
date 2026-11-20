@@ -102,10 +102,9 @@ module.exports = function (app, db, express) {
       const b = await (await col("st_blobs")).findOne({ _id: id });
       if (!f || !b) return res.sendStatus(404);
       const buf = Buffer.from(b.data.buffer);
-      const safeName = String(f.name || "study-file").replace(/[\\"\r\n]/g, "_");
       res.set({
-        "Content-Type": f.type || "application/octet-stream",
-        "Content-Disposition": (req.query.dl ? "attachment" : "inline") + `; filename="${safeName.replace(/[^\x20-\x7E]/g, "_")}"; filename*=UTF-8''${encodeURIComponent(safeName)}`,
+        "Content-Type": f.type,
+        "Content-Disposition": (req.query.dl ? "attachment" : "inline") + "; filename*=UTF-8''" + encodeURIComponent(f.name),
         "Content-Length": String(buf.length),
         "X-Content-Type-Options": "nosniff",
         "Content-Security-Policy": "sandbox",
@@ -430,6 +429,22 @@ module.exports = function (app, db, express) {
     throw bad("خدمة الذكاء الاصطناعي غير مفعّلة. أضف OPENROUTER_API_KEY (مفضّل) أو GEMINI_API_KEY أو OPENAI_API_KEY في إعدادات السيرفر.", 503);
   }
 
+  function aiProviderError(provider, status, raw) {
+    let detail = String(raw || "").slice(0, 1200);
+    try {
+      const j = JSON.parse(detail);
+      detail = String((j && j.error && (j.error.message || j.error.code)) || j.message || detail);
+    } catch (_) {}
+    console.error(provider + " error:", status, detail.slice(0, 700));
+    if (status === 401 || status === 403) return bad("مفتاح خدمة الذكاء الاصطناعي غير صحيح أو غير مخوّل. راجع إعدادات Environment في Render.", 502);
+    if (status === 402) return bad("رصيد خدمة الذكاء الاصطناعي غير كافٍ. افحص الرصيد أو الفوترة لدى مزوّد الخدمة.", 502);
+    if (status === 404) return bad("موديل الذكاء الاصطناعي المحدد غير موجود. غيّر OPENROUTER_MODEL إلى موديل يدعم تحليل الصور.", 502);
+    if (status === 413) return bad("حجم الصور كبير على خدمة التصحيح. قلّل عدد الصور أو أعد تصويرها بدقة أقل.", 502);
+    if (status === 429) return bad("وصلت خدمة الذكاء الاصطناعي إلى حد الاستخدام. انتظر قليلاً أو افحص حدود حسابك.", 502);
+    if (status === 400 && /image|vision|modality|multimodal|unsupported/i.test(detail)) return bad("الموديل الحالي لا يدعم قراءة الصور أو أن صيغة الصورة غير مدعومة. اختر موديل Vision يدعم الصور.", 502);
+    return bad("خدمة الذكاء الاصطناعي رفضت الطلب (" + status + "). راجع سجل Render لمعرفة السبب.", 502);
+  }
+
   async function callOpenRouter(messages, maxTokens, key) {
     const model = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
     const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -440,18 +455,9 @@ module.exports = function (app, db, express) {
         "HTTP-Referer": process.env.OPENROUTER_SITE_URL || "https://darsi.app",
         "X-Title": process.env.OPENROUTER_APP_NAME || "Darsi"
       },
-      body: JSON.stringify({
-        model,
-        messages,
-        max_tokens: maxTokens,
-        temperature: 0.4
-      })
+      body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature: 0.4 })
     });
-    if (!r.ok) {
-      const t = await r.text().catch(() => "");
-      console.error("OpenRouter error:", r.status, t.slice(0, 400));
-      throw bad("تعذر الاتصال بخدمة الذكاء الاصطناعي حالياً، حاول لاحقاً.", 502);
-    }
+    if (!r.ok) throw aiProviderError("OpenRouter (" + model + ")", r.status, await r.text().catch(() => ""));
     const j = await r.json();
     return (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "";
   }
@@ -501,8 +507,7 @@ module.exports = function (app, db, express) {
     });
     if (!r.ok) {
       const t = await r.text().catch(() => "");
-      console.error("Gemini error:", r.status, t.slice(0, 400));
-      throw bad("تعذر الاتصال بخدمة الذكاء الاصطناعي حالياً، حاول لاحقاً.", 502);
+      throw aiProviderError("Gemini (" + model + ")", r.status, t);
     }
     const j = await r.json();
     const parts = j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts;
@@ -525,8 +530,7 @@ module.exports = function (app, db, express) {
     });
     if (!r.ok) {
       const t = await r.text().catch(() => "");
-      console.error("OpenAI error:", r.status, t.slice(0, 300));
-      throw bad("تعذر الاتصال بخدمة الذكاء الاصطناعي حالياً، حاول لاحقاً.", 502);
+      throw aiProviderError("OpenAI (" + (process.env.OPENAI_MODEL || "gpt-4o") + ")", r.status, t);
     }
     const j = await r.json();
     return (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "";
