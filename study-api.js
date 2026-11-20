@@ -409,24 +409,24 @@ module.exports = function (app, db, express) {
 
 
   // ===================== الامتحانات الورقية (AI) =====================
-  // يدعم OpenRouter (الأولوية) ثم Gemini ثم OpenAI.
-  // OpenRouter: ضع OPENROUTER_API_KEY في إعدادات السيرفر
-  // موديل افتراضي: openai/gpt-4o-mini (يمكن تغييره بـ OPENROUTER_MODEL)
+  // يستخدم Gemini أولاً عند توفر GEMINI_API_KEY، ثم OpenRouter، ثم OpenAI.
+  // الموديل الافتراضي لتحليل الصور: gemini-2.5-flash-lite (يمكن تغييره بـ GEMINI_MODEL)
   async function callAI(messages, maxTokens = 2000) {
     const openrouterKey = process.env.OPENROUTER_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
 
-    if (openrouterKey) {
-      return callOpenRouter(messages, maxTokens, openrouterKey);
-    }
+    // إذا أُضيف مفتاح Gemini، استخدمه أولاً حتى لا يستمر التطبيق بمزوّد قديم.
     if (geminiKey) {
       return callGemini(messages, maxTokens, geminiKey);
+    }
+    if (openrouterKey) {
+      return callOpenRouter(messages, maxTokens, openrouterKey);
     }
     if (openaiKey) {
       return callOpenAI(messages, maxTokens, openaiKey);
     }
-    throw bad("خدمة الذكاء الاصطناعي غير مفعّلة. أضف OPENROUTER_API_KEY (مفضّل) أو GEMINI_API_KEY أو OPENAI_API_KEY في إعدادات السيرفر.", 503);
+    throw bad("خدمة الذكاء الاصطناعي غير مفعّلة. أضف GEMINI_API_KEY في إعدادات Render، أو مفتاح مزوّد آخر مدعوم.", 503);
   }
 
   function aiProviderError(provider, status, raw) {
@@ -490,7 +490,7 @@ module.exports = function (app, db, express) {
       if (parts.length) contents.push({ role, parts });
     }
 
-    const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
     const body = {
       contents,
@@ -1153,7 +1153,6 @@ module.exports = function (app, db, express) {
     try { res.json(await h(req.body || {})); } catch (e) { fail(res, e); }
   });
 };
- 
  
  
  
