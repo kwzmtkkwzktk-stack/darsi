@@ -282,6 +282,13 @@ mark{background:#ffe08a;color:#1c1c1c;border-radius:4px;padding:0 3px}
 @media(max-width:420px){.exp-teacher-panel{min-height:355px;max-height:375px;background-position:70% 20%}.exp-teacher-panel .exp-talk{left:8px;right:8px;bottom:8px;padding:9px}.exp-teacher-panel .exp-talk p{font-size:11px}.exp-teacher-panel .exp-talk-controls button{font-size:9px;padding:6px 7px}.exp-teacher-top{font-size:10px;padding:8px}}
 @media(prefers-reduced-motion:reduce){.exp-teacher-scan,.exp-teacher-panel.talking:after,.exp-wave i{animation:none!important}}
 .cms-custom-block{background:var(--cms-block-bg,#fff);border:1px solid var(--bd);border-radius:22px;padding:18px;margin:18px 0;box-shadow:var(--shadow)}.cms-custom-inner{display:flex;align-items:flex-start;gap:13px}.cms-custom-icon{width:48px;height:48px;flex:0 0 48px;border-radius:15px;display:grid;place-items:center;background:var(--pri2);color:var(--pri);font-size:24px}.cms-custom-copy{min-width:0;flex:1}.cms-custom-copy h2{margin:3px 0 6px}.cms-custom-copy p{margin:0;color:var(--mut);line-height:1.9;white-space:pre-wrap}.cms-block-action{display:inline-block;margin-top:12px;color:var(--pri);font-weight:800}
+
+/* حالة تنزيل الملازم */
+.file-download-state{display:block!important;width:100%;padding-top:8px;font-size:12px;line-height:1.8}
+.file-download-state[hidden]{display:none!important}
+.file-download-state .file-progress-track{height:10px;border-radius:20px;background:var(--bd,#d9e0e8);overflow:hidden}
+.file-download-state .file-progress-fill{height:100%;width:0;background:linear-gradient(90deg,#18a987,#4285e8);transition:width .12s}
+.file-download.is-cached{background:#168b68!important}
 </style>
 <style id="profileGateStyles">
 .profile-gate-backdrop{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:22px 16px;background:radial-gradient(ellipse at 12% 12%,rgba(52,211,190,.22),transparent 34%),radial-gradient(ellipse at 90% 85%,rgba(99,102,241,.25),transparent 38%),rgba(3,9,22,.91);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);font-family:"Cairo",system-ui,sans-serif}
@@ -368,7 +375,6 @@ nav{left:50%;right:auto;transform:translateX(-50%);bottom:10px;width:min(680px,c
 @media(max-width:760px){.exp-layout{grid-template-columns:1fr}.exp-tutor-stage{min-height:132px;padding:10px}.exp-avatar-wrap{width:100px;height:105px;flex-basis:100px}.exp-avatar-svg{width:83px;height:96px}.exp-board{min-height:350px}}@media(max-width:420px){.exp-talk p{font-size:11px}.exp-talk{padding:9px}.exp-avatar-wrap{width:84px;flex-basis:84px}.exp-avatar-svg{width:76px}.exp-work{font-size:24px}.exp-explain{font-size:18px}}
 @media(prefers-reduced-motion:reduce){.exp-board:after,.exp-char,.exp-char-body,.exp-char-mouth,.exp-char-arm-right,.exp-char-hand,.exp-char-p1,.exp-char-p2,.exp-char-p3,.exp-char-p4,.exp-step.written .exp-work,.exp-step.written .exp-work:after,.exp-final.show{animation:none!important}.exp-step{transition:none}}
 </style>
-<style>@keyframes fileLoading{from{width:18%}to{width:88%}}</style>
 </head>
 <body>
 <div class="wrap">
@@ -864,40 +870,97 @@ async function rFiles(){
     var img=/^image/.test(x.type),c=/pdf/.test(x.type)?["#fde4e4","#d64545"]:img?["#dff2e4","#2e9e5b"]:["#e1e9f6","#7c3aed"];
     return '<div class="card study-file" data-file-id="'+esc(x.id)+'"><div class="fi"><div class="ic2" style="background:'+c[0]+";color:"+c[1]+'">'+ico(img?"books":"doc")+'</div><div class="t"><b>'+esc(x.title)+'</b><span class="sub">'+esc(x.subject)+(x.subject?" · ":"")+sz(x.size)+'</span></div></div><div class="acts"><button class="btn file-download" type="button" data-id="'+esc(x.id)+'" data-title="'+esc(x.title)+'">تحميل</button></div><div class="file-download-state" hidden aria-live="polite"></div></div>'
   },"لا توجد ملازم لصفك حالياً، تابعنا قريباً 📚",function(box){
-    box.querySelectorAll(".file-download").forEach(function(btn){btn.onclick=function(){downloadStudyFile(btn)}});
+    box.querySelectorAll(".file-download").forEach(async function(btn){
+      btn.onclick=function(){downloadStudyFile(btn)};
+      try{if(await getCachedStudyFile(btn.dataset.id)){btn.textContent="📖 فتح الملزمة";btn.classList.add("is-cached")}}catch(e){}
+    });
   });
 }
 
-
-/* تنزيل وفتح الملزمة عبر نظام Android بدلاً من Blob داخل WebView */
+/* حفظ الملازم بشكل دائم داخل IndexedDB */
+var studyFileDbPromise=null,studyFileObjectUrls={};
+function studyFileDB(){
+  if(studyFileDbPromise)return studyFileDbPromise;
+  studyFileDbPromise=new Promise(function(resolve,reject){
+    if(!window.indexedDB)return reject(new Error("التخزين المحلي غير مدعوم بهذا التطبيق"));
+    var req=indexedDB.open("darsi-study-files",2);
+    req.onupgradeneeded=function(){var db=req.result;if(!db.objectStoreNames.contains("files"))db.createObjectStore("files",{keyPath:"id"})};
+    req.onsuccess=function(){var db=req.result;db.onversionchange=function(){db.close();studyFileDbPromise=null};resolve(db)};
+    req.onerror=function(){studyFileDbPromise=null;reject(req.error||new Error("تعذر فتح التخزين المحلي"))};
+    req.onblocked=function(){reject(new Error("أغلق نسخة التطبيق الأخرى ثم حاول مجدداً"))};
+  });
+  return studyFileDbPromise;
+}
+async function getCachedStudyFile(id){
+  var db=await studyFileDB();
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction(["files"],"readonly"),req=tx.objectStore("files").get(String(id));
+    req.onsuccess=function(){resolve(req.result||null)};req.onerror=function(){reject(req.error||new Error("تعذر قراءة الملزمة المحفوظة"))};
+  });
+}
+async function saveCachedStudyFile(id,blob,title){
+  var db=await studyFileDB();
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction(["files"],"readwrite");
+    tx.objectStore("files").put({id:String(id),blob:blob,title:title||"الملزمة",savedAt:Date.now(),size:blob.size,type:blob.type});
+    tx.oncomplete=function(){resolve(true)};tx.onerror=function(){reject(tx.error||new Error("تعذر حفظ الملزمة"))};tx.onabort=function(){reject(tx.error||new Error("تم إلغاء حفظ الملزمة"))};
+  });
+}
+async function requestStudyStorage(){
+  try{if(navigator.storage&&navigator.storage.persist)await navigator.storage.persist()}catch(e){}
+}
+function openCachedStudyFile(item){
+  if(!item||!item.blob)throw new Error("الملزمة غير موجودة في الجهاز");
+  var id=String(item.id),url=studyFileObjectUrls[id];
+  if(!url){url=URL.createObjectURL(item.blob);studyFileObjectUrls[id]=url}
+  /* فتح الملف في تبويب مستقل؛ زر الفتح ينفذ مباشرة بعد ضغط المستخدم */
+  var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.download=item.title||"study-file";
+  document.body.appendChild(a);a.click();a.remove();
+}
 async function downloadStudyFile(btn){
   if(btn.disabled)return;
   var card=btn.closest(".study-file"),state=card&&card.querySelector(".file-download-state");
   if(!card||!state)return;
   var id=btn.dataset.id,title=btn.dataset.title||"الملزمة";
-  var fileUrl=new URL("/api/study/file/"+encodeURIComponent(id)+"?dl=1",window.location.origin).href;
-  btn.disabled=true;state.hidden=false;
-  state.innerHTML='<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px"><b>جاري تجهيز '+esc(title)+'</b><strong class="file-pct">⏳</strong></div><div style="height:9px;border-radius:20px;background:var(--bd);overflow:hidden"><div class="file-bar" style="height:100%;width:35%;background:linear-gradient(90deg,#18a987,#4285e8);animation:fileLoading 1.2s ease-in-out infinite alternate"></div></div><small class="file-status sub" style="display:block;margin-top:7px">سيتم فتح قائمة التطبيقات بعد اكتمال التنزيل</small></div>';
-  var msg=state.querySelector(".file-status"),pct=state.querySelector(".file-pct");
+  btn.disabled=true;state.hidden=false;state.style.display="block";
+  state.innerHTML='<div class="file-status">جاري التحقق من وجود نسخة محفوظة...</div>';
   try{
-    /* Median ينزّل الرابط الحقيقي ثم يسلّمه إلى Android Open with.
-       لا نستخدم Blob URL لأنه يسبب شاشة سوداء في بعض إصدارات WebView. */
-    if(window.median&&window.median.share&&typeof window.median.share.downloadFile==="function"){
-      await window.median.share.downloadFile({url:fileUrl,open:true});
-      pct.textContent="✓";msg.textContent="تم إرسال الملزمة إلى Android. اختر قارئ PDF أو التطبيق المناسب من القائمة.";
-      btn.textContent="تم إرسال الملزمة";
-      return;
+    var cached=await getCachedStudyFile(id);
+    if(cached&&cached.blob){
+      openCachedStudyFile(cached);
+      state.innerHTML='<small style="color:var(--green,#168b68)">✓ هذه الملزمة محفوظة على جهازك، لم يتم تنزيلها مرة ثانية.</small>';
+      btn.textContent="📖 فتح الملزمة";btn.classList.add("is-cached");btn.disabled=false;return;
     }
-    /* خارج Median: استخدم رابط الملف الأصلي مع Content-Disposition: attachment */
-    var a=document.createElement("a");a.href=fileUrl;a.target="_blank";a.rel="noopener";a.download="";
-    document.body.appendChild(a);a.click();a.remove();
-    pct.textContent="↗";msg.textContent="بدأ تنزيل الملف. افتحه من إشعار التنزيلات أو مجلد Downloads واختر التطبيق المناسب.";
-    btn.textContent="تم بدء التنزيل";
+  }catch(cacheErr){state.innerHTML='<small class="file-status" style="color:var(--red)">تعذر الوصول إلى التخزين المحلي: '+esc(cacheErr.message||"")+'</small>';}
+  state.innerHTML='<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px"><b>جاري تحميل '+esc(title)+'</b><strong class="file-pct">0%</strong></div><div class="file-progress-track"><div class="file-progress-fill file-bar"></div></div><small class="file-status sub" style="display:block;margin-top:6px">بدء التحميل...</small></div>';
+  var pct=state.querySelector(".file-pct"),bar=state.querySelector(".file-bar"),msg=state.querySelector(".file-status");
+  try{
+    await requestStudyStorage();
+    var res=await fetch("/api/study/file/"+encodeURIComponent(id)+"?dl=1",{credentials:"same-origin",cache:"no-store"});
+    if(!res.ok)throw new Error("تعذر تنزيل الملزمة ("+res.status+")");
+    var total=Number(res.headers.get("content-length"))||0,blob;
+    if(res.body&&res.body.getReader){
+      var reader=res.body.getReader(),chunks=[],loaded=0;
+      while(true){var part=await reader.read();if(part.done)break;chunks.push(part.value);loaded+=part.value.byteLength;
+        if(total){var n=Math.min(99,Math.round(loaded/total*100));pct.textContent=n+"%";bar.style.width=n+"%";msg.textContent="تم تنزيل "+formatFileBytes(loaded)+" من "+formatFileBytes(total)}
+        else{pct.textContent=formatFileBytes(loaded);msg.textContent="تم استلام "+formatFileBytes(loaded)}
+      }
+      blob=new Blob(chunks,{type:res.headers.get("content-type")||"application/octet-stream"});
+    }else{blob=await res.blob();pct.textContent="99%";bar.style.width="99%"}
+    msg.textContent="اكتمل التنزيل، جاري حفظ نسخة على الجهاز...";
+    await saveCachedStudyFile(id,blob,title);
+    pct.textContent="100%";bar.style.width="100%";
+    msg.textContent="اكتمل التحميل وحُفظت الملزمة على جهازك.";
+    btn.textContent="📖 فتح الملزمة";btn.classList.add("is-cached");
+    state.insertAdjacentHTML("beforeend",'<small style="display:block;margin-top:7px;color:var(--green,#168b68)">✓ ستبقى محفوظة عند الخروج من التطبيق والدخول مرة ثانية.</small>');
+    openCachedStudyFile({id:String(id),blob:blob,title:title});
   }catch(err){
-    msg.textContent="تعذر فتح نافذة التطبيقات. جرّب تنزيل الملزمة ثم فتحها من مجلد التنزيلات.";
-    msg.style.color="var(--red)";btn.disabled=false;btn.textContent="إعادة المحاولة";
-  }
+    msg.textContent=(err&&err.message?err.message:"حدث خطأ أثناء التحميل")+" — اضغط إعادة المحاولة.";msg.style.color="var(--red)";
+    btn.textContent="إعادة المحاولة";btn.classList.remove("is-cached");
+  }finally{btn.disabled=false}
 }
+function formatFileBytes(n){if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(1)+" KB";return (n/1048576).toFixed(1)+" MB"}
+
 /* محاضراتي */
 function embed(u){
   var m;
@@ -2413,7 +2476,6 @@ boot();
 <script src="/track.js" defer></script>
 </body>
 </html>
- 
  
  
  
