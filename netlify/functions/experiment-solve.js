@@ -35,13 +35,13 @@ async function askAI(problem, subject, grade, image) {
     e.status = 503; throw e;
   }
 
-  if (keyGemini && !keyRouter) {
+  if (keyGemini) {
     const parts = [{ text: system + "\n\n" + context }];
     if (image) {
       const m = /^data:(image\/(?:jpeg|jpg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(image);
       if (m) parts.push({ inline_data: { mime_type: m[1] === "image/jpg" ? "image/jpeg" : m[1], data: m[2] } });
     }
-    const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${keyGemini}`;
     const response = await fetch(url, {
       method: "POST", headers: { "content-type": "application/json" },
