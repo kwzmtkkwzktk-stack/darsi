@@ -409,58 +409,87 @@ module.exports = function (app, db, express) {
 
 
   // ===================== الامتحانات الورقية (AI) =====================
-  // يستخدم Gemini أولاً عند توفر GEMINI_API_KEY، ثم OpenRouter، ثم OpenAI.
-  // الموديل الافتراضي لتحليل الصور: gemini-2.5-flash-lite (يمكن تغييره بـ GEMINI_MODEL)
+  // يدعم OpenRouter (الأولوية) ثم Gemini ثم OpenAI.
+  // OpenRouter: ضع OPENROUTER_API_KEY في إعدادات السيرفر
+  // موديل افتراضي: openai/gpt-4o-mini (يمكن تغييره بـ OPENROUTER_MODEL)
   async function callAI(messages, maxTokens = 2000) {
     const openrouterKey = process.env.OPENROUTER_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
 
-    // إذا أُضيف مفتاح Gemini، استخدمه أولاً حتى لا يستمر التطبيق بمزوّد قديم.
-    if (geminiKey) {
-      return callGemini(messages, maxTokens, geminiKey);
-    }
     if (openrouterKey) {
       return callOpenRouter(messages, maxTokens, openrouterKey);
+    }
+    if (geminiKey) {
+      return callGemini(messages, maxTokens, geminiKey);
     }
     if (openaiKey) {
       return callOpenAI(messages, maxTokens, openaiKey);
     }
-    throw bad("خدمة الذكاء الاصطناعي غير مفعّلة. أضف GEMINI_API_KEY في إعدادات Render، أو مفتاح مزوّد آخر مدعوم.", 503);
-  }
-
-  function aiProviderError(provider, status, raw) {
-    let detail = String(raw || "").slice(0, 1200);
-    try {
-      const j = JSON.parse(detail);
-      detail = String((j && j.error && (j.error.message || j.error.code)) || j.message || detail);
-    } catch (_) {}
-    console.error(provider + " error:", status, detail.slice(0, 700));
-    if (status === 401 || status === 403) return bad("مفتاح خدمة الذكاء الاصطناعي غير صحيح أو غير مخوّل. راجع إعدادات Environment في Render.", 502);
-    if (status === 402) return bad("رصيد خدمة الذكاء الاصطناعي غير كافٍ. افحص الرصيد أو الفوترة لدى مزوّد الخدمة.", 502);
-    if (status === 404) return bad("موديل الذكاء الاصطناعي المحدد غير موجود. غيّر OPENROUTER_MODEL إلى موديل يدعم تحليل الصور.", 502);
-    if (status === 413) return bad("حجم الصور كبير على خدمة التصحيح. قلّل عدد الصور أو أعد تصويرها بدقة أقل.", 502);
-    if (status === 429) return bad("وصلت خدمة الذكاء الاصطناعي إلى حد الاستخدام. انتظر قليلاً أو افحص حدود حسابك.", 502);
-    if (status === 400 && /image|vision|modality|multimodal|unsupported/i.test(detail)) return bad("الموديل الحالي لا يدعم قراءة الصور أو أن صيغة الصورة غير مدعومة. اختر موديل Vision يدعم الصور.", 502);
-    return bad("خدمة الذكاء الاصطناعي رفضت الطلب (" + status + "). راجع سجل Render لمعرفة السبب.", 502);
+    throw bad("خدمة الذكاء الاصطناعي غير مفعّلة. أضف OPENROUTER_API_KEY (مفضّل) أو GEMINI_API_KEY أو OPENAI_API_KEY في إعدادات السيرفر.", 503);
   }
 
   async function callOpenRouter(messages, maxTokens, key) {
-    const model = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
-    const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + key,
-        "Content-Type": "application/json",
-        "HTTP-Referer": process.env.OPENROUTER_SITE_URL || "https://darsi.app",
-        "X-Title": process.env.OPENROUTER_APP_NAME || "Darsi"
-      },
-      body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature: 0.4 })
-    });
-    if (!r.ok) throw aiProviderError("OpenRouter (" + model + ")", r.status, await r.text().catch(() => ""));
+    // يمكن اختيار موديل ثابت من Render عبر OPENROUTER_MODEL؛ الافتراضي مجاني ومتعدد الوسائط.
+    const model = process.env.OPENROUTER_MODEL || "openrouter/free";
+    let r;
+    try {
+      r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + key,
+          "Content-Type": "application/json",
+          "HTTP-Referer": process.env.OPENROUTER_SITE_URL || "https://darsi.app",
+          "X-Title": process.env.OPENROUTER_APP_NAME || "Darsi"
+        },
+        body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature: 0.35 })
+      });
+    } catch (networkError) {
+      console.error("OpenRouter network error:", networkError && networkError.message);
+      throw bad("تعذر الوصول إلى OpenRouter. تحقق من اتصال الخادم وحاول مرة ثانية.", 502);
+    }
+    if (!r.ok) {
+      const t = await r.text().catch(() => "");
+      console.error("OpenRouter error:", r.status, t.slice(0, 700));
+      let detail = "تعذر تنفيذ طلب الذكاء الاصطناعي.";
+      let parsed = {}; try { parsed = JSON.parse(t); } catch (_) {}
+      const msg = String(parsed && parsed.error && (parsed.error.message || parsed.error.metadata && parsed.error.metadata.raw) || "").toLowerCase();
+      if (r.status === 401 || r.status === 403) detail = "مفتاح OpenRouter غير صحيح أو لا يملك صلاحية الاستخدام. راجع OPENROUTER_API_KEY في Render.";
+      else if (r.status === 402 || /credit|balance|payment|fund/.test(msg)) detail = "رصيد OpenRouter غير كافٍ لهذا الموديل. اختر موديل مجاني متاحاً أو راجع رصيد الحساب.";
+      else if (r.status === 429) detail = "وصلت إلى حد الطلبات للموديل. انتظر قليلاً أو تحقق من حدود OpenRouter.";
+      else if (r.status === 404 || /no endpoints|model.*not found/.test(msg)) detail = "الموديل المحدد غير متاح أو لا يدعم نوع الطلب. راجع OPENROUTER_MODEL.";
+      else if (/image|vision|modality/.test(msg)) detail = "الموديل المحدد لا يدعم تحليل الصور. اختر موديلاً يقبل image ضمن input modalities.";
+      throw bad(detail, r.status === 429 ? 429 : 502);
+    }
     const j = await r.json();
-    return (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "";
+    const message = j.choices && j.choices[0] && j.choices[0].message;
+    const content = message && message.content;
+    if (Array.isArray(content)) return content.map(x => x && (x.text || "")).join("").trim();
+    return typeof content === "string" ? content : "";
   }
+
+  // مدرس محادثة: لا نخزن سجل المحادثة أو الصور في قاعدة البيانات.
+  app.post("/api/study/ai/chat", async (req, res) => {
+    if (tooMany("ai-chat:" + (req.ip || "x"), 15, 5 * 60 * 1000)) {
+      return res.status(429).json({ error: "وصلت للحد المؤقت من الأسئلة. انتظر قليلاً ثم حاول." });
+    }
+    try {
+      const message = S(req.body && req.body.message, 3000);
+      const grade = S(req.body && req.body.grade, 100);
+      const subject = S(req.body && req.body.subject, 100);
+      const history = Array.isArray(req.body && req.body.history) ? req.body.history.slice(-8) : [];
+      need(message.length >= 2, "اكتب سؤالك حتى أقدر أساعدك.");
+      const safeHistory = history.map(m => ({
+        role: m && m.role === "assistant" ? "assistant" : "user",
+        content: S(m && m.content, 1200)
+      })).filter(m => m.content);
+      const system = `أنت مدرس مساعد لمنصة دَرسي العراقية. اشرح للطالب بعربية واضحة ولهجة عراقية بيضاء خفيفة، وبمستوى الصف المحدد. المادة: ${subject || "غير محددة"}. الصف: ${grade || "غير محدد"}. ابدأ بالجواب مباشرة، ثم وضح الفكرة بخطوات قصيرة وأمثلة عند الحاجة. لا تخترع معلومات أو تنسب إجابة إلى كتاب وزاري دون نص موثوق. إذا كان السؤال ناقصاً اطلب توضيحاً. لا تطلب بيانات شخصية من الطالب. إذا كان الموضوع خارج الدراسة، أجب باختصار وأعد توجيهه للتعلم.`;
+      const answer = await callAI([{ role: "system", content: system }, ...safeHistory, { role: "user", content: message }], 1200);
+      need(answer && answer.trim().length > 1, "لم يصل رد من المدرس الذكي. حاول مرة ثانية.");
+      res.set("Cache-Control", "no-store");
+      res.json({ ok: true, answer: answer.trim().slice(0, 6000) });
+    } catch (e) { fail(res, e); }
+  });
 
   async function callGemini(messages, maxTokens, key) {
     // تحويل صيغة OpenAI إلى صيغة Gemini
@@ -490,7 +519,7 @@ module.exports = function (app, db, express) {
       if (parts.length) contents.push({ role, parts });
     }
 
-    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+    const model = process.env.GEMINI_MODEL || "gemini-2.0-flash";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
     const body = {
       contents,
@@ -507,7 +536,8 @@ module.exports = function (app, db, express) {
     });
     if (!r.ok) {
       const t = await r.text().catch(() => "");
-      throw aiProviderError("Gemini (" + model + ")", r.status, t);
+      console.error("Gemini error:", r.status, t.slice(0, 400));
+      throw bad("تعذر الاتصال بخدمة الذكاء الاصطناعي حالياً، حاول لاحقاً.", 502);
     }
     const j = await r.json();
     const parts = j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts;
@@ -530,7 +560,8 @@ module.exports = function (app, db, express) {
     });
     if (!r.ok) {
       const t = await r.text().catch(() => "");
-      throw aiProviderError("OpenAI (" + (process.env.OPENAI_MODEL || "gpt-4o") + ")", r.status, t);
+      console.error("OpenAI error:", r.status, t.slice(0, 300));
+      throw bad("تعذر الاتصال بخدمة الذكاء الاصطناعي حالياً، حاول لاحقاً.", 502);
     }
     const j = await r.json();
     return (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "";
@@ -1153,6 +1184,7 @@ module.exports = function (app, db, express) {
     try { res.json(await h(req.body || {})); } catch (e) { fail(res, e); }
   });
 };
+ 
  
  
  
