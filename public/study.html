@@ -282,13 +282,6 @@ mark{background:#ffe08a;color:#1c1c1c;border-radius:4px;padding:0 3px}
 @media(max-width:420px){.exp-teacher-panel{min-height:355px;max-height:375px;background-position:70% 20%}.exp-teacher-panel .exp-talk{left:8px;right:8px;bottom:8px;padding:9px}.exp-teacher-panel .exp-talk p{font-size:11px}.exp-teacher-panel .exp-talk-controls button{font-size:9px;padding:6px 7px}.exp-teacher-top{font-size:10px;padding:8px}}
 @media(prefers-reduced-motion:reduce){.exp-teacher-scan,.exp-teacher-panel.talking:after,.exp-wave i{animation:none!important}}
 .cms-custom-block{background:var(--cms-block-bg,#fff);border:1px solid var(--bd);border-radius:22px;padding:18px;margin:18px 0;box-shadow:var(--shadow)}.cms-custom-inner{display:flex;align-items:flex-start;gap:13px}.cms-custom-icon{width:48px;height:48px;flex:0 0 48px;border-radius:15px;display:grid;place-items:center;background:var(--pri2);color:var(--pri);font-size:24px}.cms-custom-copy{min-width:0;flex:1}.cms-custom-copy h2{margin:3px 0 6px}.cms-custom-copy p{margin:0;color:var(--mut);line-height:1.9;white-space:pre-wrap}.cms-block-action{display:inline-block;margin-top:12px;color:var(--pri);font-weight:800}
-
-/* حالة تنزيل الملازم */
-.file-download-state{display:block!important;width:100%;padding-top:8px;font-size:12px;line-height:1.8}
-.file-download-state[hidden]{display:none!important}
-.file-download-state .file-progress-track{height:10px;border-radius:20px;background:var(--bd,#d9e0e8);overflow:hidden}
-.file-download-state .file-progress-fill{height:100%;width:0;background:linear-gradient(90deg,#18a987,#4285e8);transition:width .12s}
-.file-download.is-cached{background:#168b68!important}
 </style>
 <style id="profileGateStyles">
 .profile-gate-backdrop{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:22px 16px;background:radial-gradient(ellipse at 12% 12%,rgba(52,211,190,.22),transparent 34%),radial-gradient(ellipse at 90% 85%,rgba(99,102,241,.25),transparent 38%),rgba(3,9,22,.91);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);font-family:"Cairo",system-ui,sans-serif}
@@ -870,72 +863,34 @@ async function rFiles(){
     var img=/^image/.test(x.type),c=/pdf/.test(x.type)?["#fde4e4","#d64545"]:img?["#dff2e4","#2e9e5b"]:["#e1e9f6","#7c3aed"];
     return '<div class="card study-file" data-file-id="'+esc(x.id)+'"><div class="fi"><div class="ic2" style="background:'+c[0]+";color:"+c[1]+'">'+ico(img?"books":"doc")+'</div><div class="t"><b>'+esc(x.title)+'</b><span class="sub">'+esc(x.subject)+(x.subject?" · ":"")+sz(x.size)+'</span></div></div><div class="acts"><button class="btn file-download" type="button" data-id="'+esc(x.id)+'" data-title="'+esc(x.title)+'">تحميل</button></div><div class="file-download-state" hidden aria-live="polite"></div></div>'
   },"لا توجد ملازم لصفك حالياً، تابعنا قريباً 📚",function(box){
-    box.querySelectorAll(".file-download").forEach(async function(btn){
-      btn.onclick=function(){downloadStudyFile(btn)};
-      try{if(await getCachedStudyFile(btn.dataset.id)){btn.textContent="📖 فتح الملزمة";btn.classList.add("is-cached")}}catch(e){}
-    });
+    box.querySelectorAll(".file-download").forEach(function(btn){btn.onclick=function(){downloadStudyFile(btn)}});
   });
 }
 
-/* حفظ الملازم بشكل دائم داخل IndexedDB */
-var studyFileDbPromise=null,studyFileObjectUrls={};
-function studyFileDB(){
-  if(studyFileDbPromise)return studyFileDbPromise;
-  studyFileDbPromise=new Promise(function(resolve,reject){
-    if(!window.indexedDB)return reject(new Error("التخزين المحلي غير مدعوم بهذا التطبيق"));
-    var req=indexedDB.open("darsi-study-files",2);
-    req.onupgradeneeded=function(){var db=req.result;if(!db.objectStoreNames.contains("files"))db.createObjectStore("files",{keyPath:"id"})};
-    req.onsuccess=function(){var db=req.result;db.onversionchange=function(){db.close();studyFileDbPromise=null};resolve(db)};
-    req.onerror=function(){studyFileDbPromise=null;reject(req.error||new Error("تعذر فتح التخزين المحلي"))};
-    req.onblocked=function(){reject(new Error("أغلق نسخة التطبيق الأخرى ثم حاول مجدداً"))};
-  });
-  return studyFileDbPromise;
-}
-async function getCachedStudyFile(id){
-  var db=await studyFileDB();
-  return new Promise(function(resolve,reject){
-    var tx=db.transaction(["files"],"readonly"),req=tx.objectStore("files").get(String(id));
-    req.onsuccess=function(){resolve(req.result||null)};req.onerror=function(){reject(req.error||new Error("تعذر قراءة الملزمة المحفوظة"))};
-  });
-}
-async function saveCachedStudyFile(id,blob,title){
-  var db=await studyFileDB();
-  return new Promise(function(resolve,reject){
-    var tx=db.transaction(["files"],"readwrite");
-    tx.objectStore("files").put({id:String(id),blob:blob,title:title||"الملزمة",savedAt:Date.now(),size:blob.size,type:blob.type});
-    tx.oncomplete=function(){resolve(true)};tx.onerror=function(){reject(tx.error||new Error("تعذر حفظ الملزمة"))};tx.onabort=function(){reject(tx.error||new Error("تم إلغاء حفظ الملزمة"))};
-  });
-}
-async function requestStudyStorage(){
-  try{if(navigator.storage&&navigator.storage.persist)await navigator.storage.persist()}catch(e){}
-}
-function openCachedStudyFile(item){
-  if(!item||!item.blob)throw new Error("الملزمة غير موجودة في الجهاز");
-  var id=String(item.id),url=studyFileObjectUrls[id];
-  if(!url){url=URL.createObjectURL(item.blob);studyFileObjectUrls[id]=url}
-  /* فتح الملف في تبويب مستقل؛ زر الفتح ينفذ مباشرة بعد ضغط المستخدم */
-  var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.download=item.title||"study-file";
-  document.body.appendChild(a);a.click();a.remove();
-}
+
+/* تنزيل الملزمة مع نسبة تقدم وزر فتح بعد الاكتمال */
 async function downloadStudyFile(btn){
   if(btn.disabled)return;
   var card=btn.closest(".study-file"),state=card&&card.querySelector(".file-download-state");
   if(!card||!state)return;
   var id=btn.dataset.id,title=btn.dataset.title||"الملزمة";
-  btn.disabled=true;state.hidden=false;state.style.display="block";
-  state.innerHTML='<div class="file-status">جاري التحقق من وجود نسخة محفوظة...</div>';
-  try{
-    var cached=await getCachedStudyFile(id);
-    if(cached&&cached.blob){
-      openCachedStudyFile(cached);
-      state.innerHTML='<small style="color:var(--green,#168b68)">✓ هذه الملزمة محفوظة على جهازك، لم يتم تنزيلها مرة ثانية.</small>';
-      btn.textContent="📖 فتح الملزمة";btn.classList.add("is-cached");btn.disabled=false;return;
-    }
-  }catch(cacheErr){state.innerHTML='<small class="file-status" style="color:var(--red)">تعذر الوصول إلى التخزين المحلي: '+esc(cacheErr.message||"")+'</small>';}
-  state.innerHTML='<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:7px"><b>جاري تحميل '+esc(title)+'</b><strong class="file-pct">0%</strong></div><div class="file-progress-track"><div class="file-progress-fill file-bar"></div></div><small class="file-status sub" style="display:block;margin-top:6px">بدء التحميل...</small></div>';
+  btn.disabled=true;state.hidden=false;state.innerHTML='<div style="margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:7px"><b>جاري تحميل '+esc(title)+'</b><strong class="file-pct">0%</strong></div><div style="height:9px;border-radius:20px;background:var(--bd);overflow:hidden"><div class="file-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#18a987,#4285e8);transition:width .15s"></div></div><small class="file-status sub" style="display:block;margin-top:6px">بدء الاتصال...</small></div>';
   var pct=state.querySelector(".file-pct"),bar=state.querySelector(".file-bar"),msg=state.querySelector(".file-status");
+  /* داخل تطبيق Median استخدم مدير التنزيل الأصلي لإظهار نافذة Android "فتح باستخدام". */
+  var fileUrl=new URL("/api/study/file/"+encodeURIComponent(id)+"?dl=1",window.location.origin).href;
+  if(window.median&&window.median.share&&typeof window.median.share.downloadFile==="function"){
+    msg.textContent="سيتم تنزيل الملزمة ثم إظهار التطبيقات المتاحة لفتحها...";
+    pct.textContent="⏳";bar.style.width="100%";
+    try{
+      await window.median.share.downloadFile({url:fileUrl,open:true});
+      msg.textContent="تم إرسال الملزمة إلى مدير التنزيل. اختر التطبيق المناسب عند ظهور القائمة.";
+      btn.textContent="تم إرسال الطلب";
+      return;
+    }catch(nativeErr){
+      msg.textContent="تعذر الفتح بالطريقة المباشرة، جارٍ استخدام طريقة بديلة...";
+    }
+  }
   try{
-    await requestStudyStorage();
     var res=await fetch("/api/study/file/"+encodeURIComponent(id)+"?dl=1",{credentials:"same-origin",cache:"no-store"});
     if(!res.ok)throw new Error("تعذر تنزيل الملزمة ("+res.status+")");
     var total=Number(res.headers.get("content-length"))||0,blob;
@@ -943,21 +898,16 @@ async function downloadStudyFile(btn){
       var reader=res.body.getReader(),chunks=[],loaded=0;
       while(true){var part=await reader.read();if(part.done)break;chunks.push(part.value);loaded+=part.value.byteLength;
         if(total){var n=Math.min(99,Math.round(loaded/total*100));pct.textContent=n+"%";bar.style.width=n+"%";msg.textContent="تم تنزيل "+formatFileBytes(loaded)+" من "+formatFileBytes(total)}
-        else{pct.textContent=formatFileBytes(loaded);msg.textContent="تم استلام "+formatFileBytes(loaded)}
+        else{pct.textContent=formatFileBytes(loaded);msg.textContent="جارٍ استلام الملف..."}
       }
       blob=new Blob(chunks,{type:res.headers.get("content-type")||"application/octet-stream"});
     }else{blob=await res.blob();pct.textContent="99%";bar.style.width="99%"}
-    msg.textContent="اكتمل التنزيل، جاري حفظ نسخة على الجهاز...";
-    await saveCachedStudyFile(id,blob,title);
-    pct.textContent="100%";bar.style.width="100%";
-    msg.textContent="اكتمل التحميل وحُفظت الملزمة على جهازك.";
-    btn.textContent="📖 فتح الملزمة";btn.classList.add("is-cached");
-    state.insertAdjacentHTML("beforeend",'<small style="display:block;margin-top:7px;color:var(--green,#168b68)">✓ ستبقى محفوظة عند الخروج من التطبيق والدخول مرة ثانية.</small>');
-    openCachedStudyFile({id:String(id),blob:blob,title:title});
-  }catch(err){
-    msg.textContent=(err&&err.message?err.message:"حدث خطأ أثناء التحميل")+" — اضغط إعادة المحاولة.";msg.style.color="var(--red)";
-    btn.textContent="إعادة المحاولة";btn.classList.remove("is-cached");
-  }finally{btn.disabled=false}
+    var url=URL.createObjectURL(blob);pct.textContent="100%";bar.style.width="100%";msg.textContent="اكتمل التحميل بنجاح";
+    state.insertAdjacentHTML("beforeend",'<button type="button" class="btn" style="margin-top:10px;width:100%">📖 فتح الملزمة</button>');
+    var openBtn=state.querySelector("button");openBtn.onclick=function(){var w=window.open(url,"_blank");if(!w){var a=document.createElement("a");a.href=url;a.target="_blank";a.rel="noopener";a.click()}};
+    btn.textContent="تم التحميل";
+    setTimeout(function(){URL.revokeObjectURL(url)},30*60*1000);
+  }catch(err){msg.textContent=err&&err.message?err.message:"حدث خطأ أثناء التحميل";msg.style.color="var(--red)";btn.disabled=false;btn.textContent="إعادة المحاولة"}
 }
 function formatFileBytes(n){if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(1)+" KB";return (n/1048576).toFixed(1)+" MB"}
 
@@ -2343,6 +2293,27 @@ async function rAI(){
     (AI.all.length?'<div class="card"><label class="lb">المادة</label><select id="aS"><option value="">كل المواد</option>'+subj.map(function(s){return "<option>"+esc(s)+"</option>"}).join("")+'</select><label class="lb">الفصل</label><select id="aC"></select><label class="lb">عدد الأسئلة</label><select id="aN"><option value="5">5 أسئلة</option><option value="10" selected>10 أسئلة</option><option value="0">كل الأسئلة</option></select>'+
       '<label class="chk"><input type="checkbox" id="aV" checked> 🔊 قراءة الأسئلة بصوت عالٍ</label>'+(SRC?'<label class="chk"><input type="checkbox" id="aA"> 💬 وضع المحادثة: يفتح المايك تلقائياً بعد كل سؤال</label>':"")+
       '<button id="aGo" style="width:100%;margin-top:14px">ابدأ الأسئلة 🎤</button>'+(notes.length?'<p class="sub" style="margin-top:10px;line-height:1.8">'+notes.map(esc).join("<br>")+"</p>":"")+"</div>":'<div class="card">لا توجد أسئلة لصفك بعد، تابعنا قريباً.</div>');
+  // إضافة مدرس المحادثة إلى أعلى شاشة المساعد الذكي.
+  b.insertAdjacentHTML("afterbegin", '<div class="card" id="aiTutorCard" style="border:1px solid var(--pri);margin-bottom:14px"><div style="display:flex;align-items:center;gap:10px"><div class="bot">✨</div><div><b>مدرس دَرسي الذكي</b><div class="sub">اسأل عن درس أو قانون أو مسألة دراسية</div></div></div><div id="aiTutorMessages" style="max-height:300px;overflow:auto;margin:12px 0"><div class="bub" style="margin:0">أهلاً! اكتب سؤالك الدراسي، وأشرح لك حسب صفك ومادتك.</div></div><textarea id="aiTutorInput" maxlength="3000" placeholder="اكتب سؤالك هنا..." style="min-height:75px"></textarea><div class="row" style="margin-top:8px"><select id="aiTutorSubject" aria-label="المادة" style="flex:1"><option value="">كل المواد</option></select><button id="aiTutorSend">إرسال ✦</button></div><div class="sub" id="aiTutorStatus" style="margin-top:7px" aria-live="polite">مدعوم بخدمة الذكاء الاصطناعي المتصلة بالسيرفر.</div></div>');
+  var tutorSubject=$("#aiTutorSubject"); if(tutorSubject) tutorSubject.innerHTML='<option value="">كل المواد</option>'+((S.subjects||[]).map(function(x){return '<option>'+esc(x)+'</option>'}).join(""));
+  if(tutorSubject && AI.all.length){var aiSubjects=[];AI.all.forEach(function(x){if(x.subject&&aiSubjects.indexOf(x.subject)<0)aiSubjects.push(x.subject)});tutorSubject.innerHTML='<option value="">كل المواد</option>'+aiSubjects.map(function(x){return '<option>'+esc(x)+'</option>'}).join("")}
+  if(!AI.chatHistory)AI.chatHistory=[];
+  var tutorSend=$("#aiTutorSend"),tutorInput=$("#aiTutorInput");
+  async function sendTutor(){
+    var msg=(tutorInput&&tutorInput.value||"").trim();if(msg.length<2)return;
+    var log=$("#aiTutorMessages"),status=$("#aiTutorStatus"),sub=$("#aiTutorSubject");
+    tutorInput.value="";tutorSend.disabled=true;status.textContent="جاري التفكير والإجابة...";
+    log.insertAdjacentHTML("beforeend",'<div class="card" style="background:var(--pri2);margin:7px 0;padding:10px"><b>أنت</b><div>'+esc(msg)+'</div></div><div class="card" id="aiTutorPending" style="margin:7px 0;padding:10px">🤖 جاري إعداد الشرح...</div>');log.scrollTop=log.scrollHeight;
+    try{
+      var data=await jpost("ai/chat",{message:msg,grade:S.grade||"",subject:sub&&sub.value||"",history:AI.chatHistory});
+      AI.chatHistory.push({role:"user",content:msg},{role:"assistant",content:data.answer});AI.chatHistory=AI.chatHistory.slice(-8);
+      var pending=$("#aiTutorPending");if(pending)pending.outerHTML='<div class="card" style="margin:7px 0;padding:10px"><b>مدرس دَرسي ✨</b><div style="white-space:pre-wrap;line-height:1.9;margin-top:6px">'+esc(data.answer)+'</div></div>';
+      status.textContent="تمت الإجابة. تقدر تسأل سؤالاً آخر.";
+    }catch(e){var pending=$("#aiTutorPending");if(pending)pending.outerHTML='<div class="card" style="margin:7px 0;padding:10px;color:var(--red)">'+esc(e.message||"تعذر الحصول على الإجابة")+'</div>';status.textContent="تعذر إرسال السؤال."}
+    finally{tutorSend.disabled=false;log.scrollTop=log.scrollHeight;tutorInput.focus()}
+  }
+  if(tutorSend)tutorSend.onclick=sendTutor;
+  if(tutorInput)tutorInput.onkeydown=function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendTutor()}};
   if(!AI.all.length)return;
   function chap(){var s=$("#aS").value,c=[];AI.all.forEach(function(q){if((!s||q.subject===s)&&c.indexOf(q.chapter)<0)c.push(q.chapter)});$("#aC").innerHTML='<option value="">كل الفصول</option>'+c.map(function(x){return "<option>"+esc(x)+"</option>"}).join("")}
   $("#aS").onchange=chap;chap();
@@ -2476,6 +2447,7 @@ boot();
 <script src="/track.js" defer></script>
 </body>
 </html>
+ 
  
  
  
