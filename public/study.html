@@ -405,6 +405,7 @@ nav{left:50%;right:auto;transform:translateX(-50%);bottom:10px;width:min(680px,c
 <script>
 var CB='<path d="M7 2h2v2h6V2h2v2h2a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V2z"/>';
 var IC={
+groups:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3.5 19c.4-3.2 2.2-5 5.5-5s5.1 1.8 5.5 5zM14 14.5c3.6-.8 6 .8 6.5 3.8h-4.8"/>',
 cal:CB+'<g fill="#fff" opacity=".92"><rect x="6" y="10" width="3" height="3" rx=".7"/><rect x="10.5" y="10" width="3" height="3" rx=".7"/><rect x="15" y="10" width="3" height="3" rx=".7"/><rect x="6" y="14.5" width="3" height="3" rx=".7"/><rect x="10.5" y="14.5" width="3" height="3" rx=".7"/></g>',
 absent:CB+'<path d="M9.3 10.8l5.4 5.4M14.7 10.8l-5.4 5.4" stroke="#fff" stroke-width="1.9" stroke-linecap="round" fill="none"/>',
 book:'<path d="M12 6.4C10.4 5.2 8.2 4.6 5 4.6c-.6 0-1 .4-1 1v11.4c0 .6.5 1 1 1 3 0 5.2.5 7 1.8 1.8-1.3 4-1.8 7-1.8.6 0 1-.4 1-1V5.6c0-.6-.4-1-1-1-3.2 0-5.4.6-7 1.8z"/><path d="M12 7v12" stroke="#fff" stroke-width="1.2" fill="none"/>',
@@ -644,6 +645,7 @@ var T=[
  ["ai","المساعد الذكي","robot","#e7f0ff","#2563eb","اسأل كتابةً أو بالصوت وخذ شرحاً فورياً"],
  ["explain","شرح الذكي","robot","#e4f7ff","#167ba7","ما تعرف تحل مسألة؟ اكتبها أو صوّرها والمدرّسة تشرحها وتكتبها على السبورة وتحچي بالعراقي"],
  ["experiments","تجاربي · الشخصية الهولوغرامية","robot","#e4f7ff","#167ba7","صوّر المسألة وشاهد الشخصية تتحرك وتكتب على السبورة وتحچي وياك بالعراقي"],
+ ["groups","المجموعات الطلابية","groups","#e7f1ff","#2876d8","أنشئ مجموعة دراسية أو انضم لمجموعات زملائك وتراسلوا"],
  ["law3d","مختبر القوانين 3D","books","#e3fbf8","#078b83","شاهد القوانين كمعادلات هولوغرام تفاعلية"],
  ["videos","المحاضرات","video","#f1eaff","#7c3aed","شروحات الدروس بالفيديو"],
  ["files","الملازم والملخصات","books","#fff4df","#bb7810","ملفات مرتبة حسب صفك ومادتك"],
@@ -661,15 +663,15 @@ var T=[
  ["calc","حاسبة المعدل","calc","#e2f5fb","#1786a3","احسب معدلك بسهولة"],
  ["wheel","اختيار مادة عشوائياً","calc","#fbeafa","#b344a1","خلّ القرار على عجلة الدراسة"]
 ];
-var TITLES={community:"منشورات الطلاب",explain:"شرح الذكي",experiments:"تجاربي · الشخصية الهولوغرامية",ai:"المساعد الذكي",challenge:"تحدياتي",wheel:"عجلة الدوران",phys:"لعبة الفيزياء",law3d:"قوانين 3D",plan:"خطة مذاكرتي",path:"مسار المراجعة الذكي",report:"التقرير الأسبوعي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
-var R={home:rHome,community:rCommunity,explain:function(){rExperiments("explain")},experiments:function(){rExperiments("experiments")},ai:rAI,challenge:rChallenge,wheel:rWheel,phys:rPhys,law3d:rLaw3D,plan:rPlan,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
+var TITLES={groups:"المجموعات الطلابية",community:"منشورات الطلاب",explain:"شرح الذكي",experiments:"تجاربي · الشخصية الهولوغرامية",ai:"المساعد الذكي",challenge:"تحدياتي",wheel:"عجلة الدوران",phys:"لعبة الفيزياء",law3d:"قوانين 3D",plan:"خطة مذاكرتي",path:"مسار المراجعة الذكي",report:"التقرير الأسبوعي",files:"ملازمي",videos:"محاضراتي",quiz:"امتحاناتي",paper:"الامتحانات الورقية",res:"نتيجتي",notes:"ملاحظاتي",timer:"المؤقّت",calc:"حاسبة المعدل",dates:"مواعيد الامتحانات"};
+var R={home:rHome,groups:rGroups,community:rCommunity,explain:function(){rExperiments("explain")},experiments:function(){rExperiments("experiments")},ai:rAI,challenge:rChallenge,wheel:rWheel,phys:rPhys,law3d:rLaw3D,plan:rPlan,path:rPath,report:rReport,files:rFiles,videos:rVideos,quiz:rQuiz,paper:rPaper,res:rRes,notes:rNotes,timer:rTimer,calc:rCalc,dates:rDates};
 function build(){
   var h='<section id="v-home" class="v home-view">'+
     '<header class="home-top"><div class="brand-lockup"><div class="brand-symbol" id="cms-brand-symbol">د</div><div><b id="cms-brand-name">دليني</b><span id="cms-brand-tagline">منصتك الدراسية العراقية</span></div></div><div class="home-grade"><label for="grade">الصف الدراسي</label><select id="grade" aria-label="الصف"></select></div></header>'+
     '<div class="hero-banner home-hero"><div class="hero-orb hero-orb-a"></div><div class="hero-orb hero-orb-b"></div><div class="hero-copy"><span class="eyebrow" id="cms-hero-eyebrow">مساحتك للتعلّم والإنجاز</span><h1 id="hi">أهلاً بك في دليني ✨</h1><p class="sub" id="cms-hero-description">كل أدوات دراستك بمكان واحد. خطوة صغيرة اليوم تصنع فرقاً كبيراً بالامتحان.</p><div class="hero-actions"><button data-go="plan" class="hero-primary" id="cms-hero-primary">رتّب دراسة اليوم <span>←</span></button><button data-go="quiz" class="hero-secondary" id="cms-hero-secondary">ابدأ اختباراً</button></div><div id="hero-student" class="hero-student"></div></div><div class="hero-illustration" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-book">✦</div><span class="float-note fn-one">+ تركيز</span><span class="float-note fn-two">+ إنجاز</span></div></div>'+
     '<div id="news" class="home-news"></div><div id="cms-custom-sections"></div>'+
     '<section class="community-home-entry" aria-label="مجتمع الطلاب"><div class="community-home-art"><span>✦</span><i>💬</i><b>🤝</b></div><div class="community-home-copy"><span class="community-home-kicker">مجتمع دَرسي</span><h2>منشورات الطلاب</h2><p>شارك أفكارك الدراسية، اسأل زملاءك، وشوف شنو ينشرون.</p><button data-go="community" class="community-home-button">افتح المنشورات <span>←</span></button></div><div class="community-home-arrow">‹</div></section>'+
-    '<section class="home-block" id="cms-group-learn"><div class="block-heading"><div><span class="block-kicker" id="cms-learn-kicker">ابدأ من هنا</span><h2 id="cms-learn-title">تعلّم وافهم</h2><p id="cms-learn-description">مصادر وشرح يساعدك تستوعب الدرس</p></div><span class="block-count">٠٦ أدوات</span></div><div class="tiles-grid" id="tile-learn"></div></section>'+
+    '<section class="home-block" id="cms-group-learn"><div class="block-heading"><div><span class="block-kicker" id="cms-learn-kicker">ابدأ من هنا</span><h2 id="cms-learn-title">تعلّم وافهم</h2><p id="cms-learn-description">مصادر وشرح يساعدك تستوعب الدرس</p></div><span class="block-count">٠٧ أدوات</span></div><div class="tiles-grid" id="tile-learn"></div></section>'+
     '<section class="home-block" id="cms-group-practice"><div class="block-heading"><div><span class="block-kicker" id="cms-practice-kicker">استعد بثقة</span><h2 id="cms-practice-title">تدرّب وامتحن</h2><p id="cms-practice-description">اختبر معلوماتك وراجع نقاط ضعفك</p></div><span class="block-count">٠٥ أدوات</span></div><div class="tiles-grid" id="tile-practice"></div></section>'+
     '<section class="home-block" id="cms-group-organize"><div class="block-heading"><div><span class="block-kicker" id="cms-organize-kicker">نظّم وقتك</span><h2 id="cms-organize-title">خطّط وتابع</h2><p id="cms-organize-description">خلّي دراستك واضحة وإنجازك محسوب</p></div><span class="block-count">٠٨ أدوات</span></div><div class="tiles-grid" id="tile-organize"></div></section>'+
     '<section class="home-block" id="cms-group-stats"><div class="block-heading"><div><span class="block-kicker" id="cms-stats-kicker">ملخص سريع</span><h2 id="cms-stats-title">لوحة إنجازك</h2><p id="cms-stats-description">نظرة سريعة على نشاطك الدراسي</p></div><button class="text-action" data-go="report">التقرير الكامل ←</button></div><div class="stats"><div class="st"><em id="e1"></em><b id="s1">0</b><span>مواد دراسية</span></div><div class="st"><em id="e2"></em><b id="s2">—</b><span>يوم للامتحان الأقرب</span></div><div class="st"><em id="e3"></em><b id="s3">0</b><span>ملاحظات محفوظة</span></div></div><div id="home-insight" class="home-insight"></div></section>'+
@@ -683,6 +685,7 @@ function build(){
 function go(id){
   if(id!=="experiments"&&id!=="explain"&&typeof expStop==="function")expStop();
   if(id!=="law3d"&&typeof stopLawSpin==="function")stopLawSpin();
+  if(id!=="groups"&&typeof stopGroupsPoll==="function")stopGroupsPoll();
   closeSheet();if(window.aiStop)aiStop();if(window.stopGroupPoll)stopGroupPoll();if(window.physStop)physStop();
   document.querySelectorAll(".v").forEach(function(v){v.classList.toggle("hide",v.id!=="v-"+id)});
   document.querySelectorAll("nav button").forEach(function(b){b.classList.toggle("on",b.dataset.go===id)});
@@ -731,7 +734,7 @@ function applyCmsSettings(){
 function rHome(){
   applyCmsSettings();
   var groups={
-    learn:["ai","explain","experiments","law3d","videos","files"],
+    learn:["ai","explain","experiments","groups","law3d","videos","files"],
     practice:["quiz","paper","challenge","path","phys"],
     organize:["plan","timer","dates","report","res","notes","calc","wheel"]
   };
@@ -2354,6 +2357,80 @@ document.addEventListener('click',async function(e){
  try{b.disabled=true;await communityPostAction('comment',{postId:id,text:inp.value.trim()});var p=COMMUNITY.posts.find(function(z){return z.id===id});if(p)p.comments=Number(p.comments||0)+1;var box=$('#comments-'+id);await loadCommunityComments(id,box);var countButton=document.querySelector('[data-comments="'+CSS.escape(id)+'"]');if(countButton){countButton.innerHTML='💬 التعليقات <b>'+(p?p.comments:0)+'</b>';countButton.setAttribute('aria-expanded','true')}var stats=box.closest('.community-post').querySelector('.community-post-stats span');if(stats&&p)stats.textContent='❤️ '+Number(p.likes||0)+' إعجاب · 💬 '+p.comments+' تعليق'}catch(err){alert(err.message||'تعذر إرسال التعليق')}finally{b.disabled=false}
 });
 
+
+/* ===== المجموعات الطلابية ===== */
+var STUDENT_GROUPS={profile:null,items:[],active:null,poll:null,filter:'all',search:''};
+async function groupsRequest(path,method,data){
+ var opts={method:method||'GET',cache:'no-store',headers:{}};
+ if(method==='POST'){opts.headers['content-type']='application/json';opts.body=JSON.stringify(Object.assign({deviceId:communityDeviceId()},data||{}));}
+ else{opts.headers={};}
+ var url='/api/community/groups'+path;
+ if(method!=='POST')url+=(url.indexOf('?')>=0?'&':'?')+'deviceId='+encodeURIComponent(communityDeviceId());
+ var r=await fetch(url,opts),j={};try{j=await r.json()}catch(e){}
+ if(!r.ok)throw new Error(j.error||'تعذر تنفيذ العملية');return j;
+}
+function groupsStyles(){return '<style id="student-groups-runtime">.sg-hero{position:relative;overflow:hidden;padding:21px;border-radius:23px;color:#fff;background:linear-gradient(125deg,#183f80,#2875c7 58%,#3aa6b4);margin-bottom:14px;box-shadow:0 15px 34px rgba(36,101,177,.18)}.sg-hero:after{content:"👥";position:absolute;left:18px;top:50%;transform:translateY(-50%) rotate(-8deg);font-size:62px;opacity:.2}.sg-hero h2{margin:0 0 5px;font-size:21px;color:#fff}.sg-hero p{margin:0;max-width:75%;font-size:11px;line-height:1.9;color:#e2efff}.sg-hero-tag{display:inline-flex;padding:5px 9px;border:1px solid #ffffff40;border-radius:99px;background:#ffffff18;font-size:9px;margin-bottom:9px}.sg-toolbar{display:flex;gap:8px;align-items:center;margin:12px 0}.sg-search{flex:1;min-width:0;padding:12px 13px;border:1px solid var(--bd);border-radius:14px;background:var(--card);color:var(--tx);font:inherit;font-size:12px;outline:none}.sg-search:focus,.sg-field:focus,.sg-message-input:focus{border-color:#3887df;box-shadow:0 0 0 3px #3887df20}.sg-create-toggle{padding:11px 13px;border-radius:13px;background:#2876d8;color:#fff;font-size:11px;font-weight:900;white-space:nowrap}.sg-create-box{padding:15px;border:1px solid #6ca2e044;border-radius:18px;background:linear-gradient(145deg,#edf5ff,var(--card));margin:10px 0 15px}.sg-create-box h3{margin:0 0 5px;font-size:14px;color:#225c9e}.sg-create-box p{font-size:10px;color:var(--mut);margin:0 0 8px;line-height:1.8}.sg-field{width:100%;box-sizing:border-box;margin:5px 0;padding:11px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--tx);font:inherit;font-size:12px;outline:none}.sg-submit{width:100%;padding:11px;border-radius:12px;background:linear-gradient(110deg,#2876d8,#35a3b7);color:#fff;font-size:12px;font-weight:900;margin-top:7px}.sg-tabs{display:flex;gap:7px;overflow:auto;margin:13px 0;padding-bottom:3px}.sg-tab{padding:8px 12px;border:1px solid var(--bd);border-radius:99px;background:var(--card);color:var(--mut);white-space:nowrap;font-size:10px;font-weight:800}.sg-tab.on{background:#e8f2ff;color:#216bc0;border-color:#9bc4f2}.sg-section-title{display:flex;justify-content:space-between;align-items:center;margin:16px 2px 9px}.sg-section-title b{font-size:13px}.sg-section-title span{font-size:10px;color:var(--mut)}.sg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.sg-card{min-width:0;padding:13px;border:1px solid var(--bd);border-radius:17px;background:var(--card);box-shadow:var(--shadow)}.sg-card-top{display:flex;align-items:center;gap:8px}.sg-avatar{width:39px;height:39px;flex:0 0 39px;border-radius:13px;background:linear-gradient(145deg,#dcecff,#e9f8ff);color:#286eb6;display:grid;place-items:center;font-weight:900;font-size:17px}.sg-card-title{min-width:0;flex:1}.sg-card-title b{display:block;font-size:12px;overflow-wrap:anywhere}.sg-card-title small{display:block;direction:ltr;text-align:right;color:var(--mut);font-size:9px;margin-top:3px;overflow-wrap:anywhere}.sg-card-meta{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0;color:var(--mut);font-size:9px}.sg-card-meta span{padding:4px 7px;border-radius:99px;background:var(--bg)}.sg-card-actions{display:flex;gap:6px}.sg-card-actions button{flex:1;padding:8px 5px;border-radius:10px;font-size:10px;font-weight:900}.sg-join{background:#2876d8;color:#fff}.sg-enter{background:#e8f2ff;color:#216bc0}.sg-pin{background:var(--bg);color:var(--mut);border:1px solid var(--bd)}.sg-pinned{border-color:#e5bd59;background:linear-gradient(145deg,#fff9e9,var(--card))}.sg-empty{padding:22px 12px;text-align:center;border:1px dashed var(--bd);border-radius:16px;color:var(--mut);font-size:11px;line-height:1.9;background:var(--card)}.sg-account{padding:17px;border:1px solid var(--bd);border-radius:18px;background:var(--card)}.sg-account h3{margin:0 0 5px;font-size:15px}.sg-account p{font-size:11px;color:var(--mut);line-height:1.8}.sg-chat-head{display:flex;align-items:center;gap:9px;padding:12px;border:1px solid var(--bd);border-radius:16px;background:var(--card);margin-bottom:10px}.sg-chat-head .sg-back{padding:8px 10px;background:var(--bg);color:var(--tx);border-radius:10px;font-size:11px}.sg-chat-head-main{flex:1;min-width:0}.sg-chat-head-main b{display:block;font-size:13px}.sg-chat-head-main small{font-size:9px;color:var(--mut);direction:ltr}.sg-chat-stream{height:min(56vh,520px);min-height:270px;overflow:auto;padding:12px;border-radius:17px;border:1px solid var(--bd);background:linear-gradient(180deg,var(--bg),var(--card));display:flex;flex-direction:column;gap:8px}.sg-msg{max-width:86%;align-self:flex-start;padding:9px 11px;border-radius:13px 13px 13px 4px;background:var(--card);border:1px solid var(--bd);box-shadow:0 2px 8px #1d36500d;overflow-wrap:anywhere}.sg-msg.mine{align-self:flex-end;background:#e4f1ff;border-color:#c3dcfa;border-radius:13px 13px 4px 13px;color:#1d426c}.sg-msg small{display:block;margin-bottom:4px;color:var(--mut);font-size:9px}.sg-msg p{margin:0;font-size:12px;line-height:1.8;white-space:pre-wrap}.sg-msg time{display:block;text-align:left;color:var(--mut);font-size:8px;margin-top:4px}.sg-compose{display:flex;gap:7px;margin-top:9px}.sg-message-input{flex:1;min-width:0;resize:none;padding:10px;border:1px solid var(--bd);border-radius:13px;background:var(--card);color:var(--tx);font:inherit;font-size:12px;outline:none}.sg-send{padding:0 16px;border-radius:12px;background:#2876d8;color:#fff;font-weight:900}.sg-note{font-size:9px;color:var(--mut);line-height:1.8;margin:8px 2px}@media(max-width:520px){.sg-grid{grid-template-columns:1fr}.sg-hero:after{font-size:46px;left:10px}.sg-hero p{max-width:82%}.sg-toolbar{align-items:stretch}.sg-create-toggle{padding:10px}.sg-chat-stream{height:54vh}}</style>'}
+function groupsRenderAccount(){
+ var b=$('#b-groups');if(!b)return;
+ b.innerHTML=groupsStyles()+'<div class="sg-hero"><span class="sg-hero-tag">تواصل وتعاون دراسي</span><h2>المجموعات الطلابية</h2><p>أنشئ مجموعة لصفك أو لمادتك، وانضم إلى مجموعات زملائك وتبادلوا الرسائل والأسئلة.</p></div><div id="sgAccount"></div>';
+ var host=$('#sgAccount');
+ if(STUDENT_GROUPS.profile){groupsRenderHome();return}
+ host.innerHTML='<div class="sg-account"><h3>👋 أنشئ حسابك أولاً</h3><p>استخدم نفس يوزرك في مجتمع المنشورات. ما تحتاج رمز نتيجتي.</p><input id="sgName" class="sg-field" maxlength="40" placeholder="اسمك الظاهر للطلاب"><input id="sgUsername" class="sg-field" maxlength="24" placeholder="يوزرك مثل ali_2008"><button class="sg-submit" id="sgCreateAccount">إنشاء الحساب والمتابعة</button><div id="sgAccountError" class="err" style="margin-top:8px"></div></div>';
+ $('#sgCreateAccount').onclick=async function(){var btn=this;btn.disabled=true;btn.textContent='جاري إنشاء الحساب…';try{var x=await communityPostAction('profile',{name:$('#sgName').value,username:$('#sgUsername').value});STUDENT_GROUPS.profile=x.profile;COMMUNITY.profile=x.profile;groupsRenderHome()}catch(e){$('#sgAccountError').textContent=e.message;btn.disabled=false;btn.textContent='إنشاء الحساب والمتابعة'}};
+}
+async function rGroups(){
+ stopGroupsPoll();STUDENT_GROUPS.active=null;STUDENT_GROUPS.filter='all';STUDENT_GROUPS.search='';
+ var b=$('#b-groups');if(!b)return;
+ b.innerHTML=groupsStyles()+'<div class="sg-hero"><span class="sg-hero-tag">تواصل وتعاون دراسي</span><h2>المجموعات الطلابية</h2><p>أنشئ مجموعة لصفك أو لمادتك، وانضم إلى مجموعات زملائك وتبادلوا الرسائل والأسئلة.</p></div><div class="sg-empty">جاري تحميل المجموعات…</div>';
+ try{var x=await communityPostAction('profile',{});STUDENT_GROUPS.profile=x.profile||null;COMMUNITY.profile=x.profile||null;if(!x.profile){groupsRenderAccount();return}await groupsLoad();groupsRenderHome()}catch(e){b.innerHTML=groupsStyles()+'<div class="sg-empty">'+esc(e.message)+'</div><button class="sg-submit" onclick="rGroups()">إعادة المحاولة</button>'}
+}
+async function groupsLoad(){var x=await groupsRequest('', 'GET');STUDENT_GROUPS.items=Array.isArray(x)?x:[]}
+function groupsCard(g){
+ var pinned=g.pinned?'sg-pinned':'';
+ return '<article class="sg-card '+pinned+'"><div class="sg-card-top"><div class="sg-avatar">'+esc((g.name||'م').trim().slice(0,1))+'</div><div class="sg-card-title"><b>'+esc(g.name)+'</b><small>@'+esc(g.username)+'</small></div></div><div class="sg-card-meta"><span>👥 '+Number(g.membersCount||0)+' عضو</span><span>✍️ '+esc(g.creatorName||'طالب')+'</span>'+(g.isMine?'<span>مجموعتك</span>':'')+(g.pinned?'<span>📌 مثبتة</span>':'')+'</div><div class="sg-card-actions">'+(g.joined?'<button class="sg-enter" data-sg-enter="'+esc(g.id)+'">فتح المجموعة</button><button class="sg-pin" data-sg-pin="'+esc(g.id)+'" data-pinned="'+(g.pinned?'1':'0')+'">'+(g.pinned?'إلغاء التثبيت':'📌 تثبيت')+'</button>':'<button class="sg-join" data-sg-join="'+esc(g.id)+'">＋ انضمام للمجموعة</button>')+'</div></article>';
+}
+function groupsRenderHome(){
+ stopGroupsPoll();STUDENT_GROUPS.active=null;
+ var b=$('#b-groups');if(!b)return;
+ var items=STUDENT_GROUPS.items||[],pinned=items.filter(g=>g.joined&&g.pinned),mine=items.filter(g=>g.joined),shown=items.filter(function(g){var q=STUDENT_GROUPS.search.toLowerCase();var match=!q||[g.name,g.username,g.creatorName,g.creatorUsername].join(' ').toLowerCase().includes(q);if(!match)return false;if(STUDENT_GROUPS.filter==='mine')return g.joined;if(STUDENT_GROUPS.filter==='pinned')return g.joined&&g.pinned;return true});
+ b.innerHTML=groupsStyles()+'<div class="sg-hero"><span class="sg-hero-tag">تواصل وتعاون دراسي</span><h2>المجموعات الطلابية</h2><p>أنشئ مجموعة لصفك أو لمادتك، وانضم إلى مجموعات زملائك وتبادلوا الرسائل والأسئلة.</p></div><div class="sg-toolbar"><input id="sgSearch" class="sg-search" value="'+esc(STUDENT_GROUPS.search)+'" placeholder="🔎 ابحث عن مجموعة بالاسم أو اليوزر"><button class="sg-create-toggle" id="sgToggleCreate">＋ إنشاء مجموعة</button></div><div id="sgCreateHost"></div>'+
+ '<div class="sg-section-title"><b>📌 مجموعاتي المثبتة</b><span>'+pinned.length+' مجموعة</span></div><div class="sg-grid">'+(pinned.length?pinned.map(groupsCard).join(''):'<div class="sg-empty" style="grid-column:1/-1">ما مثبت أي مجموعة بعد. انضم لمجموعة واضغط «تثبيت» حتى تبقى ظاهرة هنا.</div>')+'</div>'+
+ '<div class="sg-tabs"><button class="sg-tab '+(STUDENT_GROUPS.filter==='all'?'on':'')+'" data-sg-filter="all">كل المجموعات ('+items.length+')</button><button class="sg-tab '+(STUDENT_GROUPS.filter==='mine'?'on':'')+'" data-sg-filter="mine">المجموعات المنضم إلها ('+mine.length+')</button><button class="sg-tab '+(STUDENT_GROUPS.filter==='pinned'?'on':'')+'" data-sg-filter="pinned">المثبتة ('+pinned.length+')</button></div><div class="sg-section-title"><b>🌐 مجموعات أنشأها الطلاب</b><span>انضم لأكثر من مجموعة</span></div><div class="sg-grid" id="sgGroupList">'+(shown.length?shown.map(groupsCard).join(''):'<div class="sg-empty" style="grid-column:1/-1">ما لقينا مجموعات مطابقة. جرّب كلمة بحث ثانية أو أنشئ مجموعة جديدة.</div>')+'</div><p class="sg-note">يوزر المجموعة فريد بين المجموعات. الرسائل تظهر فقط للطلاب المنضمّين إلى نفس المجموعة.</p>';
+ $('#sgSearch').oninput=function(){STUDENT_GROUPS.search=this.value;var q=this.value.toLowerCase();var a=STUDENT_GROUPS.items.filter(function(g){var match=!q||[g.name,g.username,g.creatorName,g.creatorUsername].join(' ').toLowerCase().includes(q);if(!match)return false;if(STUDENT_GROUPS.filter==='mine')return g.joined;if(STUDENT_GROUPS.filter==='pinned')return g.joined&&g.pinned;return true});$('#sgGroupList').innerHTML=a.length?a.map(groupsCard).join(''):'<div class="sg-empty" style="grid-column:1/-1">ما لقينا مجموعة بهذا الاسم.</div>'};
+ $('#sgToggleCreate').onclick=function(){var h=$('#sgCreateHost');if(h.innerHTML){h.innerHTML='';return}h.innerHTML='<div class="sg-create-box"><h3>إنشاء مجموعة جديدة</h3><p>اكتب اسم واضح، وحدد يوزر فريد حتى يگدر زملاؤك يبحثون عنها.</p><input id="sgGroupName" class="sg-field" maxlength="50" placeholder="اسم المجموعة، مثلاً: طلاب السادس العلمي"><input id="sgGroupUsername" class="sg-field" maxlength="24" placeholder="يوزر المجموعة بالإنكليزي مثل sixth_science"><button id="sgCreateGroup" class="sg-submit">إنشاء المجموعة ←</button><div id="sgCreateError" class="err" style="margin-top:7px"></div></div>'};
+}
+async function groupsOpen(id){
+ var g=STUDENT_GROUPS.items.find(x=>x.id===id);if(!g||!g.joined)throw new Error('انضم للمجموعة أولاً');
+ STUDENT_GROUPS.active=g;stopGroupsPoll();var b=$('#b-groups');
+ b.innerHTML=groupsStyles()+'<div class="sg-chat-head"><button class="sg-back" id="sgBack">← رجوع</button><div class="sg-avatar">'+esc((g.name||'م').trim().slice(0,1))+'</div><div class="sg-chat-head-main"><b>'+esc(g.name)+'</b><small>@'+esc(g.username)+' · '+Number(g.membersCount||0)+' عضو</small></div><button class="sg-pin" id="sgChatPin">'+(g.pinned?'📌 مثبتة':'تثبيت')+'</button></div><div id="sgChatStream" class="sg-chat-stream"><div class="sg-empty">جاري تحميل الرسائل…</div></div><div class="sg-compose"><textarea id="sgMessage" class="sg-message-input" rows="2" maxlength="1200" placeholder="اكتب رسالة للمجموعة…"></textarea><button id="sgSend" class="sg-send">إرسال</button></div><p class="sg-note">المحادثة خاصة بأعضاء المجموعة. لا تشارك معلوماتك الشخصية أو كلمات المرور.</p>';
+ $('#sgBack').onclick=groupsRenderHome;
+ $('#sgChatPin').onclick=async function(){var p=!g.pinned;await groupsRequest('/pin','POST',{groupId:id,pinned:p});g.pinned=p;this.textContent=p?'📌 مثبتة':'تثبيت'};
+ $('#sgSend').onclick=groupsSendMessage;
+ $('#sgMessage').onkeydown=function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();groupsSendMessage()}};
+ await groupsLoadMessages(id);STUDENT_GROUPS.poll=setInterval(function(){if(STUDENT_GROUPS.active&&STUDENT_GROUPS.active.id===id)groupsLoadMessages(id,true)},7000);
+}
+function stopGroupsPoll(){if(STUDENT_GROUPS.poll){clearInterval(STUDENT_GROUPS.poll);STUDENT_GROUPS.poll=null}}
+async function groupsLoadMessages(id,silent){
+ var stream=$('#sgChatStream');if(!stream)return;var atBottom=stream.scrollHeight-stream.scrollTop-stream.clientHeight<80;
+ try{var rows=await groupsRequest('/'+encodeURIComponent(id)+'/messages','GET');if(!STUDENT_GROUPS.active||STUDENT_GROUPS.active.id!==id)return;stream.innerHTML=rows.length?rows.map(function(m){return '<div class="sg-msg '+(m.mine?'mine':'')+'"><small>'+esc(m.author)+' · @'+esc(m.username)+'</small><p>'+esc(m.text)+'</p><time>'+new Date(m.createdAt).toLocaleTimeString('ar-IQ',{hour:'2-digit',minute:'2-digit'})+'</time></div>'}).join(''):'<div class="sg-empty">بداية محادثة جديدة 👋<br>اكتب أول رسالة للمجموعة.</div>';if(atBottom||!silent)stream.scrollTop=stream.scrollHeight}catch(e){if(!silent)stream.innerHTML='<div class="sg-empty">'+esc(e.message)+'</div>'}
+}
+async function groupsSendMessage(){
+ var input=$('#sgMessage'),btn=$('#sgSend'),g=STUDENT_GROUPS.active;if(!input||!btn||!g)return;var text=input.value.trim();if(!text)return;
+ btn.disabled=true;try{await groupsRequest('/message','POST',{groupId:g.id,text});input.value='';await groupsLoadMessages(g.id)}catch(e){alert(e.message)}finally{btn.disabled=false;input.focus()}
+}
+document.addEventListener('click',async function(e){
+ var t=e.target.closest('[data-sg-filter],[data-sg-join],[data-sg-enter],[data-sg-pin],#sgCreateGroup');if(!t)return;
+ try{
+  if(t.dataset.sgFilter){STUDENT_GROUPS.filter=t.dataset.sgFilter;groupsRenderHome();return}
+  if(t.id==='sgCreateGroup'){
+   t.disabled=true;t.textContent='جاري إنشاء المجموعة…';var x=await groupsRequest('/create','POST',{name:$('#sgGroupName').value,username:$('#sgGroupUsername').value});await groupsLoad();groupsRenderHome();var g=STUDENT_GROUPS.items.find(z=>z.id===x.group.id);if(g)await groupsOpen(g.id);return;
+  }
+  if(t.dataset.sgJoin){var id=t.dataset.sgJoin;t.disabled=true;t.textContent='جاري الانضمام…';await groupsRequest('/join','POST',{groupId:id});await groupsLoad();groupsRenderHome();return}
+  if(t.dataset.sgEnter){await groupsOpen(t.dataset.sgEnter);return}
+  if(t.dataset.sgPin){var id=t.dataset.sgPin,p=t.dataset.pinned!=='1';await groupsRequest('/pin','POST',{groupId:id,pinned:p});await groupsLoad();groupsRenderHome();return}
+ }catch(err){alert(err.message||'تعذر إكمال العملية');if(t.id==='sgCreateGroup'){t.disabled=false;t.textContent='إنشاء المجموعة ←'}else if(t.dataset.sgJoin){t.disabled=false;t.textContent='＋ انضمام للمجموعة'}}
+});
+
 async function rAI(){
   var b=$("#b-ai");AI.view="setup";
   if(!AI.all||AI.grade!==S.grade){loading(b);try{AI.all=await jget("questions?grade="+encodeURIComponent(S.grade));AI.grade=S.grade}catch(e){return errBox(b,rAI)}}
@@ -2520,7 +2597,6 @@ boot();
 <script src="/track.js" defer></script>
 </body>
 </html>
- 
  
  
  
