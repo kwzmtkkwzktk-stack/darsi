@@ -126,7 +126,7 @@ module.exports = function groupsAPI(app, db) {
       if (!await member(database, groupId, userId)) return res.status(403).json({ error: 'انضم للمجموعة حتى تشوف المحادثة.' });
       const rows = await database.collection('community_group_messages').find({ groupId }).sort({ createdAt: -1 }).limit(80).toArray();
       res.set('Cache-Control', 'no-store');
-      res.json(rows.reverse().map(m => ({ id: String(m._id), author: m.author, username: m.username, text: m.text, mine: m.userId === userId, createdAt: m.createdAt })));
+      res.json(rows.reverse().map(m => ({ id: String(m._id), author: m.author, username: m.username, verified: String(m.username || '').toLowerCase() === 'aaa', designer: String(m.username || '').toLowerCase() === 'aaa', text: m.text, image: m.image || '', mine: m.userId === userId, createdAt: m.createdAt })));
     } catch (e) { fail(res, e); }
   });
 
@@ -135,14 +135,16 @@ module.exports = function groupsAPI(app, db) {
       const userId = identity(req, res); if (!userId) return;
       if (!validId(req.body.groupId)) return res.status(400).json({ error: 'المجموعة غير صحيحة.' });
       const text = clean(req.body.text, 1200);
-      if (!text) return res.status(400).json({ error: 'اكتب رسالتك أولاً.' });
+      const image = typeof req.body.image === 'string' ? req.body.image : '';
+      if (!text && !image) return res.status(400).json({ error: 'اكتب رسالة أو اختر صورة أولاً.' });
+      if (image && (!/^data:image\/(jpeg|png|webp|gif);base64,/i.test(image) || image.length > 5_600_000)) return res.status(400).json({ error: 'الصورة غير مدعومة أو حجمها أكبر من 4 ميغابايت.' });
       const database = await db(), groupId = new ObjectId(req.body.groupId);
       const p = await profile(database, userId);
       if (!p) return res.status(403).json({ error: 'أنشئ حسابك أولاً.' });
       if (!await member(database, groupId, userId)) return res.status(403).json({ error: 'انضم للمجموعة حتى تراسل أعضاءها.' });
-      const doc = { groupId, userId, author: p.name, username: p.username, text, createdAt: new Date() };
+      const doc = { groupId, userId, author: p.name, username: p.username, text, image, createdAt: new Date() };
       const result = await database.collection('community_group_messages').insertOne(doc);
-      res.json({ ok: true, message: { id: String(result.insertedId), author: doc.author, username: doc.username, text, mine: true, createdAt: doc.createdAt } });
+      res.json({ ok: true, message: { id: String(result.insertedId), author: doc.author, username: doc.username, verified: String(doc.username || '').toLowerCase() === 'aaa', designer: String(doc.username || '').toLowerCase() === 'aaa', text, image, mine: true, createdAt: doc.createdAt } });
     } catch (e) { fail(res, e); }
   });
 };
