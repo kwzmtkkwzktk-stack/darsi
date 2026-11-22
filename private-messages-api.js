@@ -4,6 +4,7 @@ module.exports = function privateMessagesAPI(app, db) {
     await d.collection('private_messages').createIndex({ fromId: 1, toId: 1, createdAt: -1 });
     await d.collection('private_message_blocks').createIndex({ ownerId: 1, blockedId: 1 }, { unique: true });
     await d.collection('private_message_pins').createIndex({ ownerId: 1, otherId: 1 }, { unique: true });
+    await d.collection('private_message_reads').createIndex({ ownerId: 1, otherId: 1 }, { unique: true });
   }).catch(e => console.error('Private messages indexes:', e.message));
 
   const clean = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
@@ -95,18 +96,27 @@ module.exports = function privateMessagesAPI(app, db) {
         if (!map.has(other)) map.set(other, m);
       }
       const ids = [...map.keys()];
-      const [profiles, pins, blockedRows, presences] = await Promise.all([
+      const [profiles, pins, blockedRows, presences, reads] = await Promise.all([
         ids.length ? d.collection('community_profiles').find({ _id: { $in: ids } }).toArray() : [],
         ids.length ? d.collection('private_message_pins').find({ ownerId: id, otherId: { $in: ids } }).toArray() : [],
         ids.length ? d.collection('private_message_blocks').find({ ownerId: id, blockedId: { $in: ids } }).toArray() : [],
-        presenceFor(d, ids)
+        presenceFor(d, ids),
+        ids.length ? d.collection('private_message_reads').find({ ownerId: id, otherId: { $in: ids } }).toArray() : []
       ]);
       const byId = new Map(profiles.map(p => [p._id, p]));
       const pinSet = new Set(pins.map(p => p.otherId));
       const blockSet = new Set(blockedRows.map(x => x.blockedId));
+      const readMap = new Map(reads.map(x => [x.otherId, x.lastReadAt]));
+      const unreadCounts = new Map();
+      await Promise.all(ids.map(async otherId => {
+        const lastReadAt = readMap.get(otherId) || new Date(0);
+        const count = await d.collection('private_messages').countDocuments({ fromId: otherId, toId: id, createdAt: { $gt: lastReadAt }, hiddenFor: { $ne: id } });
+        unreadCounts.set(otherId, count);
+      }));
       res.set('Cache-Control', 'no-store');
       res.json(ids.filter(x => byId.has(x)).map(x => ({
         id: x, ...userView(byId.get(x)), lastText: map.get(x).text,
+        unreadCount: unreadCounts.get(x) || 0,
         pinned: pinSet.has(x), blocked: blockSet.has(x), presence: presences.get(x) || { online: false, lastSeen: null },
         createdAt: map.get(x).createdAt
       })).sort((a, b) => Number(b.pinned) - Number(a.pinned) || new Date(b.createdAt) - new Date(a.createdAt)));
@@ -115,12 +125,38 @@ module.exports = function privateMessagesAPI(app, db) {
     }
   });
 
+  // ملخص الإشعارات والرسائل غير المقروءة للحساب الحالي.
+  app.get('/api/community/private/notifications', async (req, res) => {
+    try {
+      const id = identity(req, res); if (!id) return;
+      const d = await db();
+      if (!await me(d, id)) return res.status(403).json({ error: 'أنشئ حسابك أولاً.' });
+      const reads = await d.collection('private_message_reads').find({ ownerId: id }).toArray();
+      const readMap = new Map(reads.map(x => [x.otherId, x.lastReadAt || new Date(0)]));
+      const senders = await d.collection('private_messages').distinct('fromId', { toId: id, hiddenFor: { $ne: id } });
+      const items = [];
+      for (const senderId of senders) {
+        const count = await d.collection('private_messages').countDocuments({ fromId: senderId, toId: id, createdAt: { $gt: readMap.get(senderId) || new Date(0) }, hiddenFor: { $ne: id } });
+        if (count) {
+          const profile = await me(d, senderId);
+          if (profile) items.push({ ...userView(profile), unreadCount: count });
+        }
+      }
+      res.set('Cache-Control', 'no-store');
+      res.json({ total: items.reduce((n, x) => n + x.unreadCount, 0), items });
+    } catch (e) { console.error('Private notifications:', e); res.status(500).json({ error: 'تعذر تحميل الإشعارات.' }); }
+  });
+
   app.get('/api/community/private/:username', async (req, res) => {
     try {
       const id = identity(req, res); if (!id) return;
       const d = await db(), p = await me(d, id), other = await getOther(d, req.params.username);
       if (!p || !other) return res.status(404).json({ error: 'الطالب غير موجود.' });
       if (other._id === id) return res.status(400).json({ error: 'هذا حسابك أنت.' });
+      await d.collection('private_message_reads').updateOne(
+        { ownerId: id, otherId: other._id },
+        { $set: { ownerId: id, otherId: other._id, lastReadAt: new Date() } }, { upsert: true }
+      );
       const [rows, presenceRow, blocks] = await Promise.all([
         d.collection('private_messages').find({
           $or: [{ fromId: id, toId: other._id }, { fromId: other._id, toId: id }],
@@ -191,12 +227,14 @@ module.exports = function privateMessagesAPI(app, db) {
       const id = identity(req, res); if (!id) return;
       const d = await db(), other = await getOther(d, req.body.username);
       if (!other || other._id === id) return res.status(404).json({ error: 'الطالب غير موجود.' });
-      if (req.body.blocked) await d.collection('private_message_blocks').updateOne(
+      const shouldBlock = req.body.blocked === true;
+      if (shouldBlock) await d.collection('private_message_blocks').updateOne(
         { ownerId: id, blockedId: other._id },
         { $set: { ownerId: id, blockedId: other._id, createdAt: new Date() } }, { upsert: true }
       );
       else await d.collection('private_message_blocks').deleteOne({ ownerId: id, blockedId: other._id });
       const blocks = await blockState(d, id, other._id);
+      res.set('Cache-Control', 'no-store');
       res.json({ ok: true, ...blocks });
     } catch (e) { console.error(e); res.status(500).json({ error: 'تعذر تحديث الحظر.' }); }
   });
