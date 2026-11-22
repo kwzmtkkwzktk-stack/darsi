@@ -495,6 +495,7 @@ app.get("/api/img/:id", async (req, res) => {
 
 // المنصة الدراسية (الطلاب، الملازم، المحاضرات، الامتحانات)
 require("./study-api")(app, db, express);
+require("./community-api")(app, db, express);
 
 // إحصائيات الزوار والمشاهدات
 require("./analytics")(app, db);
