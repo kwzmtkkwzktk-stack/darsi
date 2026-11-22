@@ -497,6 +497,7 @@ app.get("/api/img/:id", async (req, res) => {
 require("./study-api")(app, db, express);
 require("./community-api")(app, db, express);
 require("./groups-api")(app, db, express);
+require("./private-messages-api")(app, db, express);
 
 // إحصائيات الزوار والمشاهدات
 require("./analytics")(app, db);
