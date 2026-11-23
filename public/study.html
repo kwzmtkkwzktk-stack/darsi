@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>دليني | منصتك الدراسية العراقية</title>
-<meta name="description" content="منصة دليني التعليمية للطالب العراقي: ملازم ومحاضرات وامتحانات وخطة مذاكرة ومختبر قوانين تفاعلي.">
+<title>ابن الهيثم | المنصة الجامعية</title>
+<meta name="description" content="منصة ابن الهيثم الجامعية لطلبة كلية التربية للعلوم الصرفة – جامعة بغداد.">
 <script src="/challenges-data.js" defer></script>
 <script src="/physics-game-data.js" defer></script>
 <script src="/laws-3d-data.js" defer></script>
@@ -386,9 +386,72 @@ nav{left:50%;right:auto;transform:translateX(-50%);bottom:10px;width:min(680px,c
 @media(max-width:760px){.exp-layout{grid-template-columns:1fr}.exp-tutor-stage{min-height:132px;padding:10px}.exp-avatar-wrap{width:100px;height:105px;flex-basis:100px}.exp-avatar-svg{width:83px;height:96px}.exp-board{min-height:350px}}@media(max-width:420px){.exp-talk p{font-size:11px}.exp-talk{padding:9px}.exp-avatar-wrap{width:84px;flex-basis:84px}.exp-avatar-svg{width:76px}.exp-work{font-size:24px}.exp-explain{font-size:18px}}
 @media(prefers-reduced-motion:reduce){.exp-board:after,.exp-char,.exp-char-body,.exp-char-mouth,.exp-char-arm-right,.exp-char-hand,.exp-char-p1,.exp-char-p2,.exp-char-p3,.exp-char-p4,.exp-step.written .exp-work,.exp-step.written .exp-work:after,.exp-final.show{animation:none!important}.exp-step{transition:none}}
 </style>
+<style>
+/* ===== Ibn Al-Haytham University visual identity (presentation only) ===== */
+:root{
+ --bg:#f3f6f8;--card:#ffffff;--glass:rgba(255,255,255,.96);
+ --tx:#172b3d;--mut:#728391;--pri:#126b58;--pri2:#e4f1ec;
+ --accent:#c49a45;--grad:linear-gradient(135deg,#0e6655,#1a8870);
+ --grad2:linear-gradient(135deg,#0d594c,#167c68);--bd:#dce7e3;
+ --shadow:0 10px 28px rgba(20,53,48,.07);
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+ --bg:#101a20;--card:#18262c;--glass:rgba(24,38,44,.97);--tx:#edf5f2;
+ --mut:#a5b7b1;--pri:#70c5aa;--pri2:#203a34;--bd:#2d4540;
+ --accent:#d6b36b;--grad:linear-gradient(135deg,#155d4e,#247c68);
+ --grad2:linear-gradient(135deg,#155d4e,#247c68);--shadow:0 10px 28px rgba(0,0,0,.2)
+}}
+:root[data-theme="dark"]{--bg:#101a20;--card:#18262c;--glass:rgba(24,38,44,.97);--tx:#edf5f2;--mut:#a5b7b1;--pri:#70c5aa;--pri2:#203a34;--bd:#2d4540;--accent:#d6b36b;--grad:linear-gradient(135deg,#155d4e,#247c68);--grad2:linear-gradient(135deg,#155d4e,#247c68)}
+body{background-color:var(--bg);background-image:radial-gradient(ellipse at 8% 0%,rgba(18,107,88,.09),transparent 38%),linear-gradient(180deg,rgba(246,249,247,.96),var(--bg) 360px);background-attachment:scroll}
+@media(prefers-color-scheme:dark){body{background-image:radial-gradient(ellipse at 8% 0%,rgba(45,133,108,.12),transparent 38%),linear-gradient(180deg,#101a20,#101a20 420px)}}
+.wrap{max-width:1080px;padding:14px 20px calc(112px + env(safe-area-inset-bottom,0px))}
+.uni-brand{display:flex;align-items:center;gap:13px;padding:15px 18px;margin:2px 0 20px;border:1px solid rgba(196,154,69,.27);border-radius:22px;background:linear-gradient(115deg,#103d38,#126b58 68%,#1b7965);color:#fff;box-shadow:0 12px 30px rgba(14,75,62,.16);position:relative;overflow:hidden}
+.uni-brand:after{content:"";position:absolute;width:180px;height:180px;border:1px solid rgba(255,255,255,.13);border-radius:50%;left:-48px;top:-105px;box-shadow:0 0 0 18px rgba(255,255,255,.035),0 0 0 38px rgba(255,255,255,.025)}
+.uni-seal{width:49px;height:49px;flex:0 0 49px;border:2px solid #d9bd7d;border-radius:50%;display:grid;place-items:center;color:#f0d99d;font-family:serif;font-size:27px;font-weight:900;background:rgba(255,255,255,.08)}
+.uni-brand-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.uni-brand-copy strong{font-size:12px;color:#d7e9e2;font-weight:700}
+.uni-brand-copy b{font-size:15px;line-height:1.5;color:#fff}
+.uni-brand-copy small{font-size:11px;color:#c5ded5}
+.uni-brand-mark{margin-right:auto;border:1px solid rgba(231,208,151,.5);border-radius:10px;padding:5px 8px;color:#e8d29b;font-size:10px;font-weight:900;letter-spacing:1px}
+h1,h2,.bar h1{letter-spacing:-.25px}
+h2{color:var(--tx)}
+.card,.tile,.home-insight,.st,.home-news .card{border-radius:19px;border-color:var(--bd);box-shadow:var(--shadow)}
+.card{background:var(--glass);backdrop-filter:blur(10px)}
+.tile{background:var(--card);border-radius:21px;padding:19px 10px 17px;transition:transform .18s,border-color .18s,box-shadow .18s}
+.tile:hover{transform:translateY(-3px);border-color:rgba(18,107,88,.4);box-shadow:0 14px 30px rgba(18,107,88,.1)}
+.ic{border-radius:17px;background:var(--pri2);color:var(--pri)}
+.hero,.plan-hero{background:linear-gradient(125deg,#103d38,#126b58 64%,#c49a45)!important;border-radius:24px;box-shadow:0 14px 32px rgba(13,83,68,.16)}
+button,.btn{border-radius:13px}
+button:not(nav button){transition:filter .15s,transform .15s}
+button:not(nav button):active{transform:scale(.985)}
+input,select,textarea{border-radius:13px!important;border-color:var(--bd)!important}
+.opt{border-radius:14px}
+nav{background:rgba(255,255,255,.94)!important;border:1px solid rgba(18,107,88,.16)!important;box-shadow:0 12px 36px rgba(18,53,46,.16)!important;backdrop-filter:blur(20px)}
+nav button{color:#71827d}
+nav button.on{background:#e4f1ec!important;color:#126b58!important}
+:root[data-theme="dark"] nav{background:rgba(22,37,42,.96)!important;border-color:#35534a!important}
+:root[data-theme="dark"] nav button.on{background:#203a34!important;color:#85d2b8!important}
+@media(max-width:520px){
+ .wrap{padding:10px 12px calc(108px + env(safe-area-inset-bottom,0px))}
+ .uni-brand{padding:12px 13px;margin-bottom:15px;border-radius:18px}
+ .uni-seal{width:43px;height:43px;flex-basis:43px}
+ .uni-brand-copy b{font-size:13px}
+ .uni-brand-mark{font-size:9px;padding:4px 6px}
+ .grid{gap:11px}
+}
+</style>
 </head>
 <body>
 <div class="wrap">
+  <header class="uni-brand" aria-label="هوية المنصة الجامعية">
+    <div class="uni-seal"><span>هـ</span></div>
+    <div class="uni-brand-copy">
+      <strong>جامعة بغداد</strong>
+      <b>كلية التربية للعلوم الصرفة – ابن الهيثم</b>
+      <small>بوابتك الجامعية للتعلّم والتواصل</small>
+    </div>
+    <span class="uni-brand-mark">UOB</span>
+  </header>
   <div id="boot" class="card" style="margin-top:30px;text-align:center">جاري تجهيز المنصة... ⏳</div>
   <main id="app"></main>
 </div>
