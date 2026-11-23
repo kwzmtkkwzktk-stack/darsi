@@ -7,6 +7,7 @@ module.exports = function groupsAPI(app, db) {
     await database.collection('community_group_members').createIndex({ groupId: 1, userId: 1 }, { unique: true });
     await database.collection('community_group_members').createIndex({ userId: 1, pinned: 1 });
     await database.collection('community_group_messages').createIndex({ groupId: 1, createdAt: 1 });
+    await database.collection('community_group_reads').createIndex({ groupId: 1, userId: 1 }, { unique: true });
   }).catch(e => console.error('Groups indexes:', e.message));
 
   const clean = (v, n) => String(v == null ? '' : v).trim().slice(0, n);
@@ -124,9 +125,28 @@ module.exports = function groupsAPI(app, db) {
       if (!validId(req.params.id)) return res.status(404).json({ error: 'المجموعة غير موجودة.' });
       const database = await db(), groupId = new ObjectId(req.params.id);
       if (!await member(database, groupId, userId)) return res.status(403).json({ error: 'انضم للمجموعة حتى تشوف المحادثة.' });
-      const rows = await database.collection('community_group_messages').find({ groupId }).sort({ createdAt: -1 }).limit(80).toArray();
+      const readAt = new Date();
+      await database.collection('community_group_reads').updateOne(
+        { groupId, userId },
+        { $set: { groupId, userId, lastReadAt: readAt } },
+        { upsert: true }
+      );
+      const [rows, otherMembers] = await Promise.all([
+        database.collection('community_group_messages').find({ groupId }).sort({ createdAt: -1 }).limit(80).toArray(),
+        database.collection('community_group_members').find({ groupId, userId: { $ne: userId } }, { projection: { userId: 1 } }).toArray()
+      ]);
+      const otherIds = otherMembers.map(m => m.userId);
+      const readRows = otherIds.length
+        ? await database.collection('community_group_reads').find({ groupId, userId: { $in: otherIds } }).toArray()
+        : [];
+      const readMap = new Map(readRows.map(r => [r.userId, r.lastReadAt ? new Date(r.lastReadAt).getTime() : 0]));
       res.set('Cache-Control', 'no-store');
-      res.json(rows.reverse().map(m => ({ id: String(m._id), author: m.author, username: m.username, verified: String(m.username || '').toLowerCase() === 'aaa', designer: String(m.username || '').toLowerCase() === 'aaa', text: m.text, image: m.image || '', mine: m.userId === userId, createdAt: m.createdAt })));
+      res.json(rows.reverse().map(m => {
+        const mine = m.userId === userId;
+        const created = new Date(m.createdAt).getTime();
+        const seenCount = mine ? otherIds.reduce((count, otherId) => count + ((readMap.get(otherId) || 0) >= created ? 1 : 0), 0) : 0;
+        return { id: String(m._id), author: m.author, username: m.username, verified: String(m.username || '').toLowerCase() === 'aaa', designer: String(m.username || '').toLowerCase() === 'aaa', text: m.text, image: m.image || '', mine, seenCount, createdAt: m.createdAt };
+      }));
     } catch (e) { fail(res, e); }
   });
 
@@ -144,7 +164,7 @@ module.exports = function groupsAPI(app, db) {
       if (!await member(database, groupId, userId)) return res.status(403).json({ error: 'انضم للمجموعة حتى تراسل أعضاءها.' });
       const doc = { groupId, userId, author: p.name, username: p.username, text, image, createdAt: new Date() };
       const result = await database.collection('community_group_messages').insertOne(doc);
-      res.json({ ok: true, message: { id: String(result.insertedId), author: doc.author, username: doc.username, verified: String(doc.username || '').toLowerCase() === 'aaa', designer: String(doc.username || '').toLowerCase() === 'aaa', text, image, mine: true, createdAt: doc.createdAt } });
+      res.json({ ok: true, message: { id: String(result.insertedId), author: doc.author, username: doc.username, verified: String(doc.username || '').toLowerCase() === 'aaa', designer: String(doc.username || '').toLowerCase() === 'aaa', text, image, mine: true, seenCount: 0, createdAt: doc.createdAt } });
     } catch (e) { fail(res, e); }
   });
 };
