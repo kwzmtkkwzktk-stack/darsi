@@ -157,18 +157,19 @@ module.exports = function privateMessagesAPI(app, db) {
         { ownerId: id, otherId: other._id },
         { $set: { ownerId: id, otherId: other._id, lastReadAt: new Date() } }, { upsert: true }
       );
-      const [rows, presenceRow, blocks] = await Promise.all([
+      const [rows, presenceRow, blocks, otherRead] = await Promise.all([
         d.collection('private_messages').find({
           $or: [{ fromId: id, toId: other._id }, { fromId: other._id, toId: id }],
           hiddenFor: { $ne: id }
         }).sort({ createdAt: -1 }).limit(100).toArray(),
         d.collection('private_message_presence').findOne({ _id: other._id }),
-        blockState(d, id, other._id)
+        blockState(d, id, other._id),
+        d.collection('private_message_reads').findOne({ ownerId: other._id, otherId: id })
       ]);
       res.set('Cache-Control', 'no-store');
       res.json({
         user: userView(other), presence: presenceView(presenceRow), ...blocks,
-        messages: rows.reverse().map(m => ({ id: String(m._id), text: m.text, mine: m.fromId === id, createdAt: m.createdAt }))
+        messages: rows.reverse().map(m => ({ id: String(m._id), text: m.text, mine: m.fromId === id, seen: m.fromId === id && !!(otherRead && otherRead.lastReadAt && new Date(otherRead.lastReadAt).getTime() >= new Date(m.createdAt).getTime()), createdAt: m.createdAt }))
       });
     } catch (e) {
       console.error(e); res.status(500).json({ error: 'تعذر فتح المحادثة.' });
