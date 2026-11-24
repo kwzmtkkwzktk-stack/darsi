@@ -128,7 +128,7 @@ a{color:#126b58}
 var $=function(s){return document.querySelector(s)},esc=function(v){var d=document.createElement("div");d.textContent=v==null?"":v;return d.innerHTML};
 function ar(n){return String(n==null?"":n).replace(/\d/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[d]})}
 var PASS=sessionStorage.getItem("sp")||"",ST=null,TAB="students",tt=0;
-var TABS=[["students","👥 الطلاب"],["activity","📋 نشاط المنصة"],["files","📚 الملازم"],["videos","🎬 المحاضرات"],["questions","✏️ الأسئلة"],["paper","📝 امتحانات ورقية"],["stats","📊 التحليلات"],["news","📢 الإعلانات"],["settings","⚙️ الإعدادات"]];
+var TABS=[["students","👥 الطلاب والنتائج"],["activity","📋 نشاط المنصة"],["files","📚 الملازم"],["videos","🎬 المحاضرات"],["questions","✏️ الأسئلة"],["paper","📝 امتحانات ورقية"],["stats","📊 التحليلات"],["news","📢 الإعلانات"],["settings","⚙️ الإعدادات"]];
 function toast(t,bad){var e=$("#toast");e.textContent=t;e.className=bad?"err":"";e.style.display="block";clearTimeout(tt);tt=setTimeout(function(){e.style.display="none"},4200)}
 async function api(action,body){
   var r=await fetch("/api/study/admin",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(Object.assign({pass:PASS,action:action},body||{}))});
@@ -173,20 +173,20 @@ async function uploadImage(file){
 
 /* ================= الطلاب ================= */
 var cur,ex=0,SL=[];
-function blank(){var g=Object.keys(ST.grades)[0];return{code:"",n:"",g:g,x:{},ab:[]}}
+function blank(){var g=Object.keys(ST.grades)[0];return{code:"",pendingCode:"",n:"",g:g,x:{},ab:[]}}
 async function tStudents(){SL=await api("students.list");if(!cur)cur=blank();drawStudents()}
 function drawStudents(){
   var gs=Object.keys(ST.grades);
   $("#pane").innerHTML=
   '<div class="card"><b>➕ إضافة جماعية بأسماء الطلاب</b><p class="sub">اكتب اسم كل طالب في سطر، وسيُولَّد لكل واحد رمز خاص به.</p><label>الصف</label><select id="bg">'+opts(gs,cur.g)+'</select><label>الأسماء (اسم في كل سطر)</label><textarea id="bn" placeholder="علي محمد&#10;زينب أحمد"></textarea><div style="margin-top:10px"><button id="bb">إنشاء الرموز</button></div><div id="bo"></div></div>'+
-  '<div class="card"><b id="ft">'+(cur.code?"✏️ تعديل الطالب":"👤 طالب جديد")+'</b><div class="grid2"><div><label>اسم الطالب *</label><input type="text" id="sn" value="'+esc(cur.n)+'"></div><div><label>الرمز (اتركه فارغاً ليُولَّد تلقائياً)</label><input type="text" id="sc" inputmode="numeric" style="direction:ltr;text-align:center" value="'+esc(cur.code)+'"'+(cur.code?" readonly":"")+'></div></div><label>الصف</label><select id="sg">'+opts(gs,cur.g)+'</select>'+
-  '<label>درجات الامتحان</label><select id="se">'+ST.examNames.map(function(e,i){return '<option value="'+i+'"'+(i===ex?" selected":"")+">"+esc(e)+(cur.x[i]?" ✓":"")+"</option>"}).join("")+'</select><div id="sm"></div>'+
+  '<div class="card"><b id="ft">'+(cur.code?"✏️ تعديل بيانات الطالب ونتائجه":"👤 إضافة طالب ونتائجه")+'</b><div class="grid2"><div><label>اسم الطالب *</label><input type="text" id="sn" value="'+esc(cur.n)+'" placeholder="الاسم الثلاثي"></div><div><label>رمز دخول نتيجتي (6 أرقام على الأقل)</label><input type="text" id="sc" inputmode="numeric" style="direction:ltr;text-align:center" placeholder="اتركه فارغاً للتوليد التلقائي" value="'+esc(cur.code||cur.pendingCode||'')+'"'+(cur.code?" readonly":"")+'></div></div><label>الصف الدراسي</label><select id="sg">'+opts(gs,cur.g)+'</select><p class="small">أسماء المواد تُحدد من الإعدادات ← الصفوف والمواد، وتظهر هنا تلقائياً حسب صف الطالب.</p>'+
+  '<label>اختر الامتحان لإدخال درجاته</label><select id="se">'+ST.examNames.map(function(e,i){return '<option value="'+i+'"'+(i===ex?" selected":"")+">"+esc(e)+(cur.x[i]?" ✓":"")+"</option>"}).join("")+'</select><div id="sm"></div><p class="small">أدخل درجة كل مادة من ٠ إلى ١٠٠ للامتحان المحدد، ثم اضغط حفظ الطالب حتى تظهر للطالب في قسم نتيجتي.</p>'+
   '<label>أيام الغياب</label><div class="row"><input type="date" id="sd"><button id="sa" class="ghost">إضافة</button></div><div class="tags" id="st"></div>'+
   '<div class="row" style="margin-top:14px"><button id="ss">حفظ الطالب</button><button id="sx" class="ghost">طالب جديد</button></div><div id="so"></div></div>'+
   '<div class="card"><b id="sct">قائمة الطلاب ('+SL.length+')</b><input type="search" id="sq" placeholder="ابحث بالاسم أو الرمز" style="margin:10px 0"><div id="sl"></div></div>';
   drawMarks();drawAb();drawList();
   $("#bb").onclick=bulk;
-  $("#sg").onchange=function(){cur.n=$("#sn").value;cur.code=$("#sc").value;cur.g=this.value;cur.x={};drawStudents();toast("تم تصفير الدرجات لأن الصف تغيّر")};
+  $("#sg").onchange=function(){cur.n=$("#sn").value;if(!cur.code)cur.pendingCode=$("#sc").value;cur.g=this.value;cur.x={};drawStudents();toast("تم تصفير الدرجات لأن الصف تغيّر")};
   $("#se").onchange=function(){if(!readMarks()){this.value=ex;return}ex=+this.value;drawMarks()};
   $("#sa").onclick=function(){var d=$("#sd").value;if(d&&cur.ab.indexOf(d)<0){cur.ab.push(d);cur.ab.sort();drawAb()}$("#sd").value=""};
   $("#ss").onclick=saveStudent;$("#sx").onclick=function(){cur=blank();ex=0;drawStudents()};
@@ -201,11 +201,12 @@ function readMarks(){
 }
 function drawAb(){$("#st").innerHTML=cur.ab.map(function(d,i){return '<span class="tag">'+esc(d)+' <button data-i="'+i+'" aria-label="حذف">×</button></span>'}).join("")||'<span class="small">لا يوجد غياب مسجّل</span>';$("#st").querySelectorAll("button").forEach(function(b){b.onclick=function(){cur.ab.splice(+b.dataset.i,1);drawAb()}})}
 async function saveStudent(){
+  var editing=!!cur.code;
   cur.n=$("#sn").value.trim();cur.code=$("#sc").value.trim();cur.g=$("#sg").value;
   if(!cur.n){toast("اكتب اسم الطالب",1);return}
   if(!readMarks())return;
   try{
-    var r=await api("students.save",{code:cur.code,n:cur.n,g:cur.g,x:cur.x,ab:cur.ab});cur.code=r.code;SL=await api("students.list");
+    var r=await api("students.save",{code:cur.code,editing:editing,n:cur.n,g:cur.g,x:cur.x,ab:cur.ab});cur.code=r.code;SL=await api("students.list");
     drawStudents();$("#so").innerHTML='<div class="codeBox">تم الحفظ ✅ رمز الطالب:<b>'+esc(r.code)+"</b></div>";toast("تم حفظ الطالب");
   }catch(e){toast(e.message,1)}
 }
