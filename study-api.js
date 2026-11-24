@@ -84,7 +84,7 @@ module.exports = function (app, db, express) {
     } catch (e) { fail(res, e); }
   });
 
-  const fileOut = (f) => ({ id: String(f._id), title: f.title, subject: f.subject || "", grade: f.grade || "", name: f.name, type: f.type, size: f.size, date: f.date });
+  const fileOut = (f) => ({ id: String(f._id), title: f.title, subject: f.subject || "", grade: f.grade || "", name: f.name, type: f.type, size: f.size || 0, url: f.url || "", source: f.source || "file", date: f.date });
 
   app.get("/api/study/files", async (req, res) => {
     try {
@@ -261,7 +261,12 @@ module.exports = function (app, db, express) {
       const c = await col("st_students");
       let code = S(b.code, 20).replace(/\D/g, "");
       if (!code) code = await newCode(c);
-      else need(code.length >= 6, "الرمز قصير (6 أرقام على الأقل)");
+      else {
+        need(code.length >= 6, "الرمز قصير (6 أرقام على الأقل)");
+        const existing = await c.findOne({ _id: code });
+        if (b.editing) need(!!existing, "لم يتم العثور على الطالب لتعديل بياناته");
+        else need(!existing, "هذا الرمز مستخدم لطالب آخر، اختر رمزاً مختلفاً");
+      }
       await c.updateOne({ _id: code }, { $set: { n, g, x, ab, updatedAt: new Date() } }, { upsert: true });
       return { ok: true, code };
     },
@@ -288,6 +293,25 @@ module.exports = function (app, db, express) {
     },
 
     "files.list": async () => (await (await col("st_files")).find({}).sort({ date: -1 }).limit(500).toArray()).map(fileOut),
+    "files.link.save": async (b) => {
+      const title = S(b.title, 200);
+      const url = S(b.url, 1000);
+      need(title, "عنوان الملزمة مطلوب");
+      need(/^https?:\/\//i.test(url), "الرابط يجب أن يبدأ بـ https:// أو http://");
+      let parsed;
+      try { parsed = new URL(url); } catch (_) { throw bad("الرابط غير صحيح"); }
+      need(["http:", "https:"].includes(parsed.protocol), "نوع الرابط غير مسموح");
+      const st = await settings();
+      const grade = S(b.grade, 80);
+      need(!grade || st.grades[grade], "الصف غير صحيح");
+      const id = new ObjectId();
+      await (await col("st_files")).insertOne({
+        _id: id, title, subject: S(b.subject, 80), grade,
+        name: title, type: "link", source: "link", url,
+        size: 0, date: new Date()
+      });
+      return { ok: true, id: String(id) };
+    },
     "files.delete": async (b) => remove("st_files", b.id, true),
 
     "videos.list": async () => (await (await col("st_videos")).find({}).sort({ date: -1 }).limit(500).toArray()).map(videoOut),
