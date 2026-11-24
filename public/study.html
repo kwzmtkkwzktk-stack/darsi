@@ -528,8 +528,6 @@ nav button.on { color:#087c65 !important; background:#e0f2ec !important; }
   <button data-go="home" class="on"><i data-ic="home"></i>الرئيسية</button>
   <button data-go="plan"><i data-ic="cal"></i>خطة اليوم</button>
   <button data-go="files"><i data-ic="books"></i>الملازم</button>
-  <button data-go="quiz"><i data-ic="pen"></i>الامتحانات</button>
-  <button data-go="report"><i data-ic="chart"></i>إنجازي</button>
   <button data-go="community"><i>💬</i>منشورات</button>
 </nav>
 
@@ -1030,8 +1028,9 @@ async function rFiles(){
   var b=$("#b-files");loading(b);var l;
   try{l=await jget("files?grade="+encodeURIComponent(S.grade))}catch(e){return errBox(b,rFiles)}
   listWithChips(b,l,function(x){
-    var img=/^image/.test(x.type),c=/pdf/.test(x.type)?["#fde4e4","#d64545"]:img?["#dff2e4","#2e9e5b"]:["#e1e9f6","#7c3aed"];
-    return '<div class="card study-file" data-file-id="'+esc(x.id)+'"><div class="fi"><div class="ic2" style="background:'+c[0]+";color:"+c[1]+'">'+ico(img?"books":"doc")+'</div><div class="t"><b>'+esc(x.title)+'</b><span class="sub">'+esc(x.subject)+(x.subject?" · ":"")+sz(x.size)+'</span></div></div><div class="acts"><button class="btn file-download" type="button" data-id="'+esc(x.id)+'" data-title="'+esc(x.title)+'">تحميل</button></div><div class="file-download-state" hidden aria-live="polite"></div></div>'
+    var isLink=x.source==="link"||x.type==="link",img=/^image/.test(x.type),c=isLink?["#e1f2ee","#087c65"]:/pdf/.test(x.type)?["#fde4e4","#d64545"]:img?["#dff2e4","#2e9e5b"]:["#e1e9f6","#7c3aed"];
+    var action=isLink?'<a class="btn" href="'+esc(x.url)+'" target="_blank" rel="noopener noreferrer">فتح الرابط ↗</a>':'<button class="btn file-download" type="button" data-id="'+esc(x.id)+'" data-title="'+esc(x.title)+'">تحميل</button>';
+    return '<div class="card study-file" data-file-id="'+esc(x.id)+'"><div class="fi"><div class="ic2" style="background:'+c[0]+";color:"+c[1]+'">'+ico(isLink?"books":img?"books":"doc")+'</div><div class="t"><b>'+esc(x.title)+'</b><span class="sub">'+esc(x.subject)+(x.subject?" · ":"")+(isLink?"رابط خارجي":sz(x.size))+'</span></div></div><div class="acts">'+action+'</div><div class="file-download-state" hidden aria-live="polite"></div></div>'
   },"لا توجد ملازم لمسارك الجامعي حالياً، تابعنا قريباً 📚",function(box){
     box.querySelectorAll(".file-download").forEach(function(btn){btn.onclick=function(){downloadStudyFile(btn)}});
   });
