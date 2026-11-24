@@ -527,6 +527,7 @@ nav button.on { color:#087c65 !important; background:#e0f2ec !important; }
 <nav id="nav" class="hide">
   <button data-go="home" class="on"><i data-ic="home"></i>الرئيسية</button>
   <button data-go="plan"><i data-ic="cal"></i>خطة اليوم</button>
+  <button data-go="res"><i>📊</i>نتيجتي</button>
   <button data-go="files"><i data-ic="books"></i>الملازم</button>
   <button data-go="community"><i>💬</i>منشورات</button>
 </nav>
@@ -788,7 +789,7 @@ var T=[
  ["timer","مؤقّت التركيز","timer","#fff0e6","#df7130","جلسات تركيز واستراحات قصيرة"],
  ["dates","مواعيد الامتحانات","cal","#e9efff","#486acb","رتّب مواعيدك ولا تنسَ امتحاناً"],
  ["report","تقريري الأسبوعي","chart","#f2eaff","#8a54c7","اعرف تقدمك والمواد التي تحتاج مراجعة"],
- ["res","درجاتي وغيابي","chart","#e7f6e9","#37834a","تابع نتائجك وسجّل ملاحظاتك"],
+ ["res","نتيجتي","chart","#e7f6e9","#37834a","تابع نتائجك وسجّل ملاحظاتك"],
  ["notes","دفتر ملاحظاتي","note","#edf1f8","#526783","احفظ أفكارك وملاحظات الدروس"],
  ["calc","حاسبة المعدل","calc","#e2f5fb","#1786a3","احسب معدلك بسهولة"],
  ["wheel","اختيار مادة عشوائياً","calc","#fbeafa","#b344a1","خلّ القرار على عجلة الدراسة"]
@@ -800,7 +801,7 @@ function build(){
     '<header class="home-top"><div class="brand-lockup"><div class="brand-symbol" id="cms-brand-symbol">هـ</div><div><b id="cms-brand-name">ابن الهيثم</b><span id="cms-brand-tagline">بوابتك الجامعية الذكية</span></div></div><div class="home-campus-pill"><span>✦</span> جامعة بغداد <select id="grade" aria-label="المسار" hidden></select></div></header>'+
     '<section class="campus-welcome"><div><span class="campus-kicker">كلية التربية للعلوم الصرفة</span><h1 id="hi">مرحباً بك في بوابة ابن الهيثم</h1><p>كل أدواتك الجامعية في مكان واحد</p><div id="hero-student" class="hero-student"></div></div><div class="campus-mark">هـ</div></section>'+
     '<div class="home-tool-search"><span>⌕</span><input id="homeToolSearch" type="search" placeholder="ابحث عن أداة جامعية..." aria-label="ابحث عن أداة جامعية"></div>'+
-    '<div class="home-shortcuts"><button data-go="ai"><span>✦</span> المساعد الذكي</button><button data-go="files"><span>📚</span> الملازم</button><button data-go="groups"><span>♧</span> المجموعات</button><button data-go="private"><span>✉</span> الرسائل</button><button data-go="community"><span>▤</span> المجتمع</button></div>'+
+    '<div class="home-shortcuts"><button data-go="ai"><span>✦</span> المساعد الذكي</button><button data-go="files"><span>📚</span> الملازم</button><button data-go="res"><span>📊</span> نتيجتي</button><button data-go="groups"><span>♧</span> المجموعات</button><button data-go="private"><span>✉</span> الرسائل</button><button data-go="community"><span>▤</span> المجتمع</button></div>'+
     '<section class="home-block" id="cms-group-learn"><div class="block-heading"><div><span class="block-kicker" id="cms-learn-kicker">المصادر والتواصل</span><h2 id="cms-learn-title">تعلّم وتواصل</h2><p id="cms-learn-description">مصادرك الجامعية ومساحات التعاون</p></div><span class="block-count">أدوات</span></div><div class="tiles-grid" id="tile-learn"></div></section>'+
     '<section class="home-block" id="cms-group-practice"><div class="block-heading"><div><span class="block-kicker" id="cms-practice-kicker">اختبر معلوماتك</span><h2 id="cms-practice-title">تدرّب وامتحن</h2><p id="cms-practice-description">اختبارات ومراجعة تفاعلية</p></div><span class="block-count">أدوات</span></div><div class="tiles-grid" id="tile-practice"></div></section>'+
     '<section class="home-block" id="cms-group-organize"><div class="block-heading"><div><span class="block-kicker" id="cms-organize-kicker">إدارة وقتك</span><h2 id="cms-organize-title">خطّط وتابع</h2><p id="cms-organize-description">نظّم مهامك وتابع تقدمك</p></div><span class="block-count">أدوات</span></div><div class="tiles-grid" id="tile-organize"></div></section>'+
@@ -1273,11 +1274,11 @@ function quizBack(){if(QZ.part){QZ.part=null;drawQuiz();return true}if(QZ.ch){QZ
 /* نتيجتي + الغياب */
 var curEx=0;
 function loginCard(b,after){
-  b.innerHTML='<div class="card"><b>🔐 أدخل رمزك الخاص</b><p class="sub">تدخله مرة واحدة فقط، وبعدها يُحفظ على جهازك.</p><div class="row" style="margin-top:10px"><input type="text" id="lc" inputmode="numeric" placeholder="الرمز الخاص بك" style="direction:ltr;text-align:center"><button id="lg">دخول</button></div><p class="err" id="le"></p></div>';
+  b.innerHTML='<div class="card"><b>🔐 أدخل رمز نتيجتك</b><p class="sub">اكتب الرمز الذي استلمته من إدارة المنصة لعرض درجاتك ونتائج موادك. يُحفظ الرمز على هذا الجهاز فقط.</p><div class="row" style="margin-top:10px"><input type="text" id="lc" inputmode="numeric" maxlength="20" autocomplete="off" placeholder="الرمز الخاص بك" style="direction:ltr;text-align:center"><button id="lg">عرض نتيجتي</button></div><p class="err" id="le"></p></div>';
   async function ok(){
     var c=$("#lc").value.replace(/\D/g,"");if(!c)return;$("#lg").disabled=true;$("#le").textContent="";
     try{REC=await jpost("result",{code:c});S.me=c;S.grade=REC.g;save();after()}
-    catch(e){$("#lg").disabled=false;$("#le").textContent=e===404?"الرمز غير صحيح، تأكد منه وحاول مرة ثانية.":e===429?"محاولات كثيرة، انتظر قليلاً ثم حاول.":"تعذر الاتصال، حاول مرة ثانية."}
+    catch(e){$("#lg").disabled=false;$("#le").textContent=e.status===404?"الرمز غير صحيح، تأكد منه وحاول مرة ثانية.":e.status===429?"محاولات كثيرة، انتظر قليلاً ثم حاول.":"تعذر الاتصال، حاول مرة ثانية."}
   }
   $("#lg").onclick=ok;$("#lc").onkeydown=function(e){if(e.key==="Enter")ok()};
 }
@@ -2302,7 +2303,7 @@ function rReport(){
 
 async function rRes(){
   var b=$("#b-res");
-  if(S.me){try{REC=await jpost("result",{code:S.me});S.grade=REC.g;save()}catch(e){if(e===404){S.me="";REC=null;save()}}}
+  if(S.me){try{REC=await jpost("result",{code:S.me});S.grade=REC.g;save()}catch(e){if(e.status===404){S.me="";REC=null;save()}}}
   if(!S.me||!REC){loginCard(b,rRes);return}
   var names=INFO.examNames,subjects=INFO.grades[REC.g]||[],mk=REC.x[curEx];
   var h='<div class="card hero"><h2>'+esc(REC.n)+"</h2><p>"+esc(REC.g)+' · <a href="#" id="o1">تبديل الحساب</a></p></div><div class="card"><select id="rEx">'+names.map(function(e,i){return '<option value="'+i+'"'+(i===curEx?" selected":"")+">"+esc(e)+"</option>"}).join("")+"</select></div>";
@@ -2761,7 +2762,7 @@ function showProfileGate(force){
 async function boot(){
   var cmsPromise=fetch("/api/site-settings",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).catch(function(cmsError){console.warn("Site settings unavailable",cmsError);return null});
   try{INFO=await jget("info")}catch(e){$("#boot").innerHTML='تعذر الاتصال بالمنصة حالياً.<br><button id="rb" style="margin-top:10px">إعادة المحاولة</button>';$("#rb").onclick=function(){location.reload()};return}
-  if(S.me){try{REC=await jpost("result",{code:S.me});S.grade=REC.g}catch(e){if(e===404){S.me="";save()}}}
+  if(S.me){try{REC=await jpost("result",{code:S.me});S.grade=REC.g}catch(e){if(e.status===404){S.me="";REC=null;save()}}}
   var gs=Object.keys(INFO.grades);if(!INFO.grades[S.grade])S.grade=gs[0]||"";
   $("#boot").classList.add("hide");build();go("home");
   cmsPromise.then(function(config){if(config){SITE_CFG=config;rHome()}});
