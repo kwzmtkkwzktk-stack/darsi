@@ -475,6 +475,39 @@ nav button.on{background:#e4f1ec!important;color:#126b58!important}
  .grid{gap:11px}
 }
 </style>
+
+<style id="dleeni-contrast-fix">
+/* ألوان واضحة وثابتة حتى لا تطغى إعدادات ألوان قديمة محفوظة على الواجهة */
+:root, :root[data-theme="light"], :root[data-theme="dark"] {
+  color-scheme: light !important;
+  --bg:#f3f8f6 !important; --card:#ffffff !important; --glass:#ffffff !important;
+  --tx:#17352f !important; --mut:#526b64 !important; --pri:#087c65 !important;
+  --pri2:#e0f2ec !important; --accent:#b58a35 !important; --bd:#cbded7 !important;
+  --grad:linear-gradient(135deg,#075b4c,#087f69) !important;
+  --grad2:linear-gradient(135deg,#07866d,#16a887) !important;
+  --shadow:0 8px 24px rgba(12,65,53,.10) !important;
+}
+html,body { background-color:#f3f8f6 !important; color:#17352f !important; }
+body { background-image:radial-gradient(ellipse at 8% 0%,rgba(22,168,135,.12),transparent 36%),linear-gradient(180deg,#f8fbfa,#edf5f1 520px) !important; }
+.campus-welcome { background:linear-gradient(120deg,#0c6655,#087d69 62%,#14536a) !important; border:1px solid #b2d9ca !important; box-shadow:0 12px 28px rgba(8,91,73,.16) !important; }
+.campus-welcome h1 { color:#ffffff !important; }
+.campus-welcome p { color:#e0f4ed !important; }
+.campus-kicker { color:#a6f0d8 !important; }
+.home-tool-search { background:#ffffff !important; border:1px solid #cbded7 !important; color:#087c65 !important; }
+.home-tool-search input { color:#17352f !important; }
+.home-tool-search input::placeholder { color:#657d75 !important; opacity:1 !important; }
+.home-shortcuts { grid-template-columns:repeat(5,minmax(0,1fr)) !important; }
+.home-shortcuts button { background:#ffffff !important; border:1px solid #d0e2da !important; color:#17352f !important; box-shadow:0 5px 16px rgba(12,65,53,.08) !important; }
+.home-shortcuts button span { color:#087c65 !important; }
+.tile,.card,.st,.profile-summary,.home-tip,.home-insight,.community-home-entry { background:#ffffff !important; color:#17352f !important; border:1px solid #d3e3dc !important; box-shadow:0 8px 22px rgba(12,65,53,.08) !important; }
+.tile-copy b,.block-heading h2,.campus-welcome h1 { color:#17352f; }
+.tile-copy small,.block-heading p,.st span,.sub { color:#526b64 !important; }
+.block-kicker,.home-shortcuts button span { color:#087c65 !important; }
+nav { background:rgba(255,255,255,.98) !important; border-color:#cbded7 !important; box-shadow:0 -6px 24px rgba(12,65,53,.10) !important; }
+nav button { color:#526b64 !important; }
+nav button.on { color:#087c65 !important; background:#e0f2ec !important; }
+@media(max-width:420px) { .home-shortcuts { grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:7px !important; } .home-shortcuts button { min-height:72px; } }
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -769,7 +802,7 @@ function build(){
     '<header class="home-top"><div class="brand-lockup"><div class="brand-symbol" id="cms-brand-symbol">هـ</div><div><b id="cms-brand-name">ابن الهيثم</b><span id="cms-brand-tagline">بوابتك الجامعية الذكية</span></div></div><div class="home-campus-pill"><span>✦</span> جامعة بغداد <select id="grade" aria-label="المسار" hidden></select></div></header>'+
     '<section class="campus-welcome"><div><span class="campus-kicker">كلية التربية للعلوم الصرفة</span><h1 id="hi">مرحباً بك في بوابة ابن الهيثم</h1><p>كل أدواتك الجامعية في مكان واحد</p><div id="hero-student" class="hero-student"></div></div><div class="campus-mark">هـ</div></section>'+
     '<div class="home-tool-search"><span>⌕</span><input id="homeToolSearch" type="search" placeholder="ابحث عن أداة جامعية..." aria-label="ابحث عن أداة جامعية"></div>'+
-    '<div class="home-shortcuts"><button data-go="ai"><span>✦</span> المساعد الذكي</button><button data-go="groups"><span>♧</span> المجموعات</button><button data-go="private"><span>✉</span> الرسائل</button><button data-go="community"><span>▤</span> المجتمع</button></div>'+
+    '<div class="home-shortcuts"><button data-go="ai"><span>✦</span> المساعد الذكي</button><button data-go="files"><span>📚</span> الملازم</button><button data-go="groups"><span>♧</span> المجموعات</button><button data-go="private"><span>✉</span> الرسائل</button><button data-go="community"><span>▤</span> المجتمع</button></div>'+
     '<section class="home-block" id="cms-group-learn"><div class="block-heading"><div><span class="block-kicker" id="cms-learn-kicker">المصادر والتواصل</span><h2 id="cms-learn-title">تعلّم وتواصل</h2><p id="cms-learn-description">مصادرك الجامعية ومساحات التعاون</p></div><span class="block-count">أدوات</span></div><div class="tiles-grid" id="tile-learn"></div></section>'+
     '<section class="home-block" id="cms-group-practice"><div class="block-heading"><div><span class="block-kicker" id="cms-practice-kicker">اختبر معلوماتك</span><h2 id="cms-practice-title">تدرّب وامتحن</h2><p id="cms-practice-description">اختبارات ومراجعة تفاعلية</p></div><span class="block-count">أدوات</span></div><div class="tiles-grid" id="tile-practice"></div></section>'+
     '<section class="home-block" id="cms-group-organize"><div class="block-heading"><div><span class="block-kicker" id="cms-organize-kicker">إدارة وقتك</span><h2 id="cms-organize-title">خطّط وتابع</h2><p id="cms-organize-description">نظّم مهامك وتابع تقدمك</p></div><span class="block-count">أدوات</span></div><div class="tiles-grid" id="tile-organize"></div></section>'+
