@@ -231,11 +231,34 @@ async function bulk(){
 /* ================= الملازم ================= */
 async function tFiles(){
   var l=await api("files.list"),gs=Object.keys(ST.grades);
-  $("#pane").innerHTML='<div class="card"><b>📤 نشر ملزمة جديدة</b><label>الملف (PDF أو صورة أو Word أو PowerPoint، حتى 15 ميغابايت)</label><input type="file" id="ff" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.ppt,.pptx,application/pdf,image/*"><label>العنوان</label><input type="text" id="ft" placeholder="مثال: ملزمة الفيزياء - الفصل الأول"><div class="grid2"><div><label>الصف</label><select id="fg">'+opts(gs,"","كل الصفوف")+'</select></div><div><label>المادة</label><input type="text" id="fs" list="fsl" placeholder="مثال: الفيزياء"><datalist id="fsl"></datalist></div></div><div class="prog"><i id="fp"></i></div><div style="margin-top:12px"><button id="fu">رفع ونشر</button></div></div><div class="card"><b>الملازم المنشورة ('+l.length+')</b><div id="fl"></div></div>';
+  $("#pane").innerHTML='<div class="card"><b>📤 نشر ملزمة جديدة</b><p class="sub">اختر طريقة إضافة الملزمة:</p><div class="row" style="gap:8px;flex-wrap:wrap;margin:10px 0 16px"><button id="modeUpload" type="button">📁 رفع ملف</button><button id="modeLink" class="ghost" type="button">🔗 إضافة رابط</button></div><div id="uploadFields"><label>اختر ملف الملزمة (PDF أو صورة أو Word أو PowerPoint، حتى 15 ميغابايت)</label><input type="file" id="ff" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.ppt,.pptx,application/pdf,image/*"></div><div id="linkFields" style="display:none"><label>رابط الملزمة</label><input type="url" id="furl" dir="ltr" placeholder="https://drive.google.com/..."><small class="sub">الصق رابط Google Drive أو أي رابط مباشر للملزمة، وتأكد من السماح للطلاب بفتحه.</small></div><label>العنوان</label><input type="text" id="ft" placeholder="مثال: ملزمة الفيزياء - الفصل الأول"><div class="grid2"><div><label>الصف</label><select id="fg">'+opts(gs,"","كل الصفوف")+'</select></div><div><label>المادة</label><input type="text" id="fs" list="fsl" placeholder="مثال: الفيزياء"><datalist id="fsl"></datalist></div></div><div class="prog" id="uploadProgress"><i id="fp"></i></div><div class="row" style="margin-top:12px;flex-wrap:wrap"><button id="fu">رفع الملف ونشره</button><button id="flink" class="ghost" type="button" style="display:none">نشر الرابط</button></div></div><div class="card"><b>الملازم المنشورة ('+l.length+')</b><div id="fl"></div></div>';
   function sl(){var g=$("#fg").value,a=g?ST.grades[g]||[]:[].concat.apply([],Object.values(ST.grades));$("#fsl").innerHTML=Array.from(new Set(a)).map(function(s){return '<option value="'+esc(s)+'">'}).join("")}
   $("#fg").onchange=sl;sl();
-  $("#fl").innerHTML=l.length?"<table>"+l.map(function(f){return '<tr><td><b>'+esc(f.title)+'</b><div class="small">'+esc(f.subject)+" · "+esc(f.grade||"كل الصفوف")+" · "+(f.size>1048576?(f.size/1048576).toFixed(1)+" MB":Math.round(f.size/1024)+" KB")+'</div></td><td><a class="small" target="_blank" href="/api/study/file/'+f.id+'">عرض</a></td><td><button class="sm del" data-d="'+f.id+'">حذف</button></td></tr>'}).join("")+"</table>":'<p class="sub">لا توجد ملازم بعد.</p>';
+  var addMode="upload";
+  function setAddMode(mode){
+    addMode=mode;
+    $("#uploadFields").style.display=mode==="upload"?"block":"none";
+    $("#linkFields").style.display=mode==="link"?"block":"none";
+    $("#uploadProgress").style.display=mode==="upload"?"block":"none";
+    $("#fu").style.display=mode==="upload"?"inline-flex":"none";
+    $("#flink").style.display=mode==="link"?"inline-flex":"none";
+    $("#modeUpload").className=mode==="upload"?"":"ghost";
+    $("#modeLink").className=mode==="link"?"":"ghost";
+  }
+  $("#modeUpload").onclick=function(){setAddMode("upload")};
+  $("#modeLink").onclick=function(){setAddMode("link")};
+  setAddMode("upload");
+  $("#fl").innerHTML=l.length?"<table>"+l.map(function(f){var link=f.source==="link"||f.type==="link",dest=link?f.url:"/api/study/file/"+f.id;return '<tr><td><b>'+esc(f.title)+'</b><div class="small">'+esc(f.subject)+" · "+esc(f.grade||"كل الصفوف")+" · "+(link?"رابط خارجي":(f.size>1048576?(f.size/1048576).toFixed(1)+" MB":Math.round(f.size/1024)+" KB"))+'</div></td><td><a class="small" target="_blank" rel="noopener noreferrer" href="'+esc(dest)+'">'+(link?"فتح الرابط":"عرض الملف")+'</a></td><td><button class="sm del" data-d="'+f.id+'">حذف</button></td></tr>'}).join("")+"</table>":'<p class="sub">لا توجد ملازم بعد.</p>';
   $("#fl").querySelectorAll("[data-d]").forEach(function(b){b.onclick=async function(){if(!ask("حذف هذه الملزمة نهائياً؟"))return;try{await api("files.delete",{id:b.dataset.d});toast("تم الحذف");tFiles()}catch(e){toast(e.message,1)}}});
+  $("#flink").onclick=async function(){
+    var url=$("#furl").value.trim(),title=$("#ft").value.trim(),btn=$("#flink");
+    if(!url){toast("ضع رابط الملزمة أولاً",1);return}
+    if(!/^https?:\/\//i.test(url)){toast("الرابط يجب أن يبدأ بـ https:// أو http://",1);return}
+    if(!title){toast("اكتب عنوان الملزمة",1);return}
+    btn.disabled=true;btn.textContent="جاري النشر...";
+    try{await api("files.link.save",{url:url,title:title,subject:$("#fs").value.trim(),grade:$("#fg").value});toast("تم نشر رابط الملزمة ✅");tFiles()}
+    catch(e){toast(e.message,1);btn.disabled=false;btn.textContent="نشر الرابط"}
+  };
   $("#fu").onclick=function(){
     var f=$("#ff").files[0];if(!f){toast("اختر ملفاً",1);return}
     if(f.size>15*1048576){toast("الملف أكبر من 15 ميغابايت",1);return}
