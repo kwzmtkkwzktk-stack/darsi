@@ -571,20 +571,33 @@ async function tNews(){
 /* ================= الإعدادات ================= */
 async function tSettings(){
   ST=await api("settings.get");
-  var g=Object.keys(ST.grades).map(function(k){return k+": "+ST.grades[k].join("، ")}).join("\n");
+  var gradeData=JSON.parse(JSON.stringify(ST.grades||{}));
   $("#pane").innerHTML='<div class="card"><b>📅 مواعيد الامتحانات</b><div id="er"></div><div class="row" style="margin-top:10px"><button id="ea" class="ghost">+ موعد</button><button id="es">حفظ المواعيد</button></div></div>'+
   '<div class="card"><b>📝 أسماء الامتحانات (تظهر في قائمة النتائج)</b><textarea id="en">'+esc(ST.examNames.join("\n"))+'</textarea><div style="margin-top:10px"><button id="ens">حفظ الأسماء</button></div></div>'+
-  '<div class="card"><b>🎓 الصفوف والمواد</b><p class="sub">سطر لكل صف بهذا الشكل: اسم الصف: مادة، مادة، مادة</p><textarea id="gr" style="min-height:200px">'+esc(g)+'</textarea><div style="margin-top:10px"><button id="gs">حفظ الصفوف</button></div></div>';
+  '<div class="card"><b>🎓 تعديل أسماء المواد</b><p class="sub">عدّل اسم المادة داخل الحقل الخاص بها، ويمكنك إضافة مادة جديدة لكل صف. ترتيب المواد الحالي محفوظ حتى لا تختلط درجات الطلاب.</p><div id="gradeEditor"></div><div style="margin-top:10px"><button id="gs">💾 حفظ أسماء المواد</button></div></div>';
   var ex=ST.exams.slice();
   function rows(){$("#er").innerHTML=ex.map(function(e,i){return '<div class="row" style="margin-top:8px"><input type="text" data-n="'+i+'" value="'+esc(e.n)+'" placeholder="اسم الامتحان"><input type="date" data-d="'+i+'" value="'+esc(e.d)+'" style="max-width:170px"><button class="sm del" data-x="'+i+'">×</button></div>'}).join("")||'<p class="sub">لا توجد مواعيد.</p>';
     $("#er").querySelectorAll("[data-n]").forEach(function(i){i.oninput=function(){ex[+i.dataset.n].n=i.value}});$("#er").querySelectorAll("[data-d]").forEach(function(i){i.oninput=function(){ex[+i.dataset.d].d=i.value}});$("#er").querySelectorAll("[data-x]").forEach(function(b){b.onclick=function(){ex.splice(+b.dataset.x,1);rows()}})}
+  function drawGradeEditor(){
+    var keys=Object.keys(gradeData);
+    $("#gradeEditor").innerHTML=keys.map(function(grade,gi){
+      return '<div class="card" style="margin:10px 0;padding:12px"><b>'+esc(grade)+'</b><div style="margin-top:8px">'+(gradeData[grade]||[]).map(function(subject,si){return '<label>المادة '+(si+1)+'</label><input type="text" data-grade="'+gi+'" data-subject="'+si+'" value="'+esc(subject)+'" placeholder="اسم المادة" style="margin-bottom:8px">'}).join('')+'</div><button type="button" class="sm ghost" data-add-grade="'+gi+'">+ إضافة مادة لهذا الصف</button></div>';
+    }).join('')||'<p class="sub">لا توجد صفوف مضافة بعد.</p>';
+    $("#gradeEditor").querySelectorAll('[data-grade]').forEach(function(input){input.oninput=function(){var grade=keys[+input.dataset.grade],idx=+input.dataset.subject;gradeData[grade][idx]=input.value}});
+    $("#gradeEditor").querySelectorAll('[data-add-grade]').forEach(function(button){button.onclick=function(){var grade=keys[+button.dataset.addGrade];gradeData[grade].push('');drawGradeEditor()}});
+  }
+  drawGradeEditor();
   rows();$("#ea").onclick=function(){ex.push({n:"",d:""});rows()};
   $("#es").onclick=async function(){try{await api("settings.save",{exams:ex.filter(function(e){return e.n.trim()&&e.d})});toast("تم حفظ المواعيد ✅")}catch(e){toast(e.message,1)}};
   $("#ens").onclick=async function(){try{await api("settings.save",{examNames:$("#en").value.split("\n").map(function(x){return x.trim()}).filter(Boolean)});toast("تم حفظ الأسماء ✅");ST=await api("settings.get")}catch(e){toast(e.message,1)}};
   $("#gs").onclick=async function(){
-    var o={};$("#gr").value.split("\n").forEach(function(l){var i=l.search(/[:：]/);if(i<1)return;var n=l.slice(0,i).trim(),s=l.slice(i+1).split(/[،,]/).map(function(x){return x.trim()}).filter(Boolean);if(n&&s.length)o[n]=s});
-    if(!Object.keys(o).length){toast("اكتب صفاً واحداً على الأقل بالشكل المطلوب",1);return}
-    try{await api("settings.save",{grades:o});ST=await api("settings.get");cur=null;toast("تم حفظ الصفوف ✅")}catch(e){toast(e.message,1)}
+    var o={};Object.keys(gradeData).forEach(function(grade){
+      var subjects=(gradeData[grade]||[]).map(function(x){return String(x||'').trim()});
+      if(subjects.some(function(x){return !x})){toast('أكمل أسماء المواد الفارغة أو احذف المادة الجديدة قبل الحفظ',1);return}
+      if(subjects.length)o[grade]=subjects;
+    });
+    if(!Object.keys(o).length){toast('لا توجد مواد للحفظ',1);return}
+    try{await api("settings.save",{grades:o});ST=await api("settings.get");cur=null;toast("تم حفظ أسماء المواد ✅");drawGradeEditor()}catch(e){toast(e.message,1)}
   };
 }
 
