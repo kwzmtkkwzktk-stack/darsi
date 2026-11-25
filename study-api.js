@@ -139,11 +139,58 @@ module.exports = function (app, db, express) {
     try {
       const code = S(req.body && req.body.code, 20).replace(/\D/g, "");
       if (code.length < 4) return res.sendStatus(404);
+      const name = S(req.body && req.body.name, 120).replace(/\s+/g, " ").trim();
+      const department = S(req.body && req.body.department, 40);
+      const stage = S(req.body && req.body.stage, 20);
+      const departments = ["الكيمياء", "الفيزياء", "الرياضيات", "الأحياء", "الحاسوب"];
+      const stages = ["مرحلة 1", "مرحلة 2", "مرحلة 3", "مرحلة 4"];
+      if (name.split(" ").filter(Boolean).length < 3 || !departments.includes(department) || !stages.includes(stage)) return res.sendStatus(404);
       const d = await (await col("st_students")).findOne({ _id: code });
-      if (!d) return res.sendStatus(404);
+      const savedName = S(d && d.n, 120).replace(/\s+/g, " ").trim();
+      if (!d || savedName !== name || d.department !== department || d.stage !== stage) return res.sendStatus(404);
       res.set("Cache-Control", "no-store");
-      res.json({ n: d.n, g: d.g, x: d.x || {}, ab: d.ab || [] });
+      res.json({ n: d.n, g: d.g, department: d.department, stage: d.stage, x: d.x || {}, ab: d.ab || [] });
     } catch (e) { fail(res, e); }
+  });
+
+  // =============== استفسارات الطلاب والردود الخاصة ===============
+  app.post("/api/study/inquiries", async (req, res) => {
+    if (tooMany("inq" + (req.ip || "x"), 20, 600000)) return res.sendStatus(429);
+    try {
+      const b = req.body || {}, code = S(b.code, 20).replace(/\D/g, "");
+      const name = S(b.name, 120).replace(/\s+/g, " ").trim();
+      const department = S(b.department, 40), stage = S(b.stage, 20);
+      const message = S(b.message, 2000);
+      need(code.length >= 4 && message.length >= 5, "اكتب الاستفسار بشكل أوضح");
+      const student = await (await col("st_students")).findOne({ _id: code });
+      if (!student || S(student.n,120).replace(/\s+/g," ").trim() !== name || student.department !== department || student.stage !== stage) return res.sendStatus(404);
+      const now = Date.now();
+      const doc = { code, name: student.n, department, stage, message, reply: "", createdAt: now, repliedAt: 0, seenAt: 0 };
+      const result = await (await col("st_inquiries")).insertOne(doc);
+      res.set("Cache-Control", "no-store"); res.json({ ok: true, id: String(result.insertedId) });
+    } catch (e) { fail(res, e); }
+  });
+  app.get("/api/study/inquiries", async (req, res) => {
+    try {
+      const code = S(req.query.code, 20).replace(/\D/g, "");
+      if (code.length < 4) return res.sendStatus(404);
+      const name=S(req.query.name,120).replace(/\s+/g," ").trim(), department=S(req.query.department,40), stage=S(req.query.stage,20);
+      const student = await (await col("st_students")).findOne({ _id: code });
+      if (!student || S(student.n,120).replace(/\s+/g," ").trim()!==name || student.department!==department || student.stage!==stage) return res.sendStatus(404);
+      const list = await (await col("st_inquiries")).find({ code }).sort({ createdAt: -1 }).limit(50).toArray();
+      res.set("Cache-Control", "no-store");
+      res.json(list.map(x => ({ id: String(x._id), message: x.message, reply: x.reply || "", createdAt: x.createdAt, repliedAt: x.repliedAt || 0, seenAt: x.seenAt || 0 })));
+    } catch (e) { fail(res, e); }
+  });
+  app.post("/api/study/inquiries/seen", async (req, res) => {
+    try {
+      const b=req.body||{}, code=S(b.code,20).replace(/\D/g,""), id=oid(b.id), name=S(b.name,120).replace(/\s+/g," ").trim(), department=S(b.department,40), stage=S(b.stage,20);
+      if (!id || code.length < 4) return res.sendStatus(404);
+      const student=await (await col("st_students")).findOne({_id:code});
+      if(!student || S(student.n,120).replace(/\s+/g," ").trim()!==name || student.department!==department || student.stage!==stage) return res.sendStatus(404);
+      await (await col("st_inquiries")).updateOne({ _id:id, code, reply:{ $ne:"" } }, { $set:{ seenAt:Date.now() } });
+      res.json({ ok:true });
+    } catch(e){ fail(res,e); }
   });
 
   // =============== رفع الملازم (المدير فقط) ===============
@@ -243,12 +290,16 @@ module.exports = function (app, db, express) {
     },
 
     "students.list": async () =>
-      (await (await col("st_students")).find({}).sort({ n: 1 }).limit(3000).toArray()).map((s) => ({ code: s._id, n: s.n, g: s.g, x: s.x || {}, ab: s.ab || [] })),
+      (await (await col("st_students")).find({}).sort({ n: 1 }).limit(3000).toArray()).map((s) => ({ code: s._id, n: s.n, g: s.g, department: s.department || "", stage: s.stage || "", x: s.x || {}, ab: s.ab || [] })),
 
     "students.save": async (b) => {
       const st = await settings();
-      const n = S(b.n, 120);
-      need(n, "اسم الطالب مطلوب");
+      const n = S(b.n, 120).replace(/\s+/g, " ").trim();
+      need(n.split(" ").filter(Boolean).length >= 3, "اكتب الاسم الثلاثي للطالب");
+      const department = S(b.department, 40);
+      const stage = S(b.stage, 20);
+      need(["الكيمياء", "الفيزياء", "الرياضيات", "الأحياء", "الحاسوب"].includes(department), "اختر القسم");
+      need(["مرحلة 1", "مرحلة 2", "مرحلة 3", "مرحلة 4"].includes(stage), "اختر المرحلة");
       const g = S(b.g, 80);
       need(st.grades[g], "اختر الصف");
       const x = {};
@@ -267,7 +318,7 @@ module.exports = function (app, db, express) {
         if (b.editing) need(!!existing, "لم يتم العثور على الطالب لتعديل بياناته");
         else need(!existing, "هذا الرمز مستخدم لطالب آخر، اختر رمزاً مختلفاً");
       }
-      await c.updateOne({ _id: code }, { $set: { n, g, x, ab, updatedAt: new Date() } }, { upsert: true });
+      await c.updateOne({ _id: code }, { $set: { n, g, department, stage, x, ab, updatedAt: new Date() } }, { upsert: true });
       return { ok: true, code };
     },
 
@@ -275,13 +326,18 @@ module.exports = function (app, db, express) {
       const st = await settings();
       const g = S(b.g, 80);
       need(st.grades[g], "اختر الصف");
-      const names = (Array.isArray(b.names) ? b.names : []).map((x) => S(x, 120)).filter(Boolean).slice(0, 500);
+      const department = S(b.department, 40);
+      const stage = S(b.stage, 20);
+      need(["الكيمياء", "الفيزياء", "الرياضيات", "الأحياء", "الحاسوب"].includes(department), "اختر القسم");
+      need(["مرحلة 1", "مرحلة 2", "مرحلة 3", "مرحلة 4"].includes(stage), "اختر المرحلة");
+      const names = (Array.isArray(b.names) ? b.names : []).map((x) => S(x, 120).replace(/\s+/g, " ").trim()).filter((x) => x.split(" ").length >= 3).slice(0, 500);
+      need(names.length, "اكتب الأسماء الثلاثية للطلاب، اسماً في كل سطر");
       need(names.length, "اكتب اسماً واحداً على الأقل");
       const c = await col("st_students");
       const out = [];
       for (const n of names) {
         const code = await newCode(c);
-        await c.insertOne({ _id: code, n, g, x: {}, ab: [], updatedAt: new Date() });
+        await c.insertOne({ _id: code, n, g, department, stage, x: {}, ab: [], updatedAt: new Date() });
         out.push({ code, n });
       }
       return { ok: true, list: out };
@@ -290,6 +346,15 @@ module.exports = function (app, db, express) {
     "students.delete": async (b) => {
       await (await col("st_students")).deleteOne({ _id: S(b.code, 20) });
       return { ok: true };
+    },
+
+    "inquiries.list": async () => (await (await col("st_inquiries")).find({}).sort({ createdAt: -1 }).limit(500).toArray()).map(x => ({ id:String(x._id), code:x.code, name:x.name, department:x.department, stage:x.stage, message:x.message, reply:x.reply||"", createdAt:x.createdAt, repliedAt:x.repliedAt||0 })),
+    "inquiries.reply": async (b) => {
+      const _id=oid(b.id), reply=S(b.reply,2000);
+      need(_id && reply.length >= 2, "اكتب الرد بشكل صحيح");
+      const r=await (await col("st_inquiries")).updateOne({ _id }, { $set:{ reply, repliedAt:Date.now(), seenAt:0 } });
+      need(r.matchedCount, "لم يتم العثور على الاستفسار");
+      return { ok:true };
     },
 
     "files.list": async () => (await (await col("st_files")).find({}).sort({ date: -1 }).limit(500).toArray()).map(fileOut),
