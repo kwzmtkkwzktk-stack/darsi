@@ -147,18 +147,17 @@ module.exports = function (app, db, express) {
   });
 
   // =============== استفسارات الطلاب والردود الخاصة ===============
+  // يعتمد التحقق على رمز الطالب فقط، وتُؤخذ بياناته من قاعدة البيانات
   app.post("/api/study/inquiries", async (req, res) => {
     if (tooMany("inq" + (req.ip || "x"), 20, 600000)) return res.sendStatus(429);
     try {
       const b = req.body || {}, code = S(b.code, 20).replace(/\D/g, "");
-      const name = S(b.name, 120).replace(/\s+/g, " ").trim();
-      const department = S(b.department, 40), stage = S(b.stage, 20);
       const message = S(b.message, 2000);
       need(code.length >= 4 && message.length >= 5, "اكتب الاستفسار بشكل أوضح");
       const student = await (await col("st_students")).findOne({ _id: code });
-      if (!student || S(student.n,120).replace(/\s+/g," ").trim() !== name || student.department !== department || student.stage !== stage) return res.sendStatus(404);
+      if (!student) return res.sendStatus(404);
       const now = Date.now();
-      const doc = { code, name: student.n, department, stage, message, reply: "", createdAt: now, repliedAt: 0, seenAt: 0 };
+      const doc = { code, name: student.n, department: student.department || "", stage: student.stage || "", message, reply: "", createdAt: now, repliedAt: 0, seenAt: 0 };
       const result = await (await col("st_inquiries")).insertOne(doc);
       res.set("Cache-Control", "no-store"); res.json({ ok: true, id: String(result.insertedId) });
     } catch (e) { fail(res, e); }
@@ -167,9 +166,8 @@ module.exports = function (app, db, express) {
     try {
       const code = S(req.query.code, 20).replace(/\D/g, "");
       if (code.length < 4) return res.sendStatus(404);
-      const name=S(req.query.name,120).replace(/\s+/g," ").trim(), department=S(req.query.department,40), stage=S(req.query.stage,20);
       const student = await (await col("st_students")).findOne({ _id: code });
-      if (!student || S(student.n,120).replace(/\s+/g," ").trim()!==name || student.department!==department || student.stage!==stage) return res.sendStatus(404);
+      if (!student) return res.sendStatus(404);
       const list = await (await col("st_inquiries")).find({ code }).sort({ createdAt: -1 }).limit(50).toArray();
       res.set("Cache-Control", "no-store");
       res.json(list.map(x => ({ id: String(x._id), message: x.message, reply: x.reply || "", createdAt: x.createdAt, repliedAt: x.repliedAt || 0, seenAt: x.seenAt || 0 })));
@@ -177,10 +175,10 @@ module.exports = function (app, db, express) {
   });
   app.post("/api/study/inquiries/seen", async (req, res) => {
     try {
-      const b=req.body||{}, code=S(b.code,20).replace(/\D/g,""), id=oid(b.id), name=S(b.name,120).replace(/\s+/g," ").trim(), department=S(b.department,40), stage=S(b.stage,20);
+      const b=req.body||{}, code=S(b.code,20).replace(/\D/g,""), id=oid(b.id);
       if (!id || code.length < 4) return res.sendStatus(404);
       const student=await (await col("st_students")).findOne({_id:code});
-      if(!student || S(student.n,120).replace(/\s+/g," ").trim()!==name || student.department!==department || student.stage!==stage) return res.sendStatus(404);
+      if(!student) return res.sendStatus(404);
       await (await col("st_inquiries")).updateOne({ _id:id, code, reply:{ $ne:"" } }, { $set:{ seenAt:Date.now() } });
       res.json({ ok:true });
     } catch(e){ fail(res,e); }
