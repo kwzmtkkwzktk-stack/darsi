@@ -139,15 +139,8 @@ module.exports = function (app, db, express) {
     try {
       const code = S(req.body && req.body.code, 20).replace(/\D/g, "");
       if (code.length < 4) return res.sendStatus(404);
-      const name = S(req.body && req.body.name, 120).replace(/\s+/g, " ").trim();
-      const department = S(req.body && req.body.department, 40);
-      const stage = S(req.body && req.body.stage, 20);
-      const departments = ["الكيمياء", "الفيزياء", "الرياضيات", "الأحياء", "الحاسوب"];
-      const stages = ["مرحلة 1", "مرحلة 2", "مرحلة 3", "مرحلة 4"];
-      if (name.split(" ").filter(Boolean).length < 3 || !departments.includes(department) || !stages.includes(stage)) return res.sendStatus(404);
       const d = await (await col("st_students")).findOne({ _id: code });
-      const savedName = S(d && d.n, 120).replace(/\s+/g, " ").trim();
-      if (!d || savedName !== name || d.department !== department || d.stage !== stage) return res.sendStatus(404);
+      if (!d) return res.sendStatus(404);
       res.set("Cache-Control", "no-store");
       res.json({ n: d.n, g: d.g, department: d.department, stage: d.stage, x: d.x || {}, ab: d.ab || [] });
     } catch (e) { fail(res, e); }
