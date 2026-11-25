@@ -1276,15 +1276,13 @@ function quizBack(){if(QZ.part){QZ.part=null;drawQuiz();return true}if(QZ.ch){QZ
 /* نتيجتي + الغياب */
 var curEx=0;
 function loginCard(b,after){
-  var depts=["الكيمياء","الفيزياء","الرياضيات","الأحياء","الحاسوب"],stages=["مرحلة 1","مرحلة 2","مرحلة 3","مرحلة 4"];
-  b.innerHTML='<div class="card"><b>🔐 تسجيل الدخول لعرض نتيجتي</b><p class="sub">أدخل اسمك الثلاثي والقسم والمرحلة والرمز الذي استلمته من إدارة المنصة. يجب أن تطابق البيانات سجلّك.</p><label class="lb" for="ln">الاسم الثلاثي</label><input type="text" id="ln" maxlength="120" autocomplete="name" placeholder="مثال: علي محمد حسن"><label class="lb" for="ld">القسم</label><select id="ld">'+depts.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>'}).join('')+'</select><label class="lb" for="lst">المرحلة</label><select id="lst">'+stages.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>'}).join('')+'</select><label class="lb" for="lc">رمز نتيجتك</label><input type="text" id="lc" inputmode="numeric" maxlength="20" autocomplete="off" placeholder="الرمز الخاص بك" style="direction:ltr;text-align:center"><button id="lg" style="width:100%;margin-top:12px">عرض نتيجتي</button><p class="err" id="le"></p></div>';
+  b.innerHTML='<div class="card"><b>🔐 تسجيل الدخول لعرض نتيجتي</b><p class="sub">أدخل رمز الطالب الذي استلمته من إدارة المنصة فقط.</p><label class="lb" for="lc">رمز الطالب</label><input type="text" id="lc" inputmode="numeric" maxlength="20" autocomplete="off" placeholder="اكتب رمز الطالب" style="direction:ltr;text-align:center"><button id="lg" style="width:100%;margin-top:12px">عرض نتيجتي</button><p class="err" id="le"></p></div>';
   async function ok(){
-    var name=$("#ln").value.trim().replace(/\s+/g," "),c=$("#lc").value.replace(/\D/g,"");if(name.split(" ").length<3){$("#le").textContent="اكتب اسمك الثلاثي كاملاً.";return}if(!c){$("#le").textContent="اكتب رمز نتيجتك.";return}$("#lg").disabled=true;$("#le").textContent="";
-    var identity={name:name,department:$("#ld").value,stage:$("#lst").value};
-    try{REC=await jpost("result",{code:c,name:identity.name,department:identity.department,stage:identity.stage});S.me=c;S.studentIdentity=identity;S.grade=REC.g;save();after()}
-    catch(e){$("#lg").disabled=false;$("#le").textContent=e.status===404?"البيانات أو الرمز غير مطابقة لسجل الطالب. راجع الاسم والقسم والمرحلة والرمز.":e.status===429?"محاولات كثيرة، انتظر قليلاً ثم حاول.":"تعذر الاتصال، حاول مرة ثانية."}
+    var c=$("#lc").value.replace(/\D/g,"");if(!c){$("#le").textContent="اكتب رمز الطالب.";return}$("#lg").disabled=true;$("#le").textContent="";
+    try{REC=await jpost("result",{code:c});S.me=c;S.studentIdentity={name:REC.n,department:REC.department,stage:REC.stage};S.grade=REC.g;save();after()}
+    catch(e){$("#lg").disabled=false;$("#le").textContent=e.status===404?"رمز الطالب غير صحيح، تأكد من الرمز وحاول مرة ثانية.":e.status===429?"محاولات كثيرة، انتظر قليلاً ثم حاول.":"تعذر الاتصال، حاول مرة ثانية."}
   }
-  $("#lg").onclick=ok;["#ln","#lc"].forEach(function(id){$(id).onkeydown=function(e){if(e.key==="Enter")ok()}});
+  $("#lg").onclick=ok;$("#lc").onkeydown=function(e){if(e.key==="Enter")ok()};
 }
 
 /* الامتحانات الورقية — أسئلة من الأدمن + تصحيح بالصورة */
