@@ -101,18 +101,22 @@ module.exports = function (app, db, express) {
     const q = arabicNameTokens(query);
     const n = arabicNameTokens(fullName);
     if (q.length < 2 || !n.length || q.length > n.length) return 0;
-    const used = new Set(); let sum = 0;
+
+    // يجب أن تتطابق أجزاء الاسم بالترتيب نفسه. نسمح بخطأ حرف واحد
+    // فقط في الكلمات الطويلة، بدلاً من مطابقة كلمات متفرقة من أسماء مختلفة.
+    let cursor = 0, sum = 0;
     for (const token of q) {
-      let best = 0, bestIndex = -1;
-      for (let i = 0; i < n.length; i++) {
-        if (used.has(i)) continue;
+      let found = -1, foundScore = 0;
+      for (let i = cursor; i < n.length; i++) {
         const candidate = n[i];
-        const distance = editDistance(token, candidate);
-        const score = token === candidate ? 1 : (Math.max(token.length, candidate.length) <= 3 ? 0 : 1 - distance / Math.max(token.length, candidate.length));
-        if (score > best) { best = score; bestIndex = i; }
+        if (token === candidate) { found = i; foundScore = 1; break; }
+        if (Math.min(token.length, candidate.length) >= 5 && Math.abs(token.length - candidate.length) <= 1 && editDistance(token, candidate) === 1) {
+          if (found < 0) { found = i; foundScore = 0.88; }
+        }
       }
-      if (bestIndex < 0 || best < (token.length <= 3 ? 1 : 0.74)) return 0;
-      used.add(bestIndex); sum += best;
+      if (found < 0) return 0;
+      cursor = found + 1;
+      sum += foundScore;
     }
     return sum / q.length;
   }
@@ -255,7 +259,7 @@ module.exports = function (app, db, express) {
       need(tokens.length <= 7, "الاسم طويل جداً، اكتب الاسم الثنائي أو الثلاثي");
       const rows = await getEveningAdmissions();
       const matches = rows.map(row => ({ ...row, score: nameMatchScore(name, row.name) }))
-        .filter(row => row.score >= 0.78)
+        .filter(row => row.score >= 0.90)
         .sort((a, b) => b.score - a.score)
         .slice(0, 10)
         .map(({ score, ...row }) => ({ ...row, confidence: Math.round(score * 100) }));
