@@ -126,36 +126,43 @@ module.exports = function (app, db, express) {
     .replace(/&#039;|&apos;/gi, "'").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
     .replace(/\s+/g, " ").trim();
 
-  const ADMISSIONS_URL = "https://graduation.uobaghdad.edu.iq/?p=29496";
+  const ADMISSIONS_SOURCES = [
+    { url: "https://graduation.uobaghdad.edu.iq/?p=29496", batch: "الوجبة الأولى" },
+    { url: "https://graduation.uobaghdad.edu.iq/?p=31267", batch: "الوجبة الثانية" }
+  ];
   let admissionsCache = { at: 0, rows: [] };
   async function getEveningAdmissions() {
     if (admissionsCache.rows.length && Date.now() - admissionsCache.at < 15 * 60 * 1000) return admissionsCache.rows;
     if (typeof fetch !== "function") throw bad("خدمة البحث عن نتائج القبول غير متاحة حالياً", 503);
-    const response = await fetch(ADMISSIONS_URL, {
-      headers: { "user-agent": "Mozilla/5.0 (compatible; DarsiStudentLookup/1.0)", "accept": "text/html" },
-      signal: AbortSignal.timeout(15000)
-    });
-    if (!response.ok) throw bad("تعذر الوصول إلى صفحة نتائج الجامعة حالياً", 502);
-    const html = await response.text();
-    const tables = html.match(/<table\b[\s\S]*?<\/table>/gi) || [];
-    const table = tables.find(t => /اسم\s*الطالب/.test(htmlText(t)) && /الكليه|الكلية/.test(htmlText(t)) && /القسم/.test(htmlText(t)));
-    if (!table) throw bad("تغير تنسيق صفحة نتائج الجامعة، تعذر قراءة القائمة", 502);
-    const trs = table.match(/<tr\b[\s\S]*?<\/tr>/gi) || [];
-    const rows = [];
-    for (const tr of trs) {
-      const rawCells = [...tr.matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(m => htmlText(m[1]));
-      if (rawCells.length < 3) continue;
-      const hasSerial = /^\d+$/.test(rawCells[0]);
-      const name = rawCells[hasSerial ? 1 : 0] || "";
-      const college = rawCells[hasSerial ? 2 : 1] || "";
-      const department = rawCells[hasSerial ? 3 : 2] || "";
-      if (normArabicName(name).split(" ").length >= 2 && college && department && !/اسم الطالب/.test(name)) {
-        rows.push({ name, college, department });
+    const allRows = [];
+    for (const source of ADMISSIONS_SOURCES) {
+      const response = await fetch(source.url, {
+        headers: { "user-agent": "Mozilla/5.0 (compatible; DarsiStudentLookup/1.0)", "accept": "text/html" },
+        signal: AbortSignal.timeout(15000)
+      });
+      if (!response.ok) throw bad("تعذر الوصول إلى إحدى صفحات نتائج الجامعة حالياً", 502);
+      const html = await response.text();
+      const tables = html.match(/<table\b[\s\S]*?<\/table>/gi) || [];
+      const table = tables.find(t => /اسم\s*الطالب/.test(htmlText(t)) && /الكليه|الكلية/.test(htmlText(t)) && /القسم/.test(htmlText(t)));
+      if (!table) throw bad("تغير تنسيق إحدى صفحات نتائج الجامعة، تعذر قراءة القائمة", 502);
+      const trs = table.match(/<tr\b[\s\S]*?<\/tr>/gi) || [];
+      let pageRows = 0;
+      for (const tr of trs) {
+        const rawCells = [...tr.matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(m => htmlText(m[1]));
+        if (rawCells.length < 3) continue;
+        const hasSerial = /^\d+$/.test(rawCells[0]);
+        const name = rawCells[hasSerial ? 1 : 0] || "";
+        const college = rawCells[hasSerial ? 2 : 1] || "";
+        const department = rawCells[hasSerial ? 3 : 2] || "";
+        if (normArabicName(name).split(" ").length >= 2 && college && department && !/اسم الطالب/.test(name)) {
+          allRows.push({ name, college, department, batch: source.batch });
+          pageRows++;
+        }
       }
+      if (pageRows < 50) throw bad("لم تكتمل قراءة إحدى قوائم نتائج الجامعة، أعد المحاولة لاحقاً", 502);
     }
-    if (rows.length < 500) throw bad("قائمة نتائج الجامعة لم تكتمل، أعد المحاولة لاحقاً", 502);
-    admissionsCache = { at: Date.now(), rows };
-    return rows;
+    admissionsCache = { at: Date.now(), rows: allRows };
+    return allRows;
   }
 
   // =============== للعرض العام ===============
@@ -253,7 +260,7 @@ module.exports = function (app, db, express) {
         .slice(0, 10)
         .map(({ score, ...row }) => ({ ...row, confidence: Math.round(score * 100) }));
       res.set("Cache-Control", "no-store");
-      res.json({ ok: true, matches, source: ADMISSIONS_URL, updatedAt: admissionsCache.at, total: rows.length });
+      res.json({ ok: true, matches, source: ADMISSIONS_SOURCES[0].url, sources: ADMISSIONS_SOURCES, updatedAt: admissionsCache.at, total: rows.length });
     } catch (e) { fail(res, e); }
   });
 
