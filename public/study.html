@@ -1276,13 +1276,46 @@ function quizBack(){if(QZ.part){QZ.part=null;drawQuiz();return true}if(QZ.ch){QZ
 /* نتيجتي + الغياب */
 var curEx=0;
 function loginCard(b,after){
-  b.innerHTML='<div class="card"><b>🔐 تسجيل الدخول لعرض نتيجتي</b><p class="sub">أدخل رمز الطالب الذي استلمته من إدارة المنصة فقط.</p><label class="lb" for="lc">رمز الطالب</label><input type="text" id="lc" inputmode="numeric" maxlength="20" autocomplete="off" placeholder="اكتب رمز الطالب" style="direction:ltr;text-align:center"><button id="lg" style="width:100%;margin-top:12px">عرض نتيجتي</button><p class="err" id="le"></p></div>';
-  async function ok(){
-    var c=$("#lc").value.replace(/\D/g,"");if(!c){$("#le").textContent="اكتب رمز الطالب.";return}$("#lg").disabled=true;$("#le").textContent="";
-    try{REC=await jpost("result",{code:c});S.me=c;S.studentIdentity={name:REC.n,department:REC.department,stage:REC.stage};S.grade=REC.g;save();after()}
-    catch(e){$("#lg").disabled=false;$("#le").textContent=e.status===404?"رمز الطالب غير صحيح، تأكد من الرمز وحاول مرة ثانية.":e.status===429?"محاولات كثيرة، انتظر قليلاً ثم حاول.":"تعذر الاتصال، حاول مرة ثانية."}
+  b.innerHTML='<div class="card"><b>🔐 عرض نتيجتي أو البحث عن القبول المسائي</b><p class="sub">تگدر تدخل برمز الطالب لعرض درجاتك المسجلة بالمنصة، أو تكتب اسمك الثنائي أو الثلاثي للبحث بقائمة القبول المسائي لجامعة بغداد.</p><label class="lb" for="lc">رمز الطالب (اختياري)</label><input type="text" id="lc" inputmode="numeric" maxlength="20" autocomplete="off" placeholder="اكتب رمز الطالب" style="direction:ltr;text-align:center"><label class="lb" for="ln" style="margin-top:12px">الاسم الثنائي أو الثلاثي (اختياري)</label><input type="text" id="ln" maxlength="120" autocomplete="name" placeholder="مثال: أحمد محمد علي"><p class="sub" style="margin:6px 0">اكتب الرمز أو الاسم، وتگدر تكتب الاثنين للتحقق من تطابقهما.</p><button id="lg" style="width:100%;margin-top:12px">بحث / عرض النتيجة</button><p class="err" id="le"></p><div id="admissionResults"></div></div>';
+
+  async function searchAdmissions(name, note){
+    var out=$("#admissionResults");
+    out.innerHTML='<div class="sub" style="padding:12px;text-align:center">جاري البحث في نتائج الجامعة…</div>';
+    try{
+      var data=await jpost("admissions/search",{name:name});
+      if(!data.matches||!data.matches.length){
+        out.innerHTML='<div style="margin-top:12px;padding:13px;border:1px solid var(--bd);border-radius:14px;line-height:1.9"><b>لم نعثر على تطابق في قائمة القبول الرسمية.</b><p class="sub" style="margin:5px 0">تأكد من كتابة الاسم، أو راجع صفحة الجامعة الرسمية. عدم ظهور الاسم هنا لا يعني القبول أو الرفض.</p><a href="https://graduation.uobaghdad.edu.iq/?p=29496" target="_blank" rel="noopener noreferrer">فتح نتائج جامعة بغداد الرسمية ↗</a></div>';
+        return;
+      }
+      var header='<div style="margin-top:14px"><b>نتائج البحث في القبول المسائي 2026–2027</b>'+(note?'<p class="sub">'+esc(note)+'</p>':'')+'<p class="sub">إذا ظهرت أكثر من نتيجة، طابق اسمك مع الاسم الكامل.</p></div>';
+      out.innerHTML=header+data.matches.map(function(x,i){return '<div class="card" style="margin-top:9px;border:1px solid var(--bd)"><div class="sub">نتيجة مطابقة '+(i+1)+'</div><b style="font-size:15px">'+esc(x.name)+'</b><div class="ln"><span>الكلية</span><b>'+esc(x.college)+'</b></div><div class="ln"><span>القسم</span><b>'+esc(x.department)+'</b></div></div>'}).join('')+'<p class="sub" style="margin-top:10px">المصدر: <a href="'+esc(data.source)+'" target="_blank" rel="noopener noreferrer">جامعة بغداد – قسم التسجيل وشؤون الطلبة</a></p>';
+    }catch(e){
+      out.innerHTML='<div class="sub" style="margin-top:10px;color:var(--red)">'+esc(e.message||"تعذر تحميل نتائج الجامعة حالياً. حاول مرة ثانية.")+'<br><a href="https://graduation.uobaghdad.edu.iq/?p=29496" target="_blank" rel="noopener noreferrer">فتح الموقع الرسمي</a></div>';
+    }
   }
-  $("#lg").onclick=ok;$("#lc").onkeydown=function(e){if(e.key==="Enter")ok()};
+
+  async function ok(){
+    var c=$("#lc").value.replace(/\D/g,""), n=$("#ln").value.trim();
+    if(!c&&!n){$("#le").textContent="اكتب رمز الطالب أو اسمك الثنائي/الثلاثي.";return;}
+    var btn=$("#lg");btn.disabled=true;$("#le").textContent="";$("#admissionResults").innerHTML="";
+    if(c){
+      try{
+        REC=await jpost("result",{code:c,name:n});S.me=c;S.studentIdentity={name:REC.n,department:REC.department,stage:REC.stage};S.grade=REC.g;save();after();return;
+      }catch(e){
+        if(e.status===409){$("#le").textContent=e.message||"اكتب اسمك حتى نكمل التحقق.";$("#ln").focus();btn.disabled=false;return;}
+        if(e.status===403){$("#le").textContent=e.message||"الاسم لا يطابق الرمز.";btn.disabled=false;return;}
+        if(e.status===429){$("#le").textContent="محاولات كثيرة، انتظر قليلاً ثم حاول.";btn.disabled=false;return;}
+        if(e.status!==404){$("#le").textContent="تعذر الاتصال، حاول مرة ثانية.";btn.disabled=false;return;}
+        if(!n){$("#le").textContent="ما لقينا هذا الرمز. تگدر تكتب اسمك بالأسفل للبحث في نتائج القبول.";$("#ln").focus();btn.disabled=false;return;}
+        $("#le").textContent="لم نعثر على رمز بهذا الرقم؛ بحثنا عن الاسم في قائمة القبول المسائي:";
+      }
+    }
+    if(n){await searchAdmissions(n,c?"الرمز المدخل غير مسجل في المنصة؛ النتائج التالية من قائمة القبول الرسمية بالاسم.":"");}
+    btn.disabled=false;
+  }
+  $("#lg").onclick=ok;
+  $("#lc").onkeydown=function(e){if(e.key==="Enter")ok()};
+  $("#ln").onkeydown=function(e){if(e.key==="Enter")ok()};
 }
 
 /* الامتحانات الورقية — أسئلة من الأدمن + تصحيح بالصورة */
