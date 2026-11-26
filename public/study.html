@@ -801,7 +801,7 @@ function build(){
   var h='<section id="v-home" class="v home-view">'+
     '<header class="home-top"><div class="brand-lockup"><div class="brand-symbol" id="cms-brand-symbol">هـ</div><div><b id="cms-brand-name">ابن الهيثم</b><span id="cms-brand-tagline">بوابتك الجامعية الذكية</span></div></div><div class="home-campus-pill"><span>✦</span> جامعة بغداد <select id="grade" aria-label="المسار" hidden></select></div></header>'+
     '<section class="campus-welcome"><div><span class="campus-kicker">كلية التربية للعلوم الصرفة</span><h1 id="hi">مرحباً بك في بوابة ابن الهيثم</h1><p>كل أدواتك الجامعية في مكان واحد</p><div id="hero-student" class="hero-student"></div></div><div class="campus-mark">هـ</div></section>'+
-    '<button data-go="mydept" class="mydept-home-cta" style="display:flex;align-items:center;justify-content:center;gap:14px;width:min(100%,560px);margin:22px auto 18px;padding:22px 18px;border:0;border-radius:24px;background:linear-gradient(125deg,#073f3a,#087f6d 58%,#19a88c);color:#fff;box-shadow:0 14px 32px rgba(7,92,76,.25);text-align:center;cursor:pointer"><span style="font-size:38px">🎓</span><span style="display:block"><b style="display:block;font-size:24px;font-weight:1000">ما هو قسمي؟</b><small style="display:block;margin-top:5px;color:#e2fff7;font-size:13px">اكتشف قسم قبولك بالاسم أو رمز الطالب</small></span><span style="font-size:25px">←</span></button>'+
+    '<button data-go="mydept" class="mydept-home-cta" style="display:flex;align-items:center;justify-content:center;gap:14px;width:min(100%,560px);margin:22px auto 18px;padding:22px 18px;border:0;border-radius:24px;background:linear-gradient(125deg,#073f3a,#087f6d 58%,#19a88c);color:#fff;box-shadow:0 14px 32px rgba(7,92,76,.25);text-align:center;cursor:pointer"><span style="font-size:38px">🎓</span><span style="display:block"><b style="display:block;font-size:24px;font-weight:1000">ما هو قسمي؟</b><small style="display:block;margin-top:5px;color:#e2fff7;font-size:13px">اكتشف قسم قبولك بالاسم</small></span><span style="font-size:25px">←</span></button>'+
     '<div class="home-tool-search"><span>⌕</span><input id="homeToolSearch" type="search" placeholder="ابحث عن أداة جامعية..." aria-label="ابحث عن أداة جامعية"></div>'+
     '<div class="home-shortcuts"><button data-go="ai"><span>✦</span> المساعد الذكي</button><button data-go="files"><span>📚</span> الملازم</button><button data-go="res"><span>📊</span> نتيجتي</button><button data-go="inquiries"><span>❔</span> الاستفسار</button><button data-go="groups"><span>♧</span> المجموعات</button><button data-go="private"><span>✉</span> الرسائل</button><button data-go="community"><span>▤</span> المجتمع</button></div>'+
     '<section class="home-block" id="cms-group-learn"><div class="block-heading"><div><span class="block-kicker" id="cms-learn-kicker">المصادر والتواصل</span><h2 id="cms-learn-title">تعلّم وتواصل</h2><p id="cms-learn-description">مصادرك الجامعية ومساحات التعاون</p></div><span class="block-count">أدوات</span></div><div class="tiles-grid" id="tile-learn"></div></section>'+
@@ -2340,7 +2340,7 @@ function rReport(){
 /* ما هو قسمي؟ — قسم مستقل للبحث عن القبول */
 async function rMyDept(){
   var b=$("#b-mydept");if(!b)return;
-  b.innerHTML='<div style="max-width:650px;margin:18px auto 30px;text-align:center"><div style="padding:28px 20px;border-radius:28px;background:linear-gradient(145deg,#073f3a,#087f6d 62%,#1aa58c);color:#fff;box-shadow:0 16px 38px #087f6d33"><div style="font-size:54px;margin-bottom:8px">🎓</div><h2 style="font-size:30px;color:#fff;margin:0 0 8px;font-weight:1000">ما هو قسمي؟</h2><p style="color:#e4fff8;line-height:1.9;margin:0">اكتب رمز الطالب أو اسمك الثنائي أو الثلاثي حتى نبحث عن قسم قبولك في نتائج الدراسة المسائية.</p></div><div class="card" style="margin-top:16px;padding:22px;text-align:right;border-radius:24px;box-shadow:0 12px 30px #123b2b12"><label class="lb" for="mdCode">رمز الطالب (اختياري)</label><input id="mdCode" type="text" inputmode="numeric" maxlength="20" placeholder="اكتب رمز الطالب" style="width:100%;box-sizing:border-box;padding:15px;border:1px solid var(--bd);border-radius:14px;background:var(--bg);color:var(--tx);font:inherit;text-align:center;direction:ltr"><div style="text-align:center;color:var(--mut);font-weight:900;margin:12px 0">— أو —</div><label class="lb" for="mdName">اسم الطالب (اختياري)</label><input id="mdName" type="text" maxlength="120" autocomplete="name" placeholder="مثال: أحمد محمد علي" style="width:100%;box-sizing:border-box;padding:15px;border:1px solid var(--bd);border-radius:14px;background:var(--bg);color:var(--tx);font:inherit;text-align:right"><p class="sub" style="line-height:1.8;margin:10px 0">تگدر تستخدم الرمز أو الاسم، وإذا عندك الاثنين اكتبهم حتى نتحقق من تطابق البيانات.</p><button id="mdSearch" style="width:100%;padding:16px;border:0;border-radius:15px;background:linear-gradient(120deg,#087f6d,#19a88c);color:#fff;font:inherit;font-weight:1000;font-size:17px;box-shadow:0 8px 18px #087f6d30">🔎 اعرف قسمي</button><p class="err" id="mdError" style="margin-top:10px"></p><div id="mdResults"></div></div><p class="sub" style="margin:12px 8px;line-height:1.8">يتم عرض القسم عند العثور على تطابق في قائمة القبول الرسمية فقط.</p></div>';
+  b.innerHTML='<div style="max-width:650px;margin:18px auto 30px;text-align:center"><div style="padding:28px 20px;border-radius:28px;background:linear-gradient(145deg,#073f3a,#087f6d 62%,#1aa58c);color:#fff;box-shadow:0 16px 38px #087f6d33"><div style="font-size:54px;margin-bottom:8px">🎓</div><h2 style="font-size:30px;color:#fff;margin:0 0 8px;font-weight:1000">ما هو قسمي؟</h2><p style="color:#e4fff8;line-height:1.9;margin:0">اكتب اسمك الثنائي أو الثلاثي حتى نبحث عن قسم قبولك في نتائج الدراسة المسائية.</p></div><div class="card" style="margin-top:16px;padding:22px;text-align:right;border-radius:24px;box-shadow:0 12px 30px #123b2b12"><label class="lb" for="mdName">اسم الطالب</label><input id="mdName" type="text" maxlength="120" autocomplete="name" placeholder="مثال: أحمد محمد علي" style="width:100%;box-sizing:border-box;padding:15px;border:1px solid var(--bd);border-radius:14px;background:var(--bg);color:var(--tx);font:inherit;text-align:right"><p class="sub" style="line-height:1.8;margin:10px 0">اكتب اسمك كما هو مسجل في قوائم القبول، ويمكن كتابة الاسم الثنائي أو الثلاثي.</p><button id="mdSearch" style="width:100%;padding:16px;border:0;border-radius:15px;background:linear-gradient(120deg,#087f6d,#19a88c);color:#fff;font:inherit;font-weight:1000;font-size:17px;box-shadow:0 8px 18px #087f6d30">🔎 اعرف قسمي</button><p class="err" id="mdError" style="margin-top:10px"></p><div id="mdResults"></div></div><p class="sub" style="margin:12px 8px;line-height:1.8">يتم عرض القسم عند العثور على تطابق في قائمة القبول الرسمية فقط.</p></div>';
   async function searchByName(name,note){
     var out=$("#mdResults");out.innerHTML='<div class="sub" style="padding:14px;text-align:center">جاري البحث عن اسمك في نتائج الجامعة… ⏳</div>';
     try{
@@ -2350,27 +2350,13 @@ async function rMyDept(){
     }catch(e){out.innerHTML='<div class="sub" style="color:var(--red);margin-top:12px">تعذر تحميل نتائج الجامعة حالياً. حاول مرة ثانية أو افتح <a href="https://graduation.uobaghdad.edu.iq/?p=29496" target="_blank" rel="noopener noreferrer">الموقع الرسمي</a>.</div>';}
   }
   async function run(){
-    var code=$("#mdCode").value.replace(/\D/g,""),name=$("#mdName").value.trim(),btn=$("#mdSearch"),err=$("#mdError"),out=$("#mdResults");
-    if(!code&&!name){err.textContent="اكتب رمز الطالب أو اسمك حتى نبحث عن قسمك.";return;}
+    var name=$("#mdName").value.trim(),btn=$("#mdSearch"),err=$("#mdError"),out=$("#mdResults");
+    if(!name){err.textContent="اكتب اسمك الثنائي أو الثلاثي حتى نبحث عن قسمك.";return;}
     btn.disabled=true;err.textContent="";out.innerHTML="";
-    if(code){
-      try{
-        var rec=await jpost("result",{code:code,name:name});
-        var verifiedName=rec.n||name;
-        if(name&&rec.n&&name!==rec.n){err.textContent="تم التحقق من الرمز، لكن الاسم المكتوب لا يطابق الاسم المسجل. سنبحث بالاسم المسجل للرمز.";}
-        await searchByName(verifiedName,"تم التحقق من رمز الطالب، والبحث بالاسم المسجل في نتائج القبول.");
-      }catch(e){
-        if(e.status===409&&!name){err.textContent=e.message||"اكتب اسمك حتى نكمل التحقق.";$("#mdName").focus();}
-        else if(e.status===403){err.textContent=e.message||"الاسم لا يطابق الرمز.";}
-        else if(e.status===429){err.textContent="محاولات كثيرة. انتظر قليلاً ثم حاول.";}
-        else if(name){await searchByName(name,"تعذر التحقق من الرمز داخل المنصة؛ تم البحث بالاسم في القائمة الرسمية.");}
-        else{err.textContent="لم نعثر على هذا الرمز. اكتب اسمك حتى نبحث في قائمة القبول الرسمية.";$("#mdName").focus();}
-      }
-    }else{await searchByName(name,"");}
+    await searchByName(name,"");
     btn.disabled=false;
   }
   $("#mdSearch").onclick=run;
-  $("#mdCode").onkeydown=function(e){if(e.key==="Enter")run()};
   $("#mdName").onkeydown=function(e){if(e.key==="Enter")run()};
 }
 
