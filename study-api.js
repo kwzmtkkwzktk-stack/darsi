@@ -69,6 +69,95 @@ module.exports = function (app, db, express) {
   };
   const gradeFilter = (g) => (g ? { $or: [{ grade: g }, { grade: "" }] } : {});
 
+  // تطبيع الأسماء العربية ومقارنة الأخطاء الإملائية البسيطة
+  const normArabicName = (value) => S(value, 140)
+    .toLowerCase()
+    .replace(/[\u064B-\u065F\u0670\u0640]/g, "")
+    .replace(/[أإآٱ]/g, "ا").replace(/ى/g, "ي").replace(/[ؤئ]/g, "ء")
+    .replace(/ة/g, "ه").replace(/عبدالله/g, "عبد الله")
+    .replace(/[^\u0600-\u06FF0-9]+/g, " ").replace(/\s+/g, " ").trim();
+
+  function editDistance(a, b) {
+    const prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+    for (let i = 1; i <= a.length; i++) {
+      let diagonal = prev[0]; prev[0] = i;
+      for (let j = 1; j <= b.length; j++) {
+        const old = prev[j];
+        prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, diagonal + (a[i - 1] === b[j - 1] ? 0 : 1));
+        diagonal = old;
+      }
+    }
+    return prev[b.length];
+  }
+
+  function arabicNameTokens(value) {
+    return normArabicName(value).split(" ").filter(Boolean).flatMap(token => {
+      if (token.startsWith("عبدال") && token.length > 5) return ["عبد", token.slice(3)];
+      return [token];
+    });
+  }
+
+  function nameMatchScore(query, fullName) {
+    const q = arabicNameTokens(query);
+    const n = arabicNameTokens(fullName);
+    if (q.length < 2 || !n.length || q.length > n.length) return 0;
+    const used = new Set(); let sum = 0;
+    for (const token of q) {
+      let best = 0, bestIndex = -1;
+      for (let i = 0; i < n.length; i++) {
+        if (used.has(i)) continue;
+        const candidate = n[i];
+        const distance = editDistance(token, candidate);
+        const score = token === candidate ? 1 : (Math.max(token.length, candidate.length) <= 3 ? 0 : 1 - distance / Math.max(token.length, candidate.length));
+        if (score > best) { best = score; bestIndex = i; }
+      }
+      if (bestIndex < 0 || best < (token.length <= 3 ? 1 : 0.74)) return 0;
+      used.add(bestIndex); sum += best;
+    }
+    return sum / q.length;
+  }
+
+  const htmlText = (value) => String(value || "")
+    .replace(/<script\b[\s\S]*?<\/script>/gi, " ").replace(/<style\b[\s\S]*?<\/style>/gi, " ")
+    .replace(/<br\s*\/?\s*>/gi, " ").replace(/<[^>]+>/g, " ")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+    .replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&quot;/gi, '"')
+    .replace(/&#039;|&apos;/gi, "'").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ").trim();
+
+  const ADMISSIONS_URL = "https://graduation.uobaghdad.edu.iq/?p=29496";
+  let admissionsCache = { at: 0, rows: [] };
+  async function getEveningAdmissions() {
+    if (admissionsCache.rows.length && Date.now() - admissionsCache.at < 15 * 60 * 1000) return admissionsCache.rows;
+    if (typeof fetch !== "function") throw bad("خدمة البحث عن نتائج القبول غير متاحة حالياً", 503);
+    const response = await fetch(ADMISSIONS_URL, {
+      headers: { "user-agent": "Mozilla/5.0 (compatible; DarsiStudentLookup/1.0)", "accept": "text/html" },
+      signal: AbortSignal.timeout(15000)
+    });
+    if (!response.ok) throw bad("تعذر الوصول إلى صفحة نتائج الجامعة حالياً", 502);
+    const html = await response.text();
+    const tables = html.match(/<table\b[\s\S]*?<\/table>/gi) || [];
+    const table = tables.find(t => /اسم\s*الطالب/.test(htmlText(t)) && /الكليه|الكلية/.test(htmlText(t)) && /القسم/.test(htmlText(t)));
+    if (!table) throw bad("تغير تنسيق صفحة نتائج الجامعة، تعذر قراءة القائمة", 502);
+    const trs = table.match(/<tr\b[\s\S]*?<\/tr>/gi) || [];
+    const rows = [];
+    for (const tr of trs) {
+      const rawCells = [...tr.matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(m => htmlText(m[1]));
+      if (rawCells.length < 3) continue;
+      const hasSerial = /^\d+$/.test(rawCells[0]);
+      const name = rawCells[hasSerial ? 1 : 0] || "";
+      const college = rawCells[hasSerial ? 2 : 1] || "";
+      const department = rawCells[hasSerial ? 3 : 2] || "";
+      if (normArabicName(name).split(" ").length >= 2 && college && department && !/اسم الطالب/.test(name)) {
+        rows.push({ name, college, department });
+      }
+    }
+    if (rows.length < 500) throw bad("قائمة نتائج الجامعة لم تكتمل، أعد المحاولة لاحقاً", 502);
+    admissionsCache = { at: Date.now(), rows };
+    return rows;
+  }
+
   // =============== للعرض العام ===============
   app.get("/api/study/info", async (req, res) => {
     try {
@@ -138,11 +227,33 @@ module.exports = function (app, db, express) {
     if (tooMany("r" + (req.ip || "x"), 40, 600000)) return res.sendStatus(429);
     try {
       const code = S(req.body && req.body.code, 20).replace(/\D/g, "");
+      const suppliedName = S(req.body && req.body.name, 120);
       if (code.length < 4) return res.sendStatus(404);
       const d = await (await col("st_students")).findOne({ _id: code });
       if (!d) return res.sendStatus(404);
+      if (!S(d.n, 120) && !suppliedName) return res.status(409).json({ error: "اكتب اسمك حتى نكمل التحقق من الحساب" });
+      if (suppliedName && d.n && nameMatchScore(suppliedName, d.n) < 0.82) return res.status(403).json({ error: "الاسم لا يطابق الاسم المسجل لهذا الرمز" });
       res.set("Cache-Control", "no-store");
-      res.json({ n: d.n, g: d.g, department: d.department, stage: d.stage, x: d.x || {}, ab: d.ab || [] });
+      res.json({ n: d.n || suppliedName, g: d.g, department: d.department, stage: d.stage, x: d.x || {}, ab: d.ab || [] });
+    } catch (e) { fail(res, e); }
+  });
+
+  // البحث بالاسم في قائمة القبول المسائي المنشورة من جامعة بغداد
+  app.post("/api/study/admissions/search", async (req, res) => {
+    if (tooMany("admission" + (req.ip || "x"), 20, 600000)) return res.sendStatus(429);
+    try {
+      const name = S(req.body && req.body.name, 120);
+      const tokens = normArabicName(name).split(" ").filter(Boolean);
+      need(tokens.length >= 2, "اكتب اسمك الثنائي أو الثلاثي على الأقل");
+      need(tokens.length <= 7, "الاسم طويل جداً، اكتب الاسم الثنائي أو الثلاثي");
+      const rows = await getEveningAdmissions();
+      const matches = rows.map(row => ({ ...row, score: nameMatchScore(name, row.name) }))
+        .filter(row => row.score >= 0.78)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10)
+        .map(({ score, ...row }) => ({ ...row, confidence: Math.round(score * 100) }));
+      res.set("Cache-Control", "no-store");
+      res.json({ ok: true, matches, source: ADMISSIONS_URL, updatedAt: admissionsCache.at, total: rows.length });
     } catch (e) { fail(res, e); }
   });
 
