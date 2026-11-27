@@ -469,6 +469,7 @@ module.exports = function (app, db, express) {
       need(r.matchedCount, "لم يتم العثور على الاستفسار");
       return { ok:true };
     },
+    "what-happens.list": async () => (await (await col("st_what_happens")).find({}).sort({ createdAt: -1 }).limit(500).toArray()).map(x => ({ id:String(x._id), question:x.question || "", answer:x.answer || "", createdAt:x.createdAt || 0 })),
 
     "files.list": async () => (await (await col("st_files")).find({}).sort({ date: -1 }).limit(500).toArray()).map(fileOut),
     "files.link.save": async (b) => {
@@ -768,6 +769,40 @@ module.exports = function (app, db, express) {
     const j = await r.json();
     return (j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content) || "";
   }
+
+  // ===================== ماذا يحصل عند؟ — شرح الظواهر والتفاعلات بأمان =====================
+  async function saveWhatHappensLog(question, answer) {
+    try {
+      await (await col("st_what_happens")).insertOne({ question: S(question, 1200), answer: S(answer, 2200), createdAt: Date.now() });
+    } catch (e) { console.error("What-happens log error:", e && e.message); }
+  }
+
+  app.post("/api/study/what-happens", async (req, res) => {
+    const ip = req.ip || "x";
+    if (tooMany("what-happens:" + ip, 10, 5 * 60 * 1000)) {
+      return res.status(429).json({ error: "وصلت للحد المؤقت من الأسئلة. انتظر قليلاً ثم حاول." });
+    }
+    try {
+      const question = S(req.body && req.body.question, 1200);
+      need(question.length >= 4, "اكتب سؤالك العلمي أولاً.");
+      // Safety-first deterministic response for fuel/alcohol mixing questions.
+      if (/(بنزين|وقود|كيروسين|نفط|جازولين)/i.test(question) && /(كحول|ايثانول|إيثانول|ميثانول|خلط|امزج)/i.test(question)) {
+        const answer = "الشرح العلمي: البنزين وقود سريع الاشتعال، وبعض أنواع الكحول أيضاً قابلة للاشتعال.\n\nماذا يحصل؟ قد يتكوّن مزيج من سوائل وأبخرة شديدة القابلية للاشتعال، وقد تختلف خواصه بحسب نوع المواد وتركيبها. لا يمكن اعتبار الناتج آمناً أو التنبؤ بسلوكه من الاسم وحده.\n\nالنتيجة والمخاطر: يزداد خطر اشتعال الأبخرة وحدوث حريق مفاجئ، لذلك لا تخلط هذه المواد ولا تجرّبها.\n\nللتعلّم: يمكن دراسة قابلية الاشتعال وخواص السوائل بصورة نظرية أو من خلال تجربة مدرسية آمنة يشرف عليها المدرّس، من دون استخدام الوقود أو خلطه.";
+        await saveWhatHappensLog(question, answer);
+        return res.json({ ok: true, answer });
+      }
+      const system = `أنت معلّم علوم وكيمياء لمنصة دَرسي العراقية، تشرح للطلاب بلغة عربية سهلة ومختصرة. أجب عن السؤال العلمي التالي بشرح تعليمي من 3 إلى 5 فقرات قصيرة: (الفكرة أو التفاعل)، (ماذا يحدث علمياً)، (ما النتيجة أو النواتج العامة إن كان تحديدها آمناً ودقيقاً)، (ملاحظة سلامة عند الحاجة). لا تخترع معادلات أو نواتج غير مؤكدة. إذا كانت المواد أو الظروف غير محددة فاذكر أن النتيجة تعتمد عليها. قواعد سلامة إلزامية: لا تقدّم خطوات تنفيذ أو مقادير أو نسب أو درجات حرارة أو أدوات أو تعليمات تحضير أو تحسين لتفاعلات خطرة؛ لا تشرح كيفية إشعال أو تفجير أو تصنيع مواد مؤذية أو سامة أو مخدرة؛ لا تقدم طرقاً للتعامل العملي مع خلطات خطرة. عند السؤال عن وقود أو مذيبات أو مواد شديدة الاشتعال أو سامة أو أكّالة، أعطِ وصفاً عاماً للمخاطر فقط، وقل بوضوح ألا يجرّب الطالب ذلك. لا تذكر تفاصيل تشغيلية قد تساعد على تنفيذ التجربة. لا توبّخ الطالب؛ حافظ على أسلوب مشجّع ومحايد. اجعل الإجابة أقل من 180 كلمة.`;
+      const answer = await callAI([
+        { role: "system", content: system },
+        { role: "user", content: question }
+      ], 500);
+      need(answer && answer.trim().length > 1, "لم يصل شرح من المعلّم الذكي. حاول مرة ثانية.");
+      const finalAnswer = answer.trim().slice(0, 2200);
+      await saveWhatHappensLog(question, finalAnswer);
+      res.set("Cache-Control", "no-store");
+      res.json({ ok: true, answer: finalAnswer });
+    } catch (e) { fail(res, e); }
+  });
 
   // ===================== تجاربي: حل المسائل على السبورة بالذكاء الاصطناعي =====================
   app.post("/api/study/experiment/solve", async (req, res) => {
