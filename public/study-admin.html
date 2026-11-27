@@ -128,7 +128,7 @@ a{color:#126b58}
 var $=function(s){return document.querySelector(s)},esc=function(v){var d=document.createElement("div");d.textContent=v==null?"":v;return d.innerHTML};
 function ar(n){return String(n==null?"":n).replace(/\d/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[d]})}
 var PASS=sessionStorage.getItem("sp")||"",ST=null,TAB="students",tt=0;
-var TABS=[["students","👥 الطلاب والنتائج"],["inquiries","✉️ الاستفسارات"],["activity","📋 نشاط المنصة"],["files","📚 الملازم"],["videos","🎬 المحاضرات"],["questions","✏️ الأسئلة"],["paper","📝 امتحانات ورقية"],["stats","📊 التحليلات"],["news","📢 الإعلانات"],["settings","⚙️ الإعدادات"]];
+var TABS=[["whatwhen","🧪 أسئلة الطلاب"],["students","👥 الطلاب والنتائج"],["inquiries","✉️ الاستفسارات"],["activity","📋 نشاط المنصة"],["files","📚 الملازم"],["videos","🎬 المحاضرات"],["questions","✏️ الأسئلة"],["paper","📝 امتحانات ورقية"],["stats","📊 التحليلات"],["news","📢 الإعلانات"],["settings","⚙️ الإعدادات"]];
 function toast(t,bad){var e=$("#toast");e.textContent=t;e.className=bad?"err":"";e.style.display="block";clearTimeout(tt);tt=setTimeout(function(){e.style.display="none"},4200)}
 async function api(action,body){
   var r=await fetch("/api/study/admin",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(Object.assign({pass:PASS,action:action},body||{}))});
@@ -152,13 +152,21 @@ function tabs(){
   $("#tabs").innerHTML=TABS.map(function(t){return '<button class="chip'+(t[0]===TAB?" on":"")+'" data-t="'+t[0]+'">'+t[1]+"</button>"}).join("");
   $("#tabs").querySelectorAll("button").forEach(function(b){b.onclick=function(){TAB=b.dataset.t;tabs();show(TAB)}});
 }
-function show(t){loading();({students:tStudents,inquiries:tInquiries,activity:tActivity,files:tFiles,videos:tVideos,questions:tQuestions,paper:tPaper,stats:tStats,news:tNews,settings:tSettings})[t]().catch(function(e){toast(e.message,1)})}
+function show(t){loading();({students:tStudents,inquiries:tInquiries,whatwhen:tWhatWhen,activity:tActivity,files:tFiles,videos:tVideos,questions:tQuestions,paper:tPaper,stats:tStats,news:tNews,settings:tSettings})[t]().catch(function(e){toast(e.message,1)})}
 
 /* ================= استفسارات الطلاب ================= */
 async function tInquiries(){var list=await api('inquiries.list');
   if(!list.length){$('#pane').innerHTML='<div class="card">لا توجد استفسارات من الطلاب حالياً.</div>';return}
   $('#pane').innerHTML=list.map(function(x){return '<div class="card"><div class="row"><b>'+esc(x.name)+'</b><span class="badge">'+esc(x.department)+' · '+esc(x.stage)+'</span></div><p class="small">رمز الطالب: '+esc(x.code)+' · '+new Date(x.createdAt).toLocaleString('ar-IQ')+'</p><div style="white-space:pre-wrap;line-height:1.9;margin:12px 0">'+esc(x.message)+'</div><label>رد الإدارة</label><textarea data-reply="'+esc(x.id)+'" placeholder="اكتب ردك للطالب...">'+esc(x.reply)+'</textarea><button class="sm" data-sendreply="'+esc(x.id)+'" style="margin-top:8px">إرسال الرد للطالب</button></div>'}).join('');
   $('#pane').querySelectorAll('[data-sendreply]').forEach(function(btn){btn.onclick=async function(){var id=btn.dataset.sendreply,field=$('#pane').querySelector('[data-reply="'+id+'"]'),reply=field.value.trim();if(reply.length<2){toast('اكتب الرد أولاً',1);return}btn.disabled=true;try{await api('inquiries.reply',{id:id,reply:reply});toast('تم إرسال الرد للطالب، وسيصله إشعار عند دخوله المنصة');await tInquiries()}catch(e){toast(e.message,1);btn.disabled=false}}});
+}
+
+/* أسئلة قسم ماذا يحصل عند؟ */
+async function tWhatWhen(){
+  var list=await api('what-happens.list');
+  if(!list.length){$('#pane').innerHTML='<div class="card"><b>🧪 أسئلة الطلاب — ماذا يحصل عند؟</b><p class="small">عدد الأسئلة: ٠</p><p>ماكو أسئلة مستلمة لحد الآن. أول ما يرسل طالب سؤالاً ويظهر جوابه، راح تشوف اسمه وسؤاله هنا.</p><button id="wwRefresh">تحديث القائمة</button></div>';$('#wwRefresh').onclick=tWhatWhen;return}
+  $('#pane').innerHTML='<div class="card" style="margin-bottom:12px"><div class="row"><b>🧪 أسئلة الطلاب — ماذا يحصل عند؟</b><button id="wwRefresh" class="sm">تحديث</button></div><p class="small">عدد الأسئلة المعروضة: '+ar(list.length)+' · تظهر بيانات الملف الدراسي المحفوظة عند إرسال السؤال.</p></div>'+list.map(function(x){return '<div class="card" style="margin-bottom:12px"><div class="row" style="align-items:flex-start;gap:8px"><b style="font-size:15px">👤 '+esc(x.studentName)+'</b><span class="badge">'+new Date(x.createdAt).toLocaleString('ar-IQ')+'</span></div><div class="small" style="margin:6px 0 12px">'+[x.school,x.grade,x.department,x.stage].filter(Boolean).map(esc).join(' · ')+'</div><div style="padding:12px;border-radius:13px;background:var(--bg);line-height:1.9;white-space:pre-wrap"><b>سؤال الطالب:</b>\n'+esc(x.question)+'</div><details style="margin-top:10px"><summary style="cursor:pointer;font-weight:800">عرض جواب المعلّم الذكي</summary><div style="padding:12px;line-height:1.9;white-space:pre-wrap">'+esc(x.answer)+'</div></details></div>'}).join('');
+  $('#wwRefresh').onclick=tWhatWhen;
 }
 
 /* ضغط الصور قبل الرفع */
