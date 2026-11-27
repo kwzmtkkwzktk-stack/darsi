@@ -2344,10 +2344,16 @@ function rWhatWhen(){
   var b=$("#b-whatwhen");if(!b)return;
   b.innerHTML='<div style="max-width:700px;margin:16px auto 30px"><div style="padding:26px 20px;border-radius:26px;background:linear-gradient(140deg,#5b3515,#b86a1c 62%,#e59b42);color:#fff;text-align:center;box-shadow:0 15px 34px #9a581f30"><div style="font-size:52px">🧪</div><h2 style="color:#fff;font-size:29px;margin:4px 0 8px;font-weight:1000">ماذا يحصل عند؟</h2><p style="color:#fff3df;line-height:1.9;margin:0">اسأل عن تفاعل كيميائي أو ظاهرة علمية، وخذ شرحاً مبسطاً ونتيجته العامة.</p></div><div class="card" style="margin-top:15px;padding:20px;border-radius:22px"><label class="lb" for="wwQuestion">اكتب سؤالك العلمي</label><textarea id="wwQuestion" maxlength="1200" rows="3" placeholder="مثال: ماذا يحصل عند صدأ الحديد؟" style="width:100%;box-sizing:border-box;padding:14px;border:1px solid var(--bd);border-radius:14px;background:var(--bg);color:var(--tx);font:inherit;resize:vertical"></textarea><p class="sub" style="line-height:1.8;margin:8px 0 12px">اكتب السؤال بوضوح، مثل: ماذا يحصل عند تسخين الماء؟ أو عند صدأ الحديد؟</p><button id="wwAsk" style="width:100%;padding:15px;border:0;border-radius:14px;background:linear-gradient(120deg,#a85c16,#d8892e);color:white;font:inherit;font-weight:1000;font-size:17px">🔍 اعرف ماذا يحصل</button><div id="wwStatus" class="sub" style="margin-top:12px;text-align:center"></div><div id="wwAnswer" style="margin-top:12px"></div></div><p class="sub" style="text-align:center;line-height:1.8;margin:12px 8px">للتعلّم فقط: لا تجرّب خلط المواد أو تسخينها بنفسك، خصوصاً الوقود والمواد القابلة للاشتعال. قد تُراجع إدارة المنصة الأسئلة والإجابات لتحسين المحتوى التعليمي.</p></div>';
   var input=$("#wwQuestion"),btn=$("#wwAsk"),status=$("#wwStatus"),answer=$("#wwAnswer");
+  if(needProfile()){
+    input.disabled=true;btn.disabled=true;
+    status.textContent="أكمل ملفك الدراسي مرة واحدة من نافذة التعريف بالمنصة، وبعدها تقدر تسأل بدون تسجيل جديد.";
+    setTimeout(function(){showProfileGate(false)},250);
+  }
   btn.onclick=async function(){
+    if(needProfile()){showProfileGate(false);status.textContent="أكمل ملفك الدراسي أولاً.";return;}
     var question=(input.value||"").trim();if(question.length<4){status.textContent="اكتب سؤالاً أوضح حتى أشرح لك.";return;}
     btn.disabled=true;btn.textContent="جاري إعداد الشرح...";status.textContent="لحظة، نبحث عن التفسير العلمي المناسب ⏳";answer.innerHTML="";
-    try{var r=await jpost("what-happens",{question:question});answer.innerHTML='<div style="padding:17px;border:1px solid var(--bd);border-radius:16px;background:var(--card);line-height:1.95"><div style="font-weight:1000;font-size:18px;margin-bottom:10px;color:var(--pri)">📘 الشرح العلمي</div><div style="white-space:pre-wrap">'+esc(r.answer||"")+'</div></div>';status.textContent="";}
+    try{var ident=S.studentIdentity||{};var student={name:S.name||ident.name||"",school:S.school||ident.department||"",grade:S.grade||ident.stage||"",department:ident.department||"",stage:ident.stage||"",studentCode:S.me||""};var r=await jpost("what-happens",{question:question,student:student});answer.innerHTML='<div style="padding:17px;border:1px solid var(--bd);border-radius:16px;background:var(--card);line-height:1.95"><div style="font-weight:1000;font-size:18px;margin-bottom:10px;color:var(--pri)">📘 الشرح العلمي</div><div style="white-space:pre-wrap">'+esc(r.answer||"")+'</div></div>';status.textContent="";}
     catch(e){status.textContent=e.message||"تعذر إعداد الشرح حالياً. حاول مرة ثانية.";status.style.color="#c33";}
     finally{btn.disabled=false;btn.textContent="🔍 اعرف ماذا يحصل";}
   };
@@ -2800,7 +2806,10 @@ function endAI(){
 
 /* الملف الشخصي: تسجيل أول دخول مرة واحدة، ويشمل الطلاب القدامى بعد التحديث */
 function needProfile(){
-  return !(S.profileVersion===1 && S.name && S.name.trim().length>=2 && S.school && S.school.trim().length>=2 && S.grade);
+  /* لا نطلب التسجيل مرة ثانية إذا كانت بيانات الملف موجودة، أو الطالب دخل مسبقاً برمز نتيجتي. */
+  var profileReady=!!(S.name&&S.name.trim().length>=2&&S.school&&S.school.trim().length>=2&&S.grade);
+  var resultLoginReady=!!(S.me&&S.studentIdentity&&S.studentIdentity.name&&S.studentIdentity.department&&S.studentIdentity.stage);
+  return !(profileReady||resultLoginReady);
 }
 function showProfileGate(force){
   if(!force&&!needProfile())return false;
