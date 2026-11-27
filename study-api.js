@@ -469,6 +469,7 @@ module.exports = function (app, db, express) {
       need(r.matchedCount, "لم يتم العثور على الاستفسار");
       return { ok:true };
     },
+    "account-deletions.list": async () => (await (await col("st_account_deletion_requests")).find({}).sort({ createdAt: -1 }).limit(300).toArray()).map(x => ({ id:String(x._id), name:x.name, school:x.school, code:x.code || "", status:x.status, createdAt:x.createdAt })),
     "what-happens.list": async () => (await (await col("st_what_happens")).find({}).sort({ createdAt: -1 }).limit(500).toArray()).map(x => ({ id:String(x._id), studentName:x.studentName || "اسم غير متوفر (سؤال سابق)", school:x.school || "", grade:x.grade || "", department:x.department || "", stage:x.stage || "", question:x.question || "", answer:x.answer || "", createdAt:x.createdAt || 0 })),
 
     "files.list": async () => (await (await col("st_files")).find({}).sort({ date: -1 }).limit(500).toArray()).map(fileOut),
@@ -1452,6 +1453,22 @@ module.exports = function (app, db, express) {
         { upsert: true }
       );
       res.json({ ok: true, vid });
+    } catch (e) { fail(res, e); }
+  });
+
+  // طلب حذف حساب وبيانات الطالب: يُراجع الطلب قبل الحذف لمنع حذف بيانات طالب آخر بالخطأ.
+  app.post("/api/study/account-deletion", async (req, res) => {
+    if (tooMany("delete-account:" + (req.ip || "x"), 5, 60 * 60 * 1000)) return res.sendStatus(429);
+    try {
+      const b = req.body || {};
+      const name = S(b.name, 120), school = S(b.school, 120), code = S(b.code, 20).replace(/\D/g, "");
+      need(name.length >= 2 && school.length >= 2, "اكتب الاسم واسم المدرسة/الجهة كما في ملفك الدراسي.");
+      const result = await (await col("st_account_deletion_requests")).insertOne({
+        name, school, code, status: "pending", createdAt: Date.now(),
+        note: "طلب حذف بيانات؛ يلزم التحقق قبل التنفيذ"
+      });
+      res.set("Cache-Control", "no-store");
+      res.json({ ok: true, requestId: String(result.insertedId), message: "استلمنا طلبك. ستتم مراجعته والتحقق منه قبل حذف البيانات المرتبطة به." });
     } catch (e) { fail(res, e); }
   });
 
