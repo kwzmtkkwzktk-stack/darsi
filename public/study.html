@@ -559,7 +559,9 @@ var DAYS=["الأحد","الاثنين","الثلاثاء","الأربعاء","�
 var TIPS=["ادرس أصعب مادة وقت ما يكون ذهنك صافي، غالباً الصبح.","قسّم الدرس إلى أجزاء صغيرة وخلّص جزء كل جلسة.","جرّب تشرح الدرس بصوت عالي كأنك تعلّم أحد، هذا يثبّت المعلومة.","سوّ أسئلة تدريبية سنوات سابقة، هي أفضل تدريب للامتحان.","نام كافي، الدماغ يرتب المعلومات وانت نايم.","ابتعد عن الموبايل أثناء الجلسة، خلّه بغرفة ثانية.","راجع كل درس بعد يوم، وبعد أسبوع، وبعد شهر."];
 var S;try{S=JSON.parse(localStorage.getItem("st2"))||{}}catch(e){S={}}
 S.notes=S.notes||[];S.log=S.log||{};S.me=S.me||"";S.grade=S.grade||"";S.name=S.name||"";S.province=S.province||"";S.school=S.school||"";S.profileVersion=Number(S.profileVersion)||0;S.vid=S.vid||"";S.username=S.username||"";S.chatDisplay=S.chatDisplay||"";S.muted=Array.isArray(S.muted)?S.muted:[];S.verified=!!S.verified;S.points=Number(S.points)||0;S.heroes=Array.isArray(S.heroes)?S.heroes:[];
-function save(){try{localStorage.setItem("st2",JSON.stringify(S))}catch(e){}}
+/* نسخة احتياطية مستقلة للملف الدراسي حتى لا يضيع الاسم إذا تعذرت قراءة st2 كاملاً. */
+try{var savedProfile=JSON.parse(localStorage.getItem("darsi_profile_v1")||"null");if(savedProfile&&typeof savedProfile==="object"){if(!S.name&&savedProfile.name)S.name=savedProfile.name;if(!S.school&&savedProfile.school)S.school=savedProfile.school;if(!S.grade&&savedProfile.grade)S.grade=savedProfile.grade;if(!S.province&&savedProfile.province)S.province=savedProfile.province;}}catch(profileRestoreError){}
+function save(){try{localStorage.setItem("st2",JSON.stringify(S));if(S.name&&S.name.trim().length>=2){localStorage.setItem("darsi_profile_v1",JSON.stringify({name:S.name,school:S.school||"",grade:S.grade||"",province:S.province||"",savedAt:Date.now()}));}}catch(e){}}
 function dayStart(ts){var d=new Date(ts||Date.now());d.setHours(0,0,0,0);return d.getTime()}
 function ensureStudyData(){
   if(!Array.isArray(S.act))S.act=[];
